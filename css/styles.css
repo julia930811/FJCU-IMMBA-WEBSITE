@@ -121,18 +121,13 @@ button, input, select, textarea { font-family: inherit; }
   color: var(--navy);
 }
 
-.action-bar {
-  background: #fff;
-  border-bottom: 1px solid var(--line);
-}
 .action-area {
-  width: min(var(--max), calc(100% - 40px));
-  margin: 0 auto;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 16px;
-  min-height: 56px;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 .lang-switch {
   display: flex;
@@ -158,6 +153,13 @@ button, input, select, textarea { font-family: inherit; }
   padding: 10px 20px;
   font-weight: 600;
 }
+.btn-books {
+  background: #fff;
+  color: var(--navy);
+  border: 1px solid var(--navy);
+  padding: 10px 20px;
+  font-weight: 600;
+}
 
 .nav-bar {
   position: sticky;
@@ -173,6 +175,10 @@ button, input, select, textarea { font-family: inherit; }
   align-items: center;
   gap: 12px;
   min-height: 56px;
+}
+.nav-inner .nav {
+  flex: 1;
+  min-width: 0;
 }
 .nav {
   display: flex;
@@ -531,6 +537,17 @@ textarea { min-height: 140px; resize: vertical; }
   }
   .nav-bar.is-open .dropdown a {
     padding: 8px 4px;
+  }
+  .action-area {
+    gap: 6px;
+  }
+  .lang-switch a {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+  .btn-apply-navy, .btn-books {
+    padding: 8px 12px;
+    font-size: 12px;
   }
   .notice-inner { flex-wrap: wrap; }
   .brand-text { font-size: 18px; }

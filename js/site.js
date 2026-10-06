@@ -7,7 +7,7 @@ const I18N = {
     menu: "選單",
     collapse: "收合主選單",
     expand: "展開主選單",
-    notice: "本站為杜逸寧副教授課程教學示範網站（非正式官方網站）",
+    notice: "本站為吳佳頤 Julia 課程教學示範網站（非正式官方網站）",
     official: "正式 imMBA 官網",
     brand: "Fu Jen Catholic University International MBA (imMBA)",
     brandShort: "FJCU imMBA",
@@ -67,6 +67,7 @@ const I18N = {
     heroTitle: "Cultivating global managers with AACSB-accredited excellence",
     heroLead: "輔仁大學國際經營管理碩士班——以 AACSB 認證的全英語 MBA，培養具備國際移動力的管理人才。",
     ctaApply: "立即申請",
+    ctaBooks: "二手書",
     ctaMarket: "教材與書籍市集",
     stats: [
       ["30+", "國家與地區的學生交流"],
@@ -110,7 +111,7 @@ const I18N = {
     menu: "Menu",
     collapse: "Collapse main menu",
     expand: "Expand main menu",
-    notice: "Course teaching demonstration site by Professor Yi-Ning Tu (not the official website)",
+    notice: "Course teaching demonstration site by 吳佳頤 Julia (not the official website)",
     official: "Official imMBA website",
     brand: "Fu Jen Catholic University International MBA (imMBA)",
     brandShort: "FJCU imMBA",
@@ -170,6 +171,7 @@ const I18N = {
     heroTitle: "Cultivating global managers with AACSB-accredited excellence",
     heroLead: "Fu Jen Catholic University International MBA — an AACSB-accredited, English-taught program for international mobility.",
     ctaApply: "Apply Now",
+    ctaBooks: "Used books",
     ctaMarket: "Books & materials marketplace",
     stats: [
       ["30+", "countries represented"],
@@ -285,15 +287,6 @@ function headerHTML() {
         </a>
       </div>
     </div>
-    <div class="action-bar">
-      <div class="action-area" aria-label="Action area">
-        <div class="lang-switch">
-          <a href="${zhHref}" class="${locale()==="zh"?"is-active":""}">中文</a>
-          <a href="${enHref}" class="${locale()==="en"?"is-active":""}">EN</a>
-        </div>
-        <a class="btn btn-apply-navy" href="admissions.html">${L.ctaApply}</a>
-      </div>
-    </div>
     <header class="nav-bar" id="siteHeader">
       <div class="nav-inner">
         <button class="nav-toggle" type="button" id="navToggle">${L.menu}</button>
@@ -308,6 +301,14 @@ function headerHTML() {
             ]
           })}
         </nav>
+        <div class="action-area" aria-label="Action area">
+          <div class="lang-switch">
+            <a href="${zhHref}" class="${locale()==="zh"?"is-active":""}">中文</a>
+            <a href="${enHref}" class="${locale()==="en"?"is-active":""}">EN</a>
+          </div>
+          <a class="btn btn-apply-navy" href="admissions.html">${L.ctaApply}</a>
+          <a class="btn btn-books" href="https://github.com/julia930811/FJCU-IMMBA-WEBSITE" target="_blank" rel="noopener">${L.ctaBooks}</a>
+        </div>
       </div>
     </header>
   `;
@@ -332,6 +333,7 @@ function footerHTML() {
               <a href="gallery.html">${locale()==="zh"?"相片集錦":"Gallery"}</a><br>
               <a href="contact.html">${locale()==="zh"?"聯絡我們":"Contact"}</a><br>
               <a href="search.html">${L.search}</a><br>
+              <a href="https://github.com/julia930811/FJCU-IMMBA-WEBSITE" target="_blank" rel="noopener">GitHub</a><br>
               <a href="https://www.aacsb.edu/" target="_blank" rel="noopener">AACSB</a><br>
               <a href="https://www.management.fju.edu.tw/subweb/immba/" target="_blank" rel="noopener">${L.original}</a>
             </p>
@@ -369,7 +371,7 @@ function pages() {
         <p>${t().heroLead}</p>
         <div class="hero-actions">
           <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
-          <a class="btn btn-ghost" href="marketplace.html">${t().ctaMarket}</a>
+          <a class="btn btn-ghost" href="https://github.com/julia930811/FJCU-IMMBA-WEBSITE" target="_blank" rel="noopener">${t().ctaBooks}</a>
         </div>
       </div></section>
       <div class="stats">${t().stats.map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("")}</div>
