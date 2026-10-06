@@ -306,8 +306,6 @@ function headerHTML() {
             <a href="${zhHref}" class="${locale()==="zh"?"is-active":""}">中文</a>
             <a href="${enHref}" class="${locale()==="en"?"is-active":""}">EN</a>
           </div>
-          <a class="btn btn-apply-navy" href="admissions.html">${L.ctaApply}</a>
-          <a class="btn btn-books" href="https://github.com/julia930811/FJCU-IMMBA-WEBSITE" target="_blank" rel="noopener">${L.ctaBooks}</a>
         </div>
       </div>
     </header>
@@ -333,7 +331,7 @@ function footerHTML() {
               <a href="gallery.html">${locale()==="zh"?"相片集錦":"Gallery"}</a><br>
               <a href="contact.html">${locale()==="zh"?"聯絡我們":"Contact"}</a><br>
               <a href="search.html">${L.search}</a><br>
-              <a href="https://github.com/julia930811/FJCU-IMMBA-WEBSITE" target="_blank" rel="noopener">GitHub</a><br>
+              <a href="https://fjcu-immba-website-lilac.vercel.app/" target="_blank" rel="noopener">Vercel</a><br>
               <a href="https://www.aacsb.edu/" target="_blank" rel="noopener">AACSB</a><br>
               <a href="https://www.management.fju.edu.tw/subweb/immba/" target="_blank" rel="noopener">${L.original}</a>
             </p>
@@ -371,7 +369,7 @@ function pages() {
         <p>${t().heroLead}</p>
         <div class="hero-actions">
           <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
-          <a class="btn btn-ghost" href="https://github.com/julia930811/FJCU-IMMBA-WEBSITE" target="_blank" rel="noopener">${t().ctaBooks}</a>
+          <a class="btn btn-ghost" href="https://fjcu-immba-website-lilac.vercel.app/marketplace.html" target="_blank" rel="noopener">${t().ctaBooks}</a>
         </div>
       </div></section>
       <div class="stats">${t().stats.map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("")}</div>
