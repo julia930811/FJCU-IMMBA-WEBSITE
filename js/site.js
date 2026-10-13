@@ -62,7 +62,14 @@ const I18N = {
       ]}
     ],
     collegeNav: "管理學院",
-    heroKicker: "WITH imMBA",
+    motto: "In Veritate et Caritate",
+    mottoZh: "真善美聖｜在真理與愛德之中",
+    identity: [
+      ["天主教大學", "隸屬天主教大學聯盟與耶穌會大學網絡"],
+      ["真善美聖", "輔仁大學校訓 In Veritate et Caritate"],
+      ["全球連結", "姊妹校與校友網絡遍布世界"]
+    ],
+    heroKicker: "Fu Jen Catholic University",
     heroTitle: "Cultivating global managers with AACSB-accredited excellence",
     heroLead: "輔仁大學國際經營管理碩士班——以 AACSB 認證的全英語 MBA，培養具備國際移動力的管理人才。",
     ctaApply: "立即申請",
@@ -165,7 +172,14 @@ const I18N = {
       ]}
     ],
     collegeNav: "College of Management",
-    heroKicker: "WITH imMBA",
+    motto: "In Veritate et Caritate",
+    mottoZh: "Truth and Charity",
+    identity: [
+      ["Catholic university", "Linked with Catholic and Jesuit university networks"],
+      ["Truth and Charity", "Fu Jen’s motto: In Veritate et Caritate"],
+      ["Global connection", "Sister schools and alumni across the world"]
+    ],
+    heroKicker: "Fu Jen Catholic University",
     heroTitle: "Cultivating global managers with AACSB-accredited excellence",
     heroLead: "Fu Jen Catholic University International MBA — an AACSB-accredited, English-taught program for international mobility.",
     ctaApply: "Apply Now",
@@ -225,21 +239,23 @@ function isActive(href) {
 
 function logoSVG() {
   return `<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
-    <rect width="64" height="64" rx="16" fill="#0c1d36"/>
-    <g fill="none" stroke="#ffffff" stroke-width="1.4" stroke-linecap="round">
-      <circle cx="32" cy="29" r="16"/>
-      <ellipse cx="32" cy="29" rx="7" ry="16"/>
-      <path d="M16.5 29h31"/>
-      <path d="M21 18c7 8 15 8 22 0"/>
+    <rect width="64" height="64" rx="16" fill="#0a2348"/>
+    <g fill="none" stroke="#d7ecfb" stroke-width="1.35" stroke-linecap="round">
+      <circle cx="32" cy="31" r="15.5"/>
+      <ellipse cx="32" cy="31" rx="7" ry="15.5"/>
+      <path d="M16.8 31h30.4"/>
+      <path d="M19.4 22c8 7.5 17 7.5 25.2 0"/>
+      <path d="M20.2 41c7.2-5.5 16.4-5.5 23.6 0"/>
     </g>
     <g fill="#ffffff">
-      <circle cx="21" cy="18.5" r="1.8"/>
-      <circle cx="43" cy="18.5" r="1.8"/>
-      <circle cx="32" cy="29" r="2.1"/>
-      <circle cx="24" cy="39" r="1.6"/>
-      <circle cx="41" cy="37.5" r="1.6"/>
+      <circle cx="21" cy="21" r="1.5"/>
+      <circle cx="43.5" cy="21.2" r="1.5"/>
+      <circle cx="32" cy="31" r="1.9"/>
+      <circle cx="24" cy="40.2" r="1.35"/>
+      <circle cx="42" cy="38.6" r="1.35"/>
     </g>
-    <text x="32" y="56.5" text-anchor="middle" fill="#ffffff" font-size="7.5" letter-spacing="1.1">imMBA</text>
+    <path fill="#ffffff" d="M31.15 5.2h1.7v4.1h2.55v1.55H32.85v4.2h-1.7v-4.2h-2.55V9.3h2.55z"/>
+    <text x="32" y="57.2" text-anchor="middle" fill="#ffffff" font-size="7" letter-spacing="1.1">imMBA</text>
   </svg>`;
 }
 
@@ -281,7 +297,10 @@ function headerHTML() {
       <div class="brand-inner">
         <a class="brand" href="index.html">
           ${logoSVG()}
-          <span class="brand-text">${L.brand}</span>
+          <span class="brand-copy">
+            <span class="brand-text">${L.brand}</span>
+            <span class="brand-motto">${L.motto}</span>
+          </span>
         </a>
       </div>
     </div>
@@ -321,6 +340,7 @@ function footerHTML() {
           <div>
             ${logoSVG().replace('class="brand-mark"', 'class="brand-mark footer-mark"')}
             <h3>imMBA</h3>
+            <p class="footer-motto">✝ ${L.motto}</p>
             <p>${L.phone}<br>${L.email}<br>${L.address}</p>
           </div>
           <div>
@@ -368,6 +388,7 @@ function pages() {
   return {
     index: `
       <section class="hero"><div class="hero-inner">
+        <p class="hero-motto">${t().motto}</p>
         <div class="kicker">${t().heroKicker}</div>
         <h1>${t().heroTitle}</h1>
         <p>${t().heroLead}</p>
@@ -377,6 +398,7 @@ function pages() {
         </div>
       </div></section>
       <div class="stats">${t().stats.map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("")}</div>
+      <section class="identity-bar"><div class="identity-inner">${t().identity.map(([a,b]) => `<p><b>${a}</b>${b}</p>`).join("")}</div></section>
       <section class="section"><div class="wrap">
         <div class="section-head"><div><div class="eyebrow">Program</div><h2>${t().highlightsTitle}</h2></div></div>
         <div class="cards">
