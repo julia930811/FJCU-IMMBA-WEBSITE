@@ -384,6 +384,25 @@ function officialBtn(url) {
   return `<p><a class="btn btn-line" href="${url}" target="_blank" rel="noopener">${locale()==="zh"?"官網原文頁":"Official page"}</a></p>`;
 }
 
+function fileKind(href) {
+  const u = decodeURIComponent(href || "").toLowerCase();
+  if (/\.pdf(\?|#|$)/.test(u)) return { key: "pdf", label: "PDF" };
+  if (/\.docx?(\?|#|$)/.test(u)) return { key: "doc", label: "Word" };
+  if (/\.xlsx?(\?|#|$)/.test(u)) return { key: "xls", label: "Excel" };
+  if (/\.pptx?(\?|#|$)/.test(u)) return { key: "ppt", label: "PPT" };
+  if (/\.(zip|rar|7z)(\?|#|$)/.test(u)) return { key: "zip", label: "ZIP" };
+  return { key: "web", label: "WEB" };
+}
+
+function fileRow(href, label) {
+  const k = fileKind(href);
+  return `<a class="news-item file-item" href="${href}" target="_blank" rel="noopener">
+    <span class="file-icon file-${k.key}" title="${k.label}"><b>${k.label}</b></span>
+    <span>${label}</span>
+    <span aria-hidden="true">↓</span>
+  </a>`;
+}
+
 function pages() {
   const zh = locale() === "zh";
   return {
@@ -436,19 +455,18 @@ function pages() {
         <section id="ranking" class="anchor-section">
           <h2>${zh?"特色與排名":"Features and ranking"}</h2>
           <p>${zh?"輔仁大學是知名綜合型大學，歷史悠久，校友和姊妹校遍布全球，交流互動活絡。身為天主教大學，輔大更擁有獨特的國際網絡，包含天主教大學聯盟、耶穌會大學聯盟、亞洲基督宗教大學聯盟等，在國際上都是重要且嘉惠學子的黃金人脈。":"Fu Jen is a comprehensive Catholic university with a long history and a global alumni and sister-school network, including Catholic, Jesuit and Asian Christian university associations."}</p>
-          <p>${zh?"輔大管理學院在2005年通過 AACSB 國際商學院認證，成為兩岸首家通過AACSB認證的學院，並於2010、2015、2020及2025年持續通過。全球約1萬6千多個商管學院中，僅約5%能通過AACSB認證。":"The College of Management earned AACSB accreditation in 2005 — the first on both sides of the Taiwan Strait — and was re-accredited in 2010, 2015, 2020 and 2025. Only about 5% of business schools worldwide hold AACSB accreditation."}</p>
+          <p>${zh?`輔大管理學院在2005年通過 <a href="https://www.aacsb.edu/" target="_blank" rel="noopener">AACSB</a> 國際商學院認證，成為兩岸首家通過AACSB認證的學院，並於2010、2015、2020及2025年持續通過。全球約1萬6千多個商管學院中，僅約5%能通過AACSB認證。認證說明： <a class="url-link" href="https://www.aacsb.edu/" target="_blank" rel="noopener">https://www.aacsb.edu/</a>`:`The College of Management earned <a href="https://www.aacsb.edu/" target="_blank" rel="noopener">AACSB</a> accreditation in 2005 — the first on both sides of the Taiwan Strait — and was re-accredited in 2010, 2015, 2020 and 2025. Only about 5% of business schools worldwide hold AACSB accreditation. Details: <a class="url-link" href="https://www.aacsb.edu/" target="_blank" rel="noopener">https://www.aacsb.edu/</a>`}</p>
           <p>${zh?"輔大管理學院2021年獲選教育部「大專校院學生雙語化學習計畫」重點培育學院，為大台北地區唯一獲得補助的私立大學管理學院。":"In 2021 the College was selected as a key college in Taiwan’s bilingual education initiative, the only private-university management college in Greater Taipei to receive the grant."}</p>
-          <p>${zh?"國際經管(imMBA) 2006年與台大、政大同步，獲教育部遴選試辦商管專業學院。自103學年度起全面英語授課，並招收來自世界各地的學生。Eduniversal 2025 於 International Management 分類將本學程列為全台 Top 3、遠東地區 Top 20。":"imMBA launched in 2006 alongside NTU and NCCU as a professionally oriented MBA. Since academic year 2014 it has been taught entirely in English. Eduniversal 2025 ranks it Top 3 in Taiwan and Top 20 in the Far East for International Management."}</p>
-          <p>${zh?"學生組成除本地生外，尚有亞洲、美洲、歐洲、大洋洲等超過30個不同國家的學生前來攻讀學位或交換；本地生與國際學生1:1合班。課程涵蓋國際企業管理、行銷、人力資源、全球供應鏈、財務管理、服務設計，並融入智慧營運與數位創新。可銜接 UM-Flint、KEDGE、IQS 跨國雙碩士，或申請全球姊妹校免學費交換。":"Besides local students, classmates come from more than 30 countries across Asia, the Americas, Europe and Oceania, in a roughly 1:1 local–international classroom. Dual degrees with UM-Flint, KEDGE and IQS, plus tuition-waiver exchanges, are available."}</p>
-          ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/profile.php?IID=33")}
+          <p>${zh?`國際經管(imMBA) 2006年與台大、政大同步，獲教育部遴選試辦商管專業學院。自103學年度起全面英語授課，並招收來自世界各地的學生。<a href="https://www.eduniversal-ranking.com/" target="_blank" rel="noopener">Eduniversal</a> 2025 於 International Management 分類將本學程列為全台 Top 3、遠東地區 Top 20。排名網站： <a class="url-link" href="https://www.eduniversal-ranking.com/" target="_blank" rel="noopener">https://www.eduniversal-ranking.com/</a>`:`imMBA launched in 2006 alongside NTU and NCCU as a professionally oriented MBA. Since academic year 2014 it has been taught entirely in English. <a href="https://www.eduniversal-ranking.com/" target="_blank" rel="noopener">Eduniversal</a> 2025 ranks it Top 3 in Taiwan and Top 20 in the Far East for International Management. Ranking site: <a class="url-link" href="https://www.eduniversal-ranking.com/" target="_blank" rel="noopener">https://www.eduniversal-ranking.com/</a>`}</p>
+          <p>${zh?`學生組成除本地生外，尚有亞洲、美洲、歐洲、大洋洲等超過30個不同國家的學生前來攻讀學位或交換；本地生與國際學生1:1合班。課程涵蓋國際企業管理、行銷、人力資源、全球供應鏈、財務管理、服務設計，並融入智慧營運與數位創新。可銜接 <a href="dual-degree.html">跨國雙碩士</a>，或申請 <a href="exchange.html">全球姊妹校免學費交換</a>。官網原文： <a class="url-link" href="https://www.management.fju.edu.tw/subweb/immba/profile.php?IID=33" target="_blank" rel="noopener">https://www.management.fju.edu.tw/subweb/immba/profile.php?IID=33</a>`:`Besides local students, classmates come from more than 30 countries across Asia, the Americas, Europe and Oceania, in a roughly 1:1 local–international classroom. Dual degrees with UM-Flint, KEDGE and IQS, plus tuition-waiver exchanges, are available via <a href="dual-degree.html">Dual Degree</a> and <a href="exchange.html">Overseas Exchange</a>. Official page: <a class="url-link" href="https://www.management.fju.edu.tw/subweb/immba/profile.php?IID=33" target="_blank" rel="noopener">https://www.management.fju.edu.tw/subweb/immba/profile.php?IID=33</a>`}</p>
         </section>
         <section id="rules" class="anchor-section">
           <h2>${zh?"本單位規定及辦法":"Program regulations"}</h2>
           <p>${zh?"以下辦法與官網「本單位規定及辦法」相同，檔案均連至現行官網。":"These documents match the official program-regulations page and open the current college files."}</p>
           <div class="news-list">
-            <a class="news-item" href="https://www.management.fju.edu.tw/smarteditupfiles/immba/P20171108.pdf" target="_blank" rel="noopener"><time></time><span>${zh?"學程會議設置辦法":"Program meeting regulations"}</span><span>↗</span></a>
-            <a class="news-item" href="https://www.management.fju.edu.tw/smarteditupfiles/immba/C20171026.pdf" target="_blank" rel="noopener"><time></time><span>${zh?"課委會設置辦法":"Curriculum committee regulations"}</span><span>↗</span></a>
-            <a class="news-item" href="https://www.management.fju.edu.tw/smarteditupfiles/immba/2023%2010%2018.pdf" target="_blank" rel="noopener"><time></time><span>${zh?"學生獎助學金辦法":"Student scholarship and aid regulations"}</span><span>↗</span></a>
+            ${fileRow("https://www.management.fju.edu.tw/smarteditupfiles/immba/P20171108.pdf", zh?"學程會議設置辦法":"Program meeting regulations")}
+            ${fileRow("https://www.management.fju.edu.tw/smarteditupfiles/immba/C20171026.pdf", zh?"課委會設置辦法":"Curriculum committee regulations")}
+            ${fileRow("https://www.management.fju.edu.tw/smarteditupfiles/immba/2023%2010%2018.pdf", zh?"學生獎助學金辦法":"Student scholarship and aid regulations")}
           </div>
           ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/profile.php?IID=98")}
         </section>
@@ -619,30 +637,13 @@ function pages() {
         <button type="button" class="btn btn-line" id="btnSync">${zh?"同步到前台網站":"Synchronize with the website"}</button>
         <a class="btn btn-line" href="news.html">${zh?"查看前台公告":"View front-end news"}</a>
       </div>
-      <p class="admin-count" id="newsCount"></p>
-      <div class="admin-table-wrap">
-        <table class="admin-table">
-          <thead>
-            <tr>
-              <th>${zh?"排序":"Order"}</th>
-              <th>${zh?"日期":"Date"}</th>
-              <th>TOP</th>
-              <th>${zh?"狀態":"Status"}</th>
-              <th>${zh?"中文標題":"Chinese title"}</th>
-              <th>${zh?"英文標題":"English title"}</th>
-              <th>${zh?"雙語同步":"Bilingual sync"}</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="newsTableBody"></tbody>
-        </table>
-      </div>
+      <p class="admin-status" id="adminStatus" hidden></p>
       <form class="admin-form" id="newsForm">
         <h2 id="formMode">${zh?"新增公告（中英同一筆）":"Create announcement (one record, two languages)"}</h2>
         <input type="hidden" id="newsId">
         <div class="admin-shared">
           <label>${zh?"日期":"Date"}<input id="newsDate" type="date" required></label>
-          <label>${zh?"連結 URL":"Link URL"}<input id="newsHref" type="url" placeholder="https://"></label>
+          <label>${zh?"連結 URL":"Link URL"}<input id="newsHref" type="text" placeholder="https://"></label>
           <label>${zh?"顯示排序":"Display order"}<input id="newsOrder" type="number" min="1" step="1"></label>
           <label>${zh?"狀態":"Status"}
             <select id="newsStatus">
@@ -684,6 +685,24 @@ function pages() {
           <button class="btn btn-line" type="button" id="btnDeleteOne">${zh?"刪除（中英一起移除）":"Delete (both languages together)"}</button>
         </div>
       </form>
+      <p class="admin-count" id="newsCount"></p>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>${zh?"排序":"Order"}</th>
+              <th>${zh?"日期":"Date"}</th>
+              <th>TOP</th>
+              <th>${zh?"狀態":"Status"}</th>
+              <th>${zh?"中文標題":"Chinese title"}</th>
+              <th>${zh?"英文標題":"English title"}</th>
+              <th>${zh?"雙語同步":"Bilingual sync"}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="newsTableBody"></tbody>
+        </table>
+      </div>
     `),
     "news-detail": "",
     events: pageShell(zh?"活動集錦":"Events", zh?"交流、參訪與學院活動紀實。":"Exchanges, visits and college events.", `
@@ -704,15 +723,11 @@ function pages() {
       <p><a class="btn btn-navy" href="https://www.management.fju.edu.tw/subweb/immba/download.php" target="_blank" rel="noopener">${zh?"官網表格下載":"Official downloads"}</a></p>
       <section id="admission" class="anchor-section">
         <h2 class="section-sub">${zh?"招生文件":"Admission files"}</h2>
-        <div class="news-list">${window.IMMBA.downloads.filter((_,i) => i===0 || i===4).map(d => `
-          <a class="news-item" href="${d.href}" target="_blank" rel="noopener"><time></time><span>${zh?d.zh:d.en}</span><span>↗</span></a>
-        `).join("")}</div>
+        <div class="news-list">${window.IMMBA.downloads.filter((_,i) => i===0 || i===4).map(d => fileRow(d.href, zh?d.zh:d.en)).join("")}</div>
       </section>
       <section id="academic" class="anchor-section">
         <h2 class="section-sub">${zh?"課表與規則":"Academic files"}</h2>
-        <div class="news-list">${window.IMMBA.downloads.filter((_,i) => i!==0 && i!==4).map(d => `
-          <a class="news-item" href="${d.href}" target="_blank" rel="noopener"><time></time><span>${zh?d.zh:d.en}</span><span>↗</span></a>
-        `).join("")}</div>
+        <div class="news-list">${window.IMMBA.downloads.filter((_,i) => i!==0 && i!==4).map(d => fileRow(d.href, zh?d.zh:d.en)).join("")}</div>
       </section>
     `),
     gallery: pageShell(zh?"相片集錦":"Photo gallery", zh?"課堂、交流與校園紀實（示意照片，可替換為所辦影像）。":"Classroom, mobility and campus moments (placeholder images, replaceable with official photos).", `

@@ -44,6 +44,13 @@ function formValues() {
   };
 }
 
+function showStatus(msg) {
+  const el = document.getElementById("adminStatus");
+  if (!el) return;
+  el.hidden = !msg;
+  el.textContent = msg || "";
+}
+
 function fillForm(n) {
   document.getElementById("newsId").value = n.id;
   document.getElementById("newsDate").value = n.date;
@@ -67,6 +74,7 @@ function fillForm(n) {
     : (locale() === "zh" ? "編輯公告（同一頁改中或英，存成一筆）" : "Edit either language on this page; save as one record");
   refreshSyncBox();
   refreshPreview();
+  document.getElementById("newsForm").classList.toggle("is-editing", !n._isNew);
 }
 
 function refreshSyncBox() {
@@ -152,66 +160,79 @@ async function autoFill(sourceId, targetId, to) {
   refreshPreview();
 }
 
+function startNew() {
+  const n = emptyRecord();
+  n._isNew = true;
+  fillForm(n);
+  document.getElementById("newsZhTitle").focus();
+  showStatus("");
+}
+
+function editById(id) {
+  const n = window.NewsStore.all().find((x) => x.id === id);
+  if (!n) {
+    showStatus(locale() === "zh" ? "找不到這則公告。" : "That announcement was not found.");
+    return;
+  }
+  fillForm(n);
+  document.getElementById("newsZhTitle").focus();
+  showStatus(locale() === "zh" ? "正在編輯此則公告，改完請按儲存。" : "Editing this announcement. Save when finished.");
+}
+
+function deleteById(id) {
+  const zh = locale() === "zh";
+  if (!id) return;
+  const item = window.NewsStore.all().find((x) => x.id === id);
+  const label = item ? (item.zhTitle || item.enTitle) : id;
+  if (!window.confirm(zh ? `刪除一次即可，中文與英文會一起移除：\n${label}` : `Delete once. Both languages will be removed:\n${label}`)) return;
+  window.NewsStore.remove(id);
+  renderList();
+  startNew();
+  showStatus(zh ? "已刪除，並已同步到前台。" : "Deleted and synchronized with the website.");
+}
+
 function bindAdmin() {
   const zh = locale() === "zh";
-  document.getElementById("btnNew").addEventListener("click", () => {
-    const n = emptyRecord();
-    n._isNew = true;
-    fillForm(n);
-    document.getElementById("newsZhTitle").focus();
+  const main = document.getElementById("main");
+  main.addEventListener("click", (e) => {
+    const edit = e.target.closest("[data-edit]");
+    const del = e.target.closest("[data-delete]");
+    if (edit) {
+      e.preventDefault();
+      editById(edit.getAttribute("data-edit"));
+    }
+    if (del) {
+      e.preventDefault();
+      deleteById(del.getAttribute("data-delete"));
+    }
   });
+  document.getElementById("btnNew").addEventListener("click", startNew);
   document.getElementById("btnRestore").addEventListener("click", () => {
-    if (!confirm(zh ? "還原為預設公告清單？目前後台修改會被清掉。" : "Restore the default announcement list? Current back-office edits will be cleared.")) return;
+    if (!window.confirm(zh ? "還原為預設公告清單？目前後台修改會被清掉。" : "Restore the default announcement list? Current back-office edits will be cleared.")) return;
     window.NewsStore.restore();
     renderList();
-    const n = emptyRecord();
-    n._isNew = true;
-    fillForm(n);
-    alert(zh ? "已還原預設清單，並已同步到前台。" : "Default list restored and synchronized with the website.");
+    startNew();
+    showStatus(zh ? "已還原預設清單，並已同步到前台。" : "Default list restored and synchronized with the website.");
   });
   document.getElementById("btnSync").addEventListener("click", () => {
     window.NewsStore.sync();
     renderList();
-    alert(zh ? "已將後台變更同步到前台網站（首頁與公告頁會讀取同一份清單）。" : "Back-office changes are now synchronized with the front-end website.");
+    showStatus(zh ? "已將後台變更同步到前台網站。" : "Back-office changes are synchronized with the website.");
   });
   document.getElementById("newsForm").addEventListener("submit", (e) => {
     e.preventDefault();
     const n = formValues();
     if (!n.zhTitle.trim() || !n.enTitle.trim()) {
-      alert(zh ? "請同時填寫中文標題與英文標題（同一筆紀錄、兩種語言）。" : "Please add both Chinese and English titles in the same record.");
+      showStatus(zh ? "請同時填寫中文標題與英文標題。" : "Please add both Chinese and English titles.");
       return;
     }
     window.NewsStore.upsert(n);
     renderList();
-    alert(zh ? "已儲存為一筆雙語公告，並同步到前台。" : "Saved as one bilingual announcement and synchronized with the website.");
+    fillForm(n);
+    showStatus(zh ? "已儲存為一筆雙語公告，並同步到前台。" : "Saved as one bilingual announcement and synchronized with the website.");
   });
   document.getElementById("btnDeleteOne").addEventListener("click", () => {
-    const id = document.getElementById("newsId").value;
-    if (!id) return;
-    if (!confirm(zh ? "刪除一次即可。中文與英文會一起移除。" : "Delete once. Both Chinese and English versions will be removed together.")) return;
-    window.NewsStore.remove(id);
-    renderList();
-    const n = emptyRecord();
-    n._isNew = true;
-    fillForm(n);
-  });
-  document.getElementById("newsTableBody").addEventListener("click", (e) => {
-    const edit = e.target.closest("[data-edit]");
-    const del = e.target.closest("[data-delete]");
-    if (edit) {
-      const n = window.NewsStore.all().find((x) => x.id === edit.dataset.edit);
-      if (n) fillForm(n);
-    }
-    if (del) {
-      if (!confirm(zh ? "刪除一次即可。中文與英文會一起移除。" : "Delete once. Both Chinese and English versions will be removed together.")) return;
-      window.NewsStore.remove(del.dataset.delete);
-      renderList();
-      if (document.getElementById("newsId").value === del.dataset.delete) {
-        const n = emptyRecord();
-        n._isNew = true;
-        fillForm(n);
-      }
-    }
+    deleteById(document.getElementById("newsId").value);
   });
   ["newsZhTitle", "newsEnTitle", "newsZhBody", "newsEnBody", "newsDate", "newsHref", "newsStatus", "newsOrder"].forEach((id) => {
     document.getElementById(id).addEventListener("input", () => {

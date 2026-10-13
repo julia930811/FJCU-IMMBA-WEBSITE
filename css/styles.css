@@ -473,6 +473,28 @@ button, input, select, textarea { font-family: inherit; }
 }
 .card p, .prose p { color: var(--muted); }
 .news-list { display: grid; gap: 12px; }
+.file-item {
+  grid-template-columns: 64px 1fr auto;
+}
+.file-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+.file-icon b { font-size: 12px; }
+.file-pdf { background: #c62828; }
+.file-doc { background: #1565c0; }
+.file-xls { background: #2e7d32; }
+.file-ppt { background: #ef6c00; }
+.file-zip { background: #6a1b9a; }
+.file-web { background: var(--navy); }
 .news-item {
   display: grid;
   grid-template-columns: 110px 1fr auto;
@@ -584,6 +606,14 @@ button, input, select, textarea { font-family: inherit; }
 
 .prose { max-width: 760px; }
 .prose h2, .prose h3 { font-family: var(--serif); color: var(--navy); }
+.prose a {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  word-break: break-all;
+}
+.prose a:hover { color: var(--navy); }
+.prose a.url-link { font-size: 0.92em; }
 .checklist { padding-left: 18px; color: var(--muted); }
 .checklist li { margin: 8px 0; }
 
@@ -752,7 +782,17 @@ textarea { min-height: 140px; resize: vertical; }
   gap: 10px;
   margin-bottom: 16px;
 }
-.admin-count { color: var(--muted); margin: 0 0 12px; }
+.admin-count { color: var(--muted); margin: 20px 0 12px; }
+.admin-status {
+  background: #e7f6ee;
+  color: #0b6b38;
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+}
+.admin-form.is-editing {
+  outline: 2px solid var(--blue);
+}
 .admin-table-wrap { overflow: auto; margin-bottom: 28px; }
 .admin-table {
   width: 100%;

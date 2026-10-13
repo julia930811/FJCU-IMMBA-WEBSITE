@@ -175,6 +175,9 @@ window.IMMBA = {
     { zh: "上課時間表（現行官網）", en: "Timetable (current official site)", href: "https://www.management.fju.edu.tw/subweb/immba/class.php" },
     { zh: "修業規則／畢業修課規劃", en: "Academic regulations and course map", href: "https://www.management.fju.edu.tw/subweb/immba/class.php" },
     { zh: "論文格式與離校表單", en: "Thesis format and leaving-school forms", href: "https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=48" },
-    { zh: "國際生申請說明", en: "International admissions notes", href: "https://www.management.fju.edu.tw/esubweb/immbaengindex/enroll.php?IID=3" }
+    { zh: "國際生申請說明", en: "International admissions notes", href: "https://www.management.fju.edu.tw/esubweb/immbaengindex/enroll.php?IID=3" },
+    { zh: "學程會議設置辦法（PDF）", en: "Program meeting regulations (PDF)", href: "https://www.management.fju.edu.tw/smarteditupfiles/immba/P20171108.pdf" },
+    { zh: "課委會設置辦法（PDF）", en: "Curriculum committee regulations (PDF)", href: "https://www.management.fju.edu.tw/smarteditupfiles/immba/C20171026.pdf" },
+    { zh: "學生獎助學金辦法（PDF）", en: "Student scholarship and aid regulations (PDF)", href: "https://www.management.fju.edu.tw/smarteditupfiles/immba/2023%2010%2018.pdf" }
   ]
 };
