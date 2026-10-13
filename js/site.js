@@ -282,13 +282,13 @@ function headerHTML() {
     </div>
     <div class="brand-bar">
       <div class="brand-inner">
-        <a class="brand" href="index.html">
-          ${logoMark()}
-          <span class="brand-copy">
+        <div class="brand">
+          <a class="brand-logo" href="admin-news.html" title="${locale()==="zh"?"公告後台 AdminNews":"AdminNews back office"}">${logoMark()}</a>
+          <a class="brand-copy" href="index.html">
             <span class="brand-text">${L.brand}</span>
             <span class="brand-motto">${L.motto}</span>
-          </span>
-        </a>
+          </a>
+        </div>
       </div>
     </div>
     <header class="nav-bar" id="siteHeader">
@@ -324,7 +324,7 @@ function footerHTML() {
       <div class="footer-inner">
         <div class="footer-grid">
           <div>
-            ${logoMark().replace('class="brand-mark"', 'class="brand-mark footer-mark"')}
+            <a class="brand-logo" href="admin-news.html" title="${locale()==="zh"?"公告後台 AdminNews":"AdminNews back office"}">${logoMark().replace('class="brand-mark"', 'class="brand-mark footer-mark"')}</a>
             <h3>imMBA</h3>
             <p class="footer-motto">✝ ${L.motto}</p>
             <p>${L.phone}<br>${L.email}<br>${L.address}</p>
