@@ -297,7 +297,7 @@ button, input, select, textarea { font-family: inherit; }
 .hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(180deg, #2f78c4 0%, #4f98dc 50%, #9fd0f4 100%);
+  background: #163a78;
   line-height: 0;
   min-height: 0;
 }
@@ -320,17 +320,18 @@ button, input, select, textarea { font-family: inherit; }
   border: 0;
 }
 .hero-actions {
-  position: static;
-  left: auto;
-  top: auto;
-  transform: none;
+  position: absolute;
+  left: 50%;
+  bottom: 31%;
+  transform: translate(-50%, 10%);
   z-index: 3;
   display: flex;
   gap: 14px;
   flex-wrap: nowrap;
   justify-content: center;
   line-height: normal;
-  padding: 4px 16px 10px;
+  padding: 0;
+  width: max-content;
 }
 .hero-actions .btn {
   white-space: nowrap;
