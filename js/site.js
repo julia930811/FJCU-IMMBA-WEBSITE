@@ -69,7 +69,7 @@ const I18N = {
       ["真善美聖", "輔仁大學校訓 In Veritate et Caritate"],
       ["全球連結", "姊妹校與校友網絡遍布世界"]
     ],
-    heroKicker: "Fu Jen Catholic University",
+    heroKicker: "WITH imMBA",
     heroTitle: "Cultivating global managers with AACSB-accredited excellence",
     heroLead: "輔仁大學國際經營管理碩士班——以 AACSB 認證的全英語 MBA，培養具備國際移動力的管理人才。",
     ctaApply: "立即申請",
@@ -181,7 +181,7 @@ const I18N = {
       ["Truth and Charity", "Fu Jen’s motto: In Veritate et Caritate"],
       ["Global connection", "Sister schools and alumni across the world"]
     ],
-    heroKicker: "Fu Jen Catholic University",
+    heroKicker: "WITH imMBA",
     heroTitle: "Cultivating global managers with AACSB-accredited excellence",
     heroLead: "Fu Jen Catholic University International MBA — an AACSB-accredited, English-taught program for international mobility.",
     ctaApply: "Apply Now",
@@ -242,7 +242,7 @@ function isActive(href) {
 }
 
 function logoMark() {
-  const src = locale() === "zh" ? "img/logo.png" : "../img/logo.png";
+  const src = (locale() === "zh" ? "img/logo.png" : "../img/logo.png") + "?v=2";
   return `<img class="brand-mark" src="${src}" alt="imMBA">`;
 }
 
@@ -383,7 +383,7 @@ function pages() {
   return {
     index: `
       <section class="hero"><div class="hero-inner">
-        <p class="hero-motto">${t().motto}</p>
+        ${logoMark().replace('class="brand-mark"', 'class="hero-logo"')}
         <div class="kicker">${t().heroKicker}</div>
         <h1>${t().heroTitle}</h1>
         <p>${t().heroLead}</p>
