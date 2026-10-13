@@ -385,8 +385,10 @@ function pages() {
       <section class="hero">
         <img class="hero-poster" src="${locale()==="zh"?"img/hero-poster.jpg":"../img/hero-poster.jpg"}" alt="${t().heroTitle}">
         <h1 class="visually-hidden">${t().heroTitle}</h1>
-        <a class="hero-spot hero-spot-apply" href="admissions.html"><span class="visually-hidden">${t().ctaApply}</span></a>
-        <a class="hero-spot hero-spot-books" href="https://fjcu-immba-website-lilac.vercel.app/marketplace.html"><span class="visually-hidden">${t().ctaBooks}</span></a>
+        <div class="hero-actions">
+          <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
+          <a class="btn btn-ghost" href="marketplace.html">${t().ctaBooks}</a>
+        </div>
       </section>
       <div class="stats">${t().stats.map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("")}</div>
       <section class="identity-bar"><div class="identity-inner">${t().identity.map(([a,b]) => `<p><b>${a}</b>${b}</p>`).join("")}</div></section>
