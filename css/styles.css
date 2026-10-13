@@ -1,18 +1,19 @@
 :root {
-  --navy: #0a2348;
-  --navy-soft: #123a6b;
-  --ink: #0a2348;
-  --muted: #4a6480;
-  --line: #cfe0f0;
+  --navy: #0b3d7a;
+  --navy-soft: #1558a0;
+  --ink: #0b3d7a;
+  --muted: #4a6a8a;
+  --line: #cfe4f6;
   --paper: #eef6fc;
   --white: #ffffff;
-  --blue: #1d6fb5;
-  --sky: #7ec8f0;
-  --shadow: 0 18px 50px rgba(10, 35, 72, 0.1);
+  --blue: #1e7ad4;
+  --sky: #7ec8f5;
+  --shadow: 0 18px 50px rgba(11, 61, 122, 0.1);
   --radius: 18px;
   --max: 1180px;
-  --sans: "Sora", "Noto Sans TC", sans-serif;
-  --serif: "Cormorant Garamond", "Noto Serif TC", serif;
+  --font: "Cormorant Garamond", "Noto Serif TC", serif;
+  --sans: var(--font);
+  --serif: var(--font);
 }
 
 * { box-sizing: border-box; }
@@ -21,7 +22,7 @@ body {
   margin: 0;
   color: var(--ink);
   background: var(--white);
-  font-family: var(--sans);
+  font-family: var(--font);
   line-height: 1.65;
 }
 a { color: inherit; }
@@ -100,7 +101,7 @@ button, input, select, textarea { font-family: inherit; }
   margin: 0 auto;
   display: flex;
   align-items: center;
-  min-height: 88px;
+  min-height: 96px;
 }
 .brand {
   display: flex;
@@ -110,10 +111,12 @@ button, input, select, textarea { font-family: inherit; }
   min-width: 0;
 }
 .brand-mark {
-  width: 64px;
-  height: 64px;
+  width: 78px;
+  height: 78px;
   flex-shrink: 0;
   display: block;
+  object-fit: contain;
+  background: #fff;
 }
 .brand-copy {
   display: flex;
@@ -203,7 +206,7 @@ button, input, select, textarea { font-family: inherit; }
 }
 .nav a, .nav-parent {
   text-decoration: none;
-  font-size: 12.5px;
+  font-size: 14px;
   color: var(--navy);
   padding: 8px 4px;
   white-space: nowrap;
@@ -297,11 +300,10 @@ button, input, select, textarea { font-family: inherit; }
   position: absolute;
   right: 8%;
   top: 14%;
-  font-size: clamp(48px, 8vw, 96px);
-  color: rgba(255,255,255,0.22);
-  text-shadow: 0 0 40px rgba(255,255,255,0.28);
+  font-size: clamp(64px, 9vw, 110px);
+  color: rgba(255,255,255,0.28);
+  text-shadow: 0 0 40px rgba(255,255,255,0.2);
   pointer-events: none;
-  font-family: "Times New Roman", serif;
 }
 .hero-inner {
   position: relative;
@@ -309,11 +311,9 @@ button, input, select, textarea { font-family: inherit; }
   width: min(var(--max), calc(100% - 40px));
   margin: 0 auto;
   padding: 88px 0 96px;
-  margin-left: auto;
-  margin-right: max(20px, calc((100% - var(--max)) / 2));
-  max-width: 560px;
+  max-width: 640px;
   text-align: left;
-  justify-self: end;
+  justify-self: start;
 }
 .kicker {
   color: #d7ecfb;
@@ -382,8 +382,10 @@ button, input, select, textarea { font-family: inherit; }
   border: 0;
   cursor: pointer;
   border-radius: 999px;
-  padding: 12px 22px;
-  font-size: 14px;
+  padding: 12px 24px;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  font-family: var(--font);
 }
 .btn-apply { background: var(--navy); color: #fff; }
 .btn-gold { background: var(--blue); color: #fff; }
@@ -503,8 +505,8 @@ button, input, select, textarea { font-family: inherit; }
   position: absolute;
   right: 6%;
   top: 18%;
-  font-size: 64px;
-  color: rgba(255,255,255,0.18);
+  font-size: 72px;
+  color: rgba(255,255,255,0.22);
   pointer-events: none;
 }
 .page-hero p { color: #c9d5e4; max-width: 640px; }
@@ -570,9 +572,13 @@ textarea { min-height: 140px; resize: vertical; }
 .form-note { color: var(--muted); font-size: 13px; }
 
 .footer-mark {
-  width: 48px;
-  height: 48px;
+  width: 72px;
+  height: 72px;
   margin-bottom: 12px;
+  object-fit: contain;
+  background: #fff;
+  border-radius: 50%;
+  padding: 6px;
 }
 .site-footer {
   background: var(--navy);

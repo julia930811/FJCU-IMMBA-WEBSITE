@@ -237,26 +237,9 @@ function isActive(href) {
   return true;
 }
 
-function logoSVG() {
-  return `<svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
-    <rect width="64" height="64" rx="16" fill="#0a2348"/>
-    <g fill="none" stroke="#d7ecfb" stroke-width="1.35" stroke-linecap="round">
-      <circle cx="32" cy="31" r="15.5"/>
-      <ellipse cx="32" cy="31" rx="7" ry="15.5"/>
-      <path d="M16.8 31h30.4"/>
-      <path d="M19.4 22c8 7.5 17 7.5 25.2 0"/>
-      <path d="M20.2 41c7.2-5.5 16.4-5.5 23.6 0"/>
-    </g>
-    <g fill="#ffffff">
-      <circle cx="21" cy="21" r="1.5"/>
-      <circle cx="43.5" cy="21.2" r="1.5"/>
-      <circle cx="32" cy="31" r="1.9"/>
-      <circle cx="24" cy="40.2" r="1.35"/>
-      <circle cx="42" cy="38.6" r="1.35"/>
-    </g>
-    <path fill="#ffffff" d="M31.15 5.2h1.7v4.1h2.55v1.55H32.85v4.2h-1.7v-4.2h-2.55V9.3h2.55z"/>
-    <text x="32" y="57.2" text-anchor="middle" fill="#ffffff" font-size="7" letter-spacing="1.1">imMBA</text>
-  </svg>`;
+function logoMark() {
+  const src = locale() === "zh" ? "img/logo.png" : "../img/logo.png";
+  return `<img class="brand-mark" src="${src}" alt="imMBA">`;
 }
 
 function navLink(href, label) {
@@ -296,7 +279,7 @@ function headerHTML() {
     <div class="brand-bar">
       <div class="brand-inner">
         <a class="brand" href="index.html">
-          ${logoSVG()}
+          ${logoMark()}
           <span class="brand-copy">
             <span class="brand-text">${L.brand}</span>
             <span class="brand-motto">${L.motto}</span>
@@ -338,7 +321,7 @@ function footerHTML() {
       <div class="footer-inner">
         <div class="footer-grid">
           <div>
-            ${logoSVG().replace('class="brand-mark"', 'class="brand-mark footer-mark"')}
+            ${logoMark().replace('class="brand-mark"', 'class="brand-mark footer-mark"')}
             <h3>imMBA</h3>
             <p class="footer-motto">✝ ${L.motto}</p>
             <p>${L.phone}<br>${L.email}<br>${L.address}</p>
