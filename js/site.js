@@ -359,13 +359,13 @@ function newsItems(limit) {
   const list = [...window.IMMBA.news].sort((a,b) => (b.pinned - a.pinned) || b.date.localeCompare(a.date));
   const more = t().viewDetails;
   return (limit ? list.slice(0, limit) : list).map(n => `
-    <article class="news-card">
+    <a class="news-card" href="${n.href}" target="_blank" rel="noopener">
       <div class="news-card-copy">
         <time>${n.date.replaceAll("-", "/")}</time>
         <h3>${n.pinned ? `<span class="tag">TOP</span>` : ""}${locale()==="zh"?n.zhTitle:n.enTitle}</h3>
       </div>
-      <a class="news-more" href="${n.href}" target="_blank" rel="noopener">${more} →</a>
-    </article>
+      <span class="news-more">${more} →</span>
+    </a>
   `).join("");
 }
 
@@ -382,16 +382,12 @@ function pages() {
   const zh = locale() === "zh";
   return {
     index: `
-      <section class="hero"><div class="hero-inner">
-        ${logoMark().replace('class="brand-mark"', 'class="hero-logo"')}
-        <div class="kicker">${t().heroKicker}</div>
-        <h1>${t().heroTitle}</h1>
-        <p>${t().heroLead}</p>
-        <div class="hero-actions">
-          <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
-          <a class="btn btn-ghost" href="https://fjcu-immba-website-lilac.vercel.app/marketplace.html" target="_blank" rel="noopener">${t().ctaBooks}</a>
-        </div>
-      </div></section>
+      <section class="hero">
+        <img class="hero-poster" src="${locale()==="zh"?"img/hero-poster.jpg":"../img/hero-poster.jpg"}" alt="${t().heroTitle}">
+        <h1 class="visually-hidden">${t().heroTitle}</h1>
+        <a class="hero-spot hero-spot-apply" href="admissions.html"><span class="visually-hidden">${t().ctaApply}</span></a>
+        <a class="hero-spot hero-spot-books" href="https://fjcu-immba-website-lilac.vercel.app/marketplace.html"><span class="visually-hidden">${t().ctaBooks}</span></a>
+      </section>
       <div class="stats">${t().stats.map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("")}</div>
       <section class="identity-bar"><div class="identity-inner">${t().identity.map(([a,b]) => `<p><b>${a}</b>${b}</p>`).join("")}</div></section>
       <section class="section"><div class="wrap">
@@ -707,13 +703,13 @@ function renderSearch() {
     <p>${zh?`找到 ${hits.length} 則公告、${facultyHits.length} 位教師、${pageHits.length} 個頁面。`:`${hits.length} news items, ${facultyHits.length} faculty, ${pageHits.length} pages.`}</p>
     ${pageHits.length ? `<div class="news-list">${pageHits.map(([href,label]) => `<a class="news-item" href="${href}"><time></time><span>${label}</span><span>→</span></a>`).join("")}</div>` : ""}
     <div class="news-cards">${hits.map(n => `
-      <article class="news-card">
+      <a class="news-card" href="${n.href}" target="_blank" rel="noopener">
         <div class="news-card-copy">
           <time>${n.date.replaceAll("-", "/")}</time>
           <h3>${zh?n.zhTitle:n.enTitle}</h3>
         </div>
-        <a class="news-more" href="${n.href}" target="_blank" rel="noopener">${t().viewDetails} →</a>
-      </article>`).join("") || ""}</div>
+        <span class="news-more">${t().viewDetails} →</span>
+      </a>`).join("") || ""}</div>
     <div class="faculty-grid" style="margin-top:20px">${facultyHits.map(f => facultyCard(f, zh)).join("")}</div>
   `);
 }
