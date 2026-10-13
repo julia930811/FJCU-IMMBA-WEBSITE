@@ -389,13 +389,15 @@ function pages() {
   return {
     index: `
       <section class="hero">
-        <img class="hero-poster" src="${zh?"img/hero-top.jpg":"../img/hero-top.jpg"}" alt="${t().heroTitle}">
-        <h1 class="visually-hidden">${t().heroTitle}</h1>
-        <div class="hero-actions">
-          <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
-          <a class="btn btn-ghost" href="marketplace.html">${t().ctaBooks}</a>
+        <div class="hero-inner">
+          <p class="kicker">${t().heroKicker}</p>
+          <h1>${t().heroTitle}</h1>
+          <p class="hero-lead">${t().heroLead}</p>
+          <div class="hero-actions">
+            <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
+            <a class="btn btn-ghost" href="marketplace.html">${t().ctaBooks}</a>
+          </div>
         </div>
-        <img class="hero-poster hero-poster-bottom" src="${zh?"img/hero-bottom.jpg":"../img/hero-bottom.jpg"}" alt="">
       </section>
       <div class="stats">${t().stats.map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("")}</div>
       <section class="identity-bar"><div class="identity-inner">${t().identity.map(([a,b]) => `<p><b>${a}</b>${b}</p>`).join("")}</div></section>
