@@ -13,17 +13,16 @@ const I18N = {
     brandShort: "FJCU imMBA",
     nav: [
       { href: "about.html", label: "簡介", children: [
-        ["about.html#overview", "學程概況與排名"],
+        ["about.html#ranking", "特色與排名"],
+        ["about.html#rules", "本單位規定及辦法"],
         ["about.html#environment", "學習環境"]
       ]},
       { href: "admissions.html", label: "招生資訊", children: [
-        ["admissions.html#local", "本地生招生"],
-        ["admissions.html#international", "國際生申請"]
+        ["admissions.html#mba", "MBA招生資訊"],
+        ["admissions.html#aid", "獎助學金資訊"]
       ]},
       { href: "curriculum.html", label: "課程資訊", children: [
-        ["curriculum.html#fields", "專業領域"],
-        ["curriculum.html#foundation", "基礎課程"],
-        ["curriculum.html#thesis", "論文與抵免"]
+        ["curriculum.html#rules", "課程與修業規則"]
       ]},
       { href: "faculty.html", label: "師資介紹", children: [
         ["faculty.html#full", "專任教師"],
@@ -117,17 +116,16 @@ const I18N = {
     brandShort: "FJCU imMBA",
     nav: [
       { href: "about.html", label: "About", children: [
-        ["about.html#overview", "Overview and Ranking"],
-        ["about.html#environment", "Our Learning Environment"]
+        ["about.html#ranking", "Features and ranking"],
+        ["about.html#rules", "Program regulations"],
+        ["about.html#environment", "Learning environment"]
       ]},
       { href: "admissions.html", label: "Admissions", children: [
-        ["admissions.html#local", "Local applicants"],
-        ["admissions.html#international", "International applicants"]
+        ["admissions.html#mba", "MBA admissions"],
+        ["admissions.html#aid", "Scholarships"]
       ]},
       { href: "curriculum.html", label: "Curriculum", children: [
-        ["curriculum.html#fields", "Fields of study"],
-        ["curriculum.html#foundation", "Foundation courses"],
-        ["curriculum.html#thesis", "Thesis and transfer"]
+        ["curriculum.html#rules", "Courses and academic rules"]
       ]},
       { href: "faculty.html", label: "Faculty", children: [
         ["faculty.html#full", "Full-time faculty"],
@@ -303,9 +301,11 @@ function headerHTML() {
         </nav>
         <div class="action-area" aria-label="Action area">
           <div class="lang-switch">
-            <a href="${zhHref}" class="${locale()==="zh"?"is-active":""}">中文</a>
-            <a href="${enHref}" class="${locale()==="en"?"is-active":""}">EN</a>
+            ${locale()==="zh"
+              ? `<a href="${enHref}">EN</a>`
+              : `<a href="${zhHref}">中文</a>`}
           </div>
+          <a class="btn btn-apply-navy" href="admissions.html">${L.ctaApply}</a>
         </div>
       </div>
     </header>
@@ -359,6 +359,10 @@ function newsItems(limit) {
   `).join("");
 }
 
+function officialBtn(url) {
+  return `<p><a class="btn btn-line" href="${url}" target="_blank" rel="noopener">${locale()==="zh"?"官網原文頁":"Official page"}</a></p>`;
+}
+
 function pages() {
   const zh = locale() === "zh";
   return {
@@ -404,73 +408,94 @@ function pages() {
     `,
     about: pageShell(zh?"學程簡介":"About the program", zh?"AACSB 認證的全英語 MBA，強調國際移動力。":"An AACSB-accredited, English-taught MBA focused on international mobility.", `
       <div class="prose">
-        <section id="overview" class="anchor-section">
-          <h2>${zh?"學程概況與排名":"Overview and Ranking"}</h2>
-          <p>${zh?"輔仁大學是歷史悠久的綜合型天主教大學，校友與姊妹校網絡遍布全球，並參與天主教大學、耶穌會大學等國際聯盟。管理學院於 2005 年成為兩岸首家通過 AACSB 認證的學院，其後於 2010、2015、2020、2025 年持續通過；全球約僅 5% 商管學院獲此認證。2021 年更獲選教育部雙語化學習計畫重點培育學院。":"Fu Jen is a comprehensive Catholic university with a global alumni and partner network. The College of Management was the first AACSB-accredited school on both sides of the Taiwan Strait in 2005, and has been re-accredited in 2010, 2015, 2020 and 2025. In 2021 it was selected as a key college in Taiwan’s bilingual education initiative."}</p>
-          <p>${zh?"國際經管（imMBA）於 2006 年獲教育部遴選試辦商管專業學院，與台大、政大同步成立。為強化國際移動力，自 103 學年度起全面英語授課並招收世界各地學生。Eduniversal 2025 於 International Management 分類將本學程列為全台 Top 3、遠東地區 Top 20。":"imMBA was launched in 2006 as a professionally oriented MBA. Since academic year 2014 it has been taught entirely in English. Eduniversal 2025 ranks the program Top 3 in Taiwan and Top 20 in the Far East for International Management."}</p>
+        <section id="ranking" class="anchor-section">
+          <h2>${zh?"特色與排名":"Features and ranking"}</h2>
+          <p>${zh?"輔仁大學是知名綜合型大學，歷史悠久，校友和姊妹校遍布全球，交流互動活絡。身為天主教大學，輔大更擁有獨特的國際網絡，包含天主教大學聯盟、耶穌會大學聯盟、亞洲基督宗教大學聯盟等，在國際上都是重要且嘉惠學子的黃金人脈。":"Fu Jen is a comprehensive Catholic university with a long history and a global alumni and sister-school network, including Catholic, Jesuit and Asian Christian university associations."}</p>
+          <p>${zh?"輔大管理學院在2005年通過 AACSB 國際商學院認證，成為兩岸首家通過AACSB認證的學院，並於2010、2015、2020及2025年持續通過。全球約1萬6千多個商管學院中，僅約5%能通過AACSB認證。":"The College of Management earned AACSB accreditation in 2005 — the first on both sides of the Taiwan Strait — and was re-accredited in 2010, 2015, 2020 and 2025. Only about 5% of business schools worldwide hold AACSB accreditation."}</p>
+          <p>${zh?"輔大管理學院2021年獲選教育部「大專校院學生雙語化學習計畫」重點培育學院，為大台北地區唯一獲得補助的私立大學管理學院。":"In 2021 the College was selected as a key college in Taiwan’s bilingual education initiative, the only private-university management college in Greater Taipei to receive the grant."}</p>
+          <p>${zh?"國際經管(imMBA) 2006年與台大、政大同步，獲教育部遴選試辦商管專業學院。自103學年度起全面英語授課，並招收來自世界各地的學生。Eduniversal 2025 於 International Management 分類將本學程列為全台 Top 3、遠東地區 Top 20。":"imMBA launched in 2006 alongside NTU and NCCU as a professionally oriented MBA. Since academic year 2014 it has been taught entirely in English. Eduniversal 2025 ranks it Top 3 in Taiwan and Top 20 in the Far East for International Management."}</p>
+          <p>${zh?"學生組成除本地生外，尚有亞洲、美洲、歐洲、大洋洲等超過30個不同國家的學生前來攻讀學位或交換；本地生與國際學生1:1合班。課程涵蓋國際企業管理、行銷、人力資源、全球供應鏈、財務管理、服務設計，並融入智慧營運與數位創新。可銜接 UM-Flint、KEDGE、IQS 跨國雙碩士，或申請全球姊妹校免學費交換。":"Besides local students, classmates come from more than 30 countries across Asia, the Americas, Europe and Oceania, in a roughly 1:1 local–international classroom. Dual degrees with UM-Flint, KEDGE and IQS, plus tuition-waiver exchanges, are available."}</p>
+          ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/profile.php?IID=33")}
+        </section>
+        <section id="rules" class="anchor-section">
+          <h2>${zh?"本單位規定及辦法":"Program regulations"}</h2>
+          <p>${zh?"以下辦法與官網「本單位規定及辦法」相同，檔案均連至現行官網。":"These documents match the official program-regulations page and open the current college files."}</p>
+          <div class="news-list">
+            <a class="news-item" href="https://www.management.fju.edu.tw/smarteditupfiles/immba/P20171108.pdf" target="_blank" rel="noopener"><time></time><span>${zh?"學程會議設置辦法":"Program meeting regulations"}</span><span>↗</span></a>
+            <a class="news-item" href="https://www.management.fju.edu.tw/smarteditupfiles/immba/C20171026.pdf" target="_blank" rel="noopener"><time></time><span>${zh?"課委會設置辦法":"Curriculum committee regulations"}</span><span>↗</span></a>
+            <a class="news-item" href="https://www.management.fju.edu.tw/smarteditupfiles/immba/2023%2010%2018.pdf" target="_blank" rel="noopener"><time></time><span>${zh?"學生獎助學金辦法":"Student scholarship and aid regulations"}</span><span>↗</span></a>
+          </div>
+          ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/profile.php?IID=98")}
         </section>
         <section id="environment" class="anchor-section">
-          <h2>${zh?"學習環境":"Our Learning Environment"}</h2>
-          <ul class="checklist">
-            <li>${zh?"本地生與國際生約 1:1 合班。":"Local and international students share classes in roughly equal numbers."}</li>
-            <li>${zh?"課程結合國際管理專業與數位創新、跨域行銷。":"Curriculum combining international management with digital innovation."}</li>
-            <li>${zh?"可申請 UM-Flint、KEDGE、IQS 跨國雙碩士，最快約兩年取得兩個碩士學位。":"Dual degrees with UM-Flint, KEDGE and IQS, with two master’s degrees possible in about two years."}</li>
-            <li>${zh?"也可選擇全球姊妹校免學費交換。":"Tuition-waiver exchanges through Fu Jen’s global partners."}</li>
-          </ul>
+          <h2>${zh?"學習環境":"Learning environment"}</h2>
+          <p>${zh?"輔仁大學擁有得天獨厚的雙捷運線交會，大台北地區交通四通八達，機場捷運線讓探索全世界更便利。":"Fu Jen sits at a dual MRT interchange in Greater Taipei, with the airport line making international travel convenient."}</p>
+          <p>${zh?"走進國璽樓(MD)，映入眼簾的是寬敞明亮的人文大廳，以及一粒麥陣陣的咖啡香。國璽樓10–12樓是管理學院專業教室，設備新穎、休息空間舒適，國際經管學習空間也多安排在此。":"Cardinal Shan Building (MD) has a bright humanities hall and café. Floors 10–12 house the College’s classrooms and lounge spaces, where most imMBA teaching takes place."}</p>
+          <p>${zh?"在國際經管求學，除了專業師資與國際多元同儕，還能享有優質學習環境，雄踞校園制高點，俯瞰美麗的輔大校園。國璽樓3、4、5樓是藏書豐富的圖書館；5樓有e化「Fun學趣自學中心」。":"Students study with professional faculty and an international cohort in a high-quality setting overlooking campus. The library occupies MD floors 3–5, including the Fun Learning self-study center on floor 5."}</p>
+          ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/profile.php?IID=123")}
         </section>
       </div>
     `),
-    admissions: pageShell(zh?"招生資訊":"Admissions", zh?"本地生每年兩次免筆試招生；國際生請走英文申請時程。":"Two written-exam-free tracks for local applicants; a separate calendar for international students.", `
-      <section id="local" class="anchor-section">
-        <h2 class="section-sub">${zh?"本地生招生":"Local applicants"}</h2>
-        <div class="grid-2">
-          <article class="info-card">
-            <h3>${zh?"本地生｜甄試":"Local | Screening"}</h3>
-            <p>${zh?"每年 10 月報名、11 月口試、12 月放榜；2 月或 9 月入學。已取得學士學位者可申請 2 月提前入學。":"Apply in October, interview in November, results in December. Enrolment in February or September; February is available to graduates."}</p>
-            <p><strong>${zh?"116 甄試報名：2026/09/30–10/13":"2027 screening window: 30 Sep–13 Oct 2026"}</strong></p>
-          </article>
-          <article class="info-card">
-            <h3>${zh?"本地生｜碩士招生":"Local | General graduate admission"}</h3>
-            <p>${zh?"每年 1 月報名、3 月口試並放榜，9 月入學。115 學年度網路報名：2026/01/06 10:00–01/15 12:00。":"Apply in January, interview and results in March, September enrolment. For 2026 entry: 6 Jan 10:00–15 Jan 12:00."}</p>
-          </article>
-        </div>
-        <div class="prose" style="margin-top:32px">
-          <h3>${zh?"審查方式":"How we admit"}</h3>
-          <p>${zh?"免筆試。書審綜合讀書計畫、英檢、成績單與推薦信；口試以英文為主、中文為輔。":"No written exam. Document review covers the study plan, English test, transcripts and recommendation; the interview is mainly in English."}</p>
-          <h3>${zh?"本地生應繳文件":"Documents (local)"}</h3>
+    admissions: pageShell(zh?"招生資訊":"Admissions", zh?"本地生每年設有10月甄試與1月碩士兩次招生（免筆試）；外國學生請見英文版招生說明。":"Two written-exam-free tracks each year for local applicants; international students follow the English admissions page.", `
+      <section id="mba" class="anchor-section">
+        <h2 class="section-sub">${zh?"MBA招生資訊":"MBA admissions"}</h2>
+        <div class="prose">
+          <p>${zh?"國際經管(imMBA)針對本地學生每年設有10月甄試和1月碩士兩次招生(免筆試)，非常適合大學不同主修想在商業管理領域有所發展和強化國際移動力的同學報考。":"imMBA offers two local admission rounds each year — screening in October and general graduate admission in January — both without a written exam."}</p>
+          <p><strong>${zh?"116學年度甄試招生　網路報名：2026年09月30日10:00 ~ 10月13日12:00":"2027 screening applications: 30 Sep 2026 10:00 – 13 Oct 2026 12:00"}</strong></p>
+          <p>${zh?"錄取入學時間：該學年度第二學期(提早入學)或次學年度第一學期。":"Enrolment is in the second semester of the admission year (early entry) or the first semester of the following year."}</p>
+          <h3>${zh?"招生報名資料":"Required documents"}</h3>
           <ol class="checklist">
             <li>${zh?"書面資料審查表":"Document review form"}</li>
-            <li>${zh?"身分證影本":"National ID copy"}</li>
+            <li>${zh?"國民身分證影本":"National ID copy"}</li>
             <li>${zh?"學位證書影本":"Diploma copy"}</li>
             <li>${zh?"學士班歷年成績單":"Undergraduate transcripts"}</li>
             <li>${zh?"自傳暨讀書計畫":"Biography and study plan"}</li>
-            <li>${zh?"推薦信一封":"One recommendation letter"}</li>
+            <li>${zh?"推薦信乙封":"One recommendation letter"}</li>
             <li>${zh?"英文能力證明":"English proficiency"}</li>
-            <li>${zh?"其他有助審查資料":"Optional supporting materials"}</li>
+            <li>${zh?"其他有助審查之資料":"Optional supporting materials"}</li>
           </ol>
-        </div>
-      </section>
-      <section id="international" class="anchor-section">
-        <h2 class="section-sub">${zh?"國際生申請":"International applicants"}</h2>
-        <div class="prose">
-          <p>${zh?"外國學生申請請依英文版時程。Fall 2026 第二輪曾於 5/1–5/31 開放；Spring 2027 國際生申請為 2026/09/14–10/14。所需文件包含學歷證件、歷年成績、財力證明、報名費收據、國籍證明、切結書、兩封推薦信、英檢、自傳與讀書計畫。":"International students follow the English admission calendar. A recent Fall 2026 second round ran 1–31 May; Spring 2027 applications run 14 Sep–14 Oct 2026. Typical documents include diploma, transcripts, financial statement, fee receipt, nationality proof, declaration, two recommendations, English test, biography and study plan."}</p>
-          <p><a class="btn btn-navy" href="https://www.management.fju.edu.tw/esubweb/immbaengindex/enroll.php?IID=3" target="_blank" rel="noopener">${zh?"英文招生頁":"English admissions page"}</a>
+          <h3>${zh?"兩次招生差異（甄試 vs. 碩士招生）":"Screening vs. general admission"}</h3>
+          <p>${zh?"甄試：每年10月報名、11月口試、12月放榜，2月(Spring)或9月(Fall)入學。已領有大學畢業證書者，可提前於2月入學。":"Screening: apply in October, interview in November, results in December; enrol in February or September. Graduates may enter in February."}</p>
+          <p>${zh?"碩士：每年1月報名、3月口試並放榜，9月(Fall)入學。":"General admission: apply in January, interview and results in March, September enrolment."}</p>
+          <p>${zh?"外國學生申請入學請見英文版招生說明。":"International applicants should follow the English admissions notes."}</p>
+          <p><a class="btn btn-navy" href="https://www.management.fju.edu.tw/subweb/immba/enroll.php?IID=26" target="_blank" rel="noopener">${zh?"官網招生頁／簡章":"Official admissions / brochure"}</a>
+          <a class="btn btn-line" href="https://www.management.fju.edu.tw/esubweb/immbaengindex/enroll.php?IID=3" target="_blank" rel="noopener">${zh?"英文招生頁":"English admissions"}</a>
           <a class="btn btn-line" href="http://tuition.ga.fju.edu.tw/lnchargeStudent/index.jsp" target="_blank" rel="noopener">${zh?"學雜費":"Tuition"}</a></p>
         </div>
       </section>
+      <section id="aid" class="anchor-section">
+        <h2 class="section-sub">${zh?"獎助學金資訊":"Scholarships"}</h2>
+        <div class="prose">
+          <ul class="checklist">
+            <li><a href="http://life.dsa.fju.edu.tw/resource.jsp?labelID=35" target="_blank" rel="noopener">${zh?"輔仁大學各項獎助學金":"Fu Jen university scholarships"}</a></li>
+            <li><a href="http://www.academic.fju.edu.tw/networkServices.jsp?labelID=16" target="_blank" rel="noopener">${zh?"輔仁大學教學助理助學金":"Teaching assistantship"}</a></li>
+            <li><a href="http://life.dsa.fju.edu.tw/resource.jsp?labelID=35" target="_blank" rel="noopener">${zh?"鼓勵學士班成績優異學生就讀碩士班獎學金辦法":"Scholarship for outstanding undergraduates entering a master’s program"}</a></li>
+            <li>${zh?"國際經營管理碩士學位學程學生獎助學金辦法":"imMBA student scholarship and aid regulations"}</li>
+            <li>${zh?"國際經營管理碩士學位學程校長獎學金辦法":"imMBA presidential scholarship"}</li>
+            <li>${zh?"學海飛颺獎學金、學海惜珠獎學金":"Study-abroad scholarships (學海飛颺 / 學海惜珠)"}</li>
+          </ul>
+          ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/enroll.php?IID=29")}
+        </div>
+      </section>
     `),
-    curriculum: pageShell(zh?"課程資訊":"Curriculum", zh?"最低 42 學分（含論文 6 學分），一般規劃 3–4 學期。":"42 credits minimum including a 6-credit thesis; typically 3–4 semesters.", `
-      <div class="cards">
-        <article class="card" id="fields"><h3>${zh?"專業領域":"Fields"}</h3><p>${zh?"國際企業管理、行銷、人力資源、全球供應鏈、財務管理、服務設計，並融入智慧營運與數位創新。":"International business, marketing, HR, global supply chain, finance and service design, with smart operations and digital innovation."}</p></article>
-        <article class="card" id="foundation"><h3>${zh?"基礎課程":"Foundation courses"}</h3><p>${zh?"經濟學、管理學、統計學、會計學。非商管背景新生須於第一學期開學前繳交學士班修讀證明；否則應補修一科，且不計入畢業學分。":"Economics, management, statistics and accounting. Non-business undergraduates must submit prior coursework before week one, or take one undergraduate make-up course (not counted toward graduation)."}</p></article>
-        <article class="card" id="thesis"><h3>${zh?"論文與抵免":"Thesis and transfer"}</h3><p>${zh?"擬口試當學期須先加選「論文」。入學前曾修本所專業課且符合資格者，可於入學當學期向註冊組申請抵免一次，開學後一週截止。":"Register for Thesis in the semester you intend to defend. Eligible prior imMBA coursework may be transferred once, within one week of the start of the first semester."}</p></article>
-      </div>
-      <div class="prose" style="margin-top:28px">
-        <p>${zh?"教師群名單每學期約於 3 月底與 10 月初公布，供同學聯繫指導教授。上課時間表、各學年度畢業修課規劃與修業規則請以所辦最新公告及現行官網附件為準（Fall 2025 入學起適用新規則）。":"Advisor lists are published around late March and early October. Timetables, year-by-year course maps and academic regulations follow the office’s latest files (rules from Fall 2025 entry onward)."}</p>
-        <p><a class="btn btn-line" href="https://www.management.fju.edu.tw/subweb/immba/class.php" target="_blank" rel="noopener">${zh?"現行課程頁與附件":"Current course files"}</a></p>
-      </div>
+    curriculum: pageShell(zh?"課程資訊":"Curriculum", zh?"AACSB認證全英碩士班；最低畢業學分42學分（含論文6學分）。":"An AACSB-accredited English-taught MBA; 42 credits minimum including a 6-credit thesis.", `
+      <section id="rules" class="anchor-section prose">
+        <h2>${zh?"課程與修業規則":"Courses and academic rules"}</h2>
+        <p>${zh?"輔大國際經管(imMBA) 為AACSB認證的全英碩士班，課程設計除涵蓋管理專業領域，如國際企業管理、行銷、人力資源、全球供應鏈管理、財務管理、服務設計等，更融入智慧營運與數位創新等最新產業趨勢。":"imMBA is an AACSB-accredited, English-taught MBA covering international business, marketing, HR, global supply chain, finance and service design, plus smart operations and digital innovation."}</p>
+        <h3>${zh?"上課時間表與畢業修課規劃":"Timetable and course map"}</h3>
+        <p>${zh?"上課時間表、課程目錄與學習目標、各學年度畢業修課規劃與結構（115、114、113、112）均以官網附件為準。":"Timetables, the course catalog, learning objectives and year-by-year course maps (115, 114, 113, 112) follow the official attachments."}</p>
+        <p>${zh?"本碩士班每學期分別於3月底及10月初提供教師群名單，供同學自行聯繫並確認指導老師。擬申請論文口試及畢業的當學期，必須於當學期選課期間先加選「論文」。":"Advisor lists are released around late March and early October. Students who plan to defend must register for Thesis in that semester."}</p>
+        <h3>${zh?"入學前碩士班學分抵免":"Graduate credit transfer"}</h3>
+        <p>${zh?"凡曾於本碩士班修習專業課程且符合資格者，得於入學當年度當學期向註冊組提出申請，並以一次為限。申請時間至開學後一週截止。":"Eligible prior imMBA coursework may be transferred once, in the first semester, within one week of the start of term."}</p>
+        <h3>${zh?"入學前學士班基礎課程抵免":"Undergraduate foundation courses"}</h3>
+        <p>${zh?"設「經濟學」、「管理學（企業管理）」、「統計學」、「會計學」為基礎課程。大學非主修商管相關科系的新生皆須於第一學期開學前，主動提交學士班修讀證明。未提交者應於第一學期補修其中一科，補修學分不列入畢業學分。":"Economics, management, statistics and accounting are foundation courses. Non-business undergraduates must submit proof before week one, or take one make-up course in the first semester (not counted toward graduation)."}</p>
+        <h3>${zh?"修業規則":"Academic regulations"}</h3>
+        <p>${zh?"最低畢業學分為42學分(含論文6學分)，一般需要規劃3–4個學期。關於基礎課程、專業必修、專業選修、論文撰寫、英文畢業門檻皆有規定。Fall 2025入學起適用新規則。":"Minimum credits are 42 including a 6-credit thesis, typically 3–4 semesters. Foundation, required, elective, thesis and English-graduation rules apply. New rules from Fall 2025 entry."}</p>
+        <p><a class="btn btn-navy" href="https://www.management.fju.edu.tw/subweb/immba/class.php?CID=20" target="_blank" rel="noopener">${zh?"官網課程頁與附件":"Official course files"}</a></p>
+      </section>
     `),
     faculty: pageShell(zh?"師資介紹":"Faculty", zh?"專任與兼任教師，涵蓋策略、行銷、財務、供應鏈、資料科學與跨文化溝通。":"Full-time and adjunct faculty across strategy, marketing, finance, supply chain, data science and intercultural communication.", `
+      <p class="form-note">${zh?"師資名單對照官網師資介紹頁；詳細資訊以官網為準。":"The faculty list follows the official teacher page."} <a href="https://www.management.fju.edu.tw/subweb/immba/teacher.php" target="_blank" rel="noopener">${zh?"官網師資頁":"Official faculty page"}</a></p>
       <div class="faculty-toolbar">
         <select id="facultyFilter">
           <option value="all">${t().filterAll}</option>
@@ -481,33 +506,39 @@ function pages() {
       <div class="faculty-grid" id="facultyGrid">${window.IMMBA.faculty.map(f => facultyCard(f, zh)).join("")}</div>
     `),
     guide: pageShell(zh?"imMBA 全攻略":"Student guide", zh?"從適不適合、如何入學，到碩一選課與論文節奏。":"Who it is for, how admission works, and how to plan year one.", `
-      <div class="grid-2">
-        <article class="card" id="who"><h3>${zh?"適合誰":"Who it is for"}</h3>
+      <div class="prose">
+        <p>${zh?"國際經管imMBA獲AACSB認證是全英授課的碩士班，學生組成除本地生外，尚有亞洲、美洲、歐洲、大洋洲等超過30個不同國家的學生前來攻讀學位或交換學習，本地生與國際學生1:1合班上課，授予MBA學位。":"imMBA is an AACSB-accredited, English-taught MBA. Local and international students share classes in roughly equal numbers, with classmates from more than 30 countries."}</p>
+        <section id="who" class="anchor-section">
+          <h2>${zh?"適合的目標族群":"Who it is for"}</h2>
           <ul class="checklist">
-            <li>${zh?"想培養國際競爭力、進入集團或外商":"Building international mobility for global firms"}</li>
-            <li>${zh?"對數字轉型、創新或行銷有興趣":"Interest in digital transformation, innovation or marketing"}</li>
-            <li>${zh?"需要專業管理訓練，或作為 π 型／繼續深造的基礎":"Professional management training, T-shaped skills, or a path to further study"}</li>
-            <li>${zh?"不限大學主修":"Open to all undergraduate majors"}</li>
+            <li>${zh?"如果你想培養國際競爭力":"If you want international competitiveness"}</li>
+            <li>${zh?"如果你想進入集團企業或外商公司":"If you aim for a group or multinational firm"}</li>
+            <li>${zh?"如果你對數位轉型、創新或行銷有興趣":"If you are interested in digital transformation, innovation or marketing"}</li>
+            <li>${zh?"如果你尋求專業管理訓練":"If you want professional management training"}</li>
+            <li>${zh?"如果你想成為π型或繼續學術深造":"If you want T-shaped skills or a path to further study"}</li>
+            <li>${zh?"不限大學主修，國際經管都可以提供發展的舞台":"Open to all undergraduate majors"}</li>
           </ul>
-        </article>
-        <article class="card" id="advisor"><h3>${zh?"論文指導":"Thesis advisor"}</h3>
-          <p>${zh?"不必一入學就找指導教授。所辦於每學期加退選結束後公告相關訊息。論文通常需要三學期：一學期確認題目，兩學期撰寫。計畫雙碩士者須在出國前完成論文。":"You do not need an advisor on day one. Notices follow the add/drop period. Most students use one semester to confirm a topic and two to write. Dual-degree students must finish the thesis before going abroad."}</p>
-        </article>
+        </section>
+        <section id="year-one" class="anchor-section">
+          <h2>${zh?"招生管道與碩一排課":"Admissions path and year-one planning"}</h2>
+          <p>${zh?"針對本地生每年設有甄試和碩士兩次招生，皆免筆試。甄試：每年10月報名、11月口試、12月放榜，2月或9月入學。碩士：每年1月報名、3月口試並放榜，9月入學。書審與口試兩關；口試英文為主、中文為輔。":"Local applicants have two exam-free rounds: screening (October) and general admission (January). Admission uses document review and an interview conducted mainly in English."}</p>
+          <p>${zh?"不必一入學就找論文指導老師。所辦於每學期加退選結束後公告相關訊息。論文通常需要三學期；計畫出國攻讀雙碩士者必須於出國前完成論文。":"You do not need an advisor on day one. Dual-degree students must finish the thesis before going abroad."}</p>
+          <p>${zh?"基礎課程抵免、碩士課程抵免與正規選課安排與官網全攻略頁相同：非商管主修須於開學前提交基礎課證明；碩士課抵免限入學當學期一次、開學後一週截止；開學前一個月請先讀官網修課規定，所辦約於開學前三週Email選課細節。":"Foundation and master’s credit-transfer rules, and year-one enrolment, follow the official guide: non-business majors submit foundation proof before term starts; master’s transfer is once in the first semester; the office emails enrolment details about three weeks before class."}</p>
+        </section>
+        ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=243")}
       </div>
-      <article class="card" id="year-one" style="margin-top:20px"><h3>${zh?"碩一怎麼排課":"Year-one planning"}</h3>
-        <p>${zh?"開學前一個月請先讀修課與畢業規定；所辦約於開學前三週以 Email 公告選課細節。基礎課與碩士課抵免規則見課程頁。":"Review graduation rules a month before term starts. The office emails enrolment details about three weeks prior. Foundation and credit-transfer rules are on the Curriculum page."}</p>
-      </article>
     `),
-    graduation: pageShell(zh?"畢業與離校":"Graduation and leaving school", zh?"口試資格、截止日與離校文件。":"Defense eligibility, deadlines and leaving procedures.", `
+    graduation: pageShell(zh?"畢業與離校":"Graduation and leaving school", zh?"論文口試資格、截止日與離校文件。":"Defense eligibility, deadlines and leaving procedures.", `
       <div class="prose">
         <section id="defense" class="anchor-section">
-          <h2>${zh?"論文口試":"Thesis defense"}</h2>
-          <p>${zh?"須符合修業規則始得申請論文口試。每學期皆可申請；Fall 口試截止原則為 1/31，Spring 為 7/31，實際日期配合學校行事曆。口試當學期必須先加選「論文」。":"You may apply to defend only if academic rules are met. Defenses are possible every term; typical cut-offs are 31 January (fall) and 31 July (spring), subject to the university calendar. Register for Thesis in that semester."}</p>
-          <p>${zh?"請依「論文口試流程與畢業規範」預留口試前後作業時間。最低畢業學分 42（含論文 6），一般約 4 學期完成。指導教授名單約於每年 3 月底與 10 月初提供。":"Allow time before and after the oral defense. Minimum credits are 42 including the thesis. Advisor lists appear around late March and early October."}</p>
+          <h2>${zh?"論文口試與離校流程":"Thesis defense and leaving school"}</h2>
+          <p>${zh?"同學必須符合修業規則之規定，才具備申請論文口試之資格。每一個學期皆可申請論文口試，Fall的口試截止日為每年的1月31日、Spring的口試截止日為每年的7月31日（實際截止日需配合當年度輔大行事曆）。":"You may apply to defend only if academic rules are met. Defenses are possible every term. Typical cut-offs are 31 January (fall) and 31 July (spring), subject to the university calendar."}</p>
+          <p>${zh?"論文口試前和後皆有必要程序需要充足作業時間，請依據「論文口試流程與畢業規範」提前規劃。擬申請論文口試及畢業的當學期，必須於當學期選課期間先加選「論文」。教師群名單於每學期3月底及10月初提供。":"Leave time for procedures before and after the oral defense. Register for Thesis in the semester you intend to defend. Advisor lists appear around late March and early October."}</p>
         </section>
         <section id="forms" class="anchor-section">
-          <h2>${zh?"離校文件":"Leaving-school forms"}</h2>
-          <p><a class="btn btn-navy" href="https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=48" target="_blank" rel="noopener">${zh?"論文格式與離校表單（現行官網）":"Thesis templates (current site)"}</a></p>
+          <h2>${zh?"表單與修業規則":"Forms and academic rules"}</h2>
+          <p>${zh?"最低畢業學分為42學分（含論文6學分），一般需要規劃4個學期。論文口試流程與畢業規範、圖書館論文資源、論文格式、論文口試同意書、論文修改完成證明書等檔案均在官網此頁。":"Minimum credits are 42 including a 6-credit thesis, typically four semesters. Defense workflow, library resources, thesis format, consent form and revision certificate are on the official page."}</p>
+          <p><a class="btn btn-navy" href="https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=48" target="_blank" rel="noopener">${zh?"官網：論文格式與離校表單":"Official thesis and leaving-school forms"}</a></p>
         </section>
       </div>
     `),
@@ -529,28 +560,35 @@ function pages() {
           <article class="partner"><h3>KEDGE Business School</h3><p>${zh?"法國三桂冠（AACSB、EQUIS、AMBA）。可選波爾多或馬賽。授予 Master in Management（60 ECTS），入學後須 6 個月以上實習。大學至少 240 ECTS。雙聯期間 KEDGE 學費全免，僅繳輔大全額學雜費。":"Triple-crown school in Bordeaux or Marseille. Master in Management (60 ECTS) plus 6+ months of internship. At least 240 ECTS from the bachelor’s. KEDGE tuition is waived; Fu Jen tuition remains."}</p></article>
           <article class="partner"><h3>IQS School of Management</h3><p>${zh?"巴塞隆納拉孟大學創始成員，AACSB 認證。可選 International Marketing in a Digital Environment 或 Industrial Business Management。學費依合約、每年調整。":"Ramon Llull University, Barcelona. AACSB. Tracks: International Marketing in a Digital Environment, or Industrial Business Management. Fees follow the contract and may change yearly."}</p></article>
         </div>
+        ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=79")}
       </section>
     `),
-    exchange: pageShell(zh?"海外交換":"Overseas exchange", zh?"不想攻讀第二學位，仍可申請全球姊妹校免學費交換。":"A tuition-waiver semester abroad without pursuing a second degree.", `
+    exchange: pageShell(zh?"海外交換":"Overseas exchange", zh?"全球姐妹校免學費出國交換。":"Tuition-waiver exchange at Fu Jen sister schools worldwide.", `
       <div class="prose">
         <section id="overview" class="anchor-section">
-          <h2>${zh?"交換說明":"About exchange"}</h2>
-          <p>${zh?"輔仁大學姊妹校資源豐富。每學期提供免學費交換名額（非攻讀另一學位）。國際經管因全英語、國際化程度高，同學除雙碩士外，也常把握交換累積跨文化經驗。":"Fu Jen’s partner network offers tuition-waiver exchange each semester. imMBA students often use this path when they want intercultural experience without a second degree."}</p>
+          <h2>${zh?"全球姐妹校免學費出國交換":"Tuition-waiver sister-school exchange"}</h2>
+          <p>${zh?"輔仁大學海外姐妹學校數量和資源之豐富全台數一數二，締結友好學術關係的姐妹校遍布全球。每學期全球各地的姐妹校皆提供免學費的交換課程（非攻讀另一學位）給輔大學生。":"Fu Jen’s sister-school network is among the strongest in Taiwan. Each semester, partners worldwide offer tuition-waiver exchange (not a second degree)."}</p>
+          <p>${zh?"國際經管(imMBA)因為是全英碩士班、國際化程度高，每年都有學長姐把握機會，爭取到美法西等簽約學校攻讀跨國雙碩士學位，或是到海外姐妹校交換、累積更多跨文化的學習經驗。":"Because imMBA is fully English-taught and highly international, students often pursue dual degrees in the US, France or Spain, or a sister-school exchange for intercultural experience."}</p>
         </section>
         <section id="apply" class="anchor-section">
           <h2>${zh?"如何申請":"How to apply"}</h2>
-          <p>${zh?"申請方式、條件與學校名單請依國際學生中心全球交換生計畫。":"Apply through the Office of International Education’s global exchange scheme for dates, eligibility and partner lists."}</p>
-          <p><a class="btn btn-navy" href="https://www.oie.fju.edu.tw/" target="_blank" rel="noopener">${zh?"國際學生中心／國際教育處":"Office of International Education"}</a></p>
+          <p>${zh?"海外姐妹校每學期之申請作業，包括申請方式、條件、交換學校、主修等相關細節，請參閱輔仁大學國際學生中心的全球交換生計畫。":"Application method, conditions, schools and majors follow the Office of International Education’s global exchange scheme each semester."}</p>
+          <p><a class="btn btn-navy" href="https://www.oie.fju.edu.tw/" target="_blank" rel="noopener">${zh?"國際學生中心／國際教育處":"Office of International Education"}</a>
+          <a class="btn btn-line" href="https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=142" target="_blank" rel="noopener">${zh?"官網原文頁":"Official page"}</a></p>
         </section>
       </div>
     `),
-    news: pageShell(zh?"公告":"Announcements", zh?"招生、課程與國際合作最新消息。":"Admissions, courses and partnership updates.", `<div id="latest" class="news-list anchor-section">${newsItems()}</div>`),
+    news: pageShell(zh?"公告":"Announcements", zh?"招生、課程與國際合作最新消息。":"Admissions, courses and partnership updates.", `
+      <p><a class="btn btn-line" href="https://www.management.fju.edu.tw/subweb/immba/news.php" target="_blank" rel="noopener">${zh?"官網公告":"Official news"}</a></p>
+      <div id="latest" class="news-list anchor-section">${newsItems()}</div>
+    `),
     "news-detail": "",
     events: pageShell(zh?"活動集錦":"Events", zh?"交流、參訪與學院活動紀實。":"Exchanges, visits and college events.", `
       <div id="list" class="news-list anchor-section">${window.IMMBA.events.map(e => `
         <article class="news-item"><time>${e.date.replaceAll("-","/")}</time><span><strong>${zh?e.zhTitle:e.enTitle}</strong><br>${zh?e.zh:e.en}</span><span></span></article>
       `).join("")}</div>
-      <p style="margin-top:24px"><a class="btn btn-line" href="gallery.html">${zh?"相片集錦":"Photo gallery"}</a></p>
+      <p style="margin-top:24px"><a class="btn btn-line" href="gallery.html">${zh?"相片集錦":"Photo gallery"}</a>
+      ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=241")}</p>
     `),
     marketplace: pageShell(zh?"教材與書籍市集":"Books & materials marketplace", zh?"課程讀本、二手書交流與論文範本入口。":"Course readings, used-book exchange, and thesis templates.", `
       <div class="cards">
@@ -559,7 +597,8 @@ function pages() {
         <article class="card" id="templates"><h3>${zh?window.IMMBA.marketplace[2].zhTitle:window.IMMBA.marketplace[2].enTitle}</h3><p>${zh?window.IMMBA.marketplace[2].zh:window.IMMBA.marketplace[2].en}</p><p><a class="btn btn-navy" href="${window.IMMBA.marketplace[2].href}">${zh?"前往":"Open"}</a></p></article>
       </div>
     `),
-    downloads: pageShell(zh?"下載專區":"Downloads", zh?"簡章、課表、修業規則與論文表單。正式文件以現行官網為準。":"Brochures, timetables, regulations and thesis forms. Official files remain on the current college site.", `
+    downloads: pageShell(zh?"下載專區":"Downloads", zh?"簡章、課表、修業規則與論文表單。正式文件以現行官網表格下載為準。":"Brochures, timetables, regulations and thesis forms. Official files remain on the college download page.", `
+      <p><a class="btn btn-navy" href="https://www.management.fju.edu.tw/subweb/immba/download.php" target="_blank" rel="noopener">${zh?"官網表格下載":"Official downloads"}</a></p>
       <section id="admission" class="anchor-section">
         <h2 class="section-sub">${zh?"招生文件":"Admission files"}</h2>
         <div class="news-list">${window.IMMBA.downloads.filter((_,i) => i===0 || i===4).map(d => `
