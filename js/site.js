@@ -477,6 +477,7 @@ function pages() {
           <p>${zh?"可以說在國際經管(imMBA)求學，除了專業的師資陣容，國際多元同儕共同學習之外，還能享有五星級的優質學習環境，雄踞校園制高點，俯瞰美麗的輔大校園。":"Students study with professional faculty and an international cohort in a high-quality setting at the high point of campus, looking out over Fu Jen."}</p>
           <figure class="env-photo"><img src="${zh?"img/environment/md-1f.jpg":"../img/environment/md-1f.jpg"}" alt="${zh?"國璽樓 1 樓人文大廳":"Cardinal Shan Building, 1F hall"}"></figure>
           <figure class="env-photo"><img src="${zh?"img/environment/md-10f.jpg":"../img/environment/md-10f.jpg"}" alt="${zh?"國璽樓 10 樓專業教室":"Cardinal Shan Building, 10F classroom"}"></figure>
+          <figure class="env-photo"><img src="${zh?"img/environment/md-classroom.jpg":"../img/environment/md-classroom.jpg"}" alt="${zh?"國際經管專業教室":"imMBA classroom"}"></figure>
           <p>${zh?"國璽樓3、4、5樓是藏書豐富的圖書館，埋頭研究之餘，偶而遠眺窗外，靜心沉思。不容錯過位於5樓新落成的e化「Fun學趣自學中心」，學習創作更有感。":"The library occupies MD floors 3–5. Floor 5 also has the Fun Learning self-study center."}</p>
           <figure class="env-photo"><img src="${zh?"img/environment/md-others.jpg":"../img/environment/md-others.jpg"}" alt="${zh?"國璽樓圖書館與學習空間":"Library and study spaces in Cardinal Shan Building"}"></figure>
           <p class="env-aa"><img src="${zh?"img/environment/aa-logo.jpg":"../img/environment/aa-logo.jpg"}" alt="AACSB"></p>
