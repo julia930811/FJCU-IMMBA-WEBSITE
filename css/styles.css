@@ -266,6 +266,25 @@ button, input, select, textarea { font-family: inherit; }
   padding-top: 8px;
   border-top: 1px solid var(--line);
 }
+.env-photo {
+  margin: 24px 0;
+  text-align: center;
+}
+.env-photo img {
+  width: 100%;
+  max-width: 920px;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 12px;
+}
+.env-aa {
+  text-align: right;
+  margin: 8px 0 16px;
+}
+.env-aa img {
+  width: 160px;
+  height: auto;
+}
 
 .nav-toggle {
   display: none;
