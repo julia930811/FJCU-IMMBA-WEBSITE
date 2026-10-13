@@ -83,6 +83,8 @@ const I18N = {
     ],
     newsTitle: "最新公告",
     newsAll: "全部公告",
+    viewDetails: "查看詳細內容",
+    newsSource: "資料來源",
     galleryTitle: "相片集錦",
     galleryAll: "進入相簿",
     highlightsTitle: "學程特色",
@@ -193,6 +195,8 @@ const I18N = {
     ],
     newsTitle: "News",
     newsAll: "All news",
+    viewDetails: "View Details",
+    newsSource: "Source",
     galleryTitle: "Gallery",
     galleryAll: "View gallery",
     highlightsTitle: "Why imMBA",
@@ -353,13 +357,21 @@ function footerHTML() {
 
 function newsItems(limit) {
   const list = [...window.IMMBA.news].sort((a,b) => (b.pinned - a.pinned) || b.date.localeCompare(a.date));
+  const more = t().viewDetails;
   return (limit ? list.slice(0, limit) : list).map(n => `
-    <a class="news-item" href="news-detail.html?id=${n.id}">
-      <time>${n.date.replaceAll("-", "/")}</time>
-      <span>${n.pinned ? `<span class="tag">TOP</span>` : ""}${locale()==="zh"?n.zhTitle:n.enTitle}</span>
-      <span>→</span>
-    </a>
+    <article class="news-card">
+      <div class="news-card-copy">
+        <time>${n.date.replaceAll("-", "/")}</time>
+        <h3>${n.pinned ? `<span class="tag">TOP</span>` : ""}${locale()==="zh"?n.zhTitle:n.enTitle}</h3>
+      </div>
+      <a class="news-more" href="${n.href}" target="_blank" rel="noopener">${more} →</a>
+    </article>
   `).join("");
+}
+
+function newsSource() {
+  const url = "https://www.management.fju.edu.tw/subweb/immba/news.php";
+  return `<p class="news-source">${t().newsSource}：<a href="${url}" target="_blank" rel="noopener">${url}</a></p>`;
 }
 
 function officialBtn(url) {
@@ -393,7 +405,8 @@ function pages() {
       <section class="section section-paper"><div class="wrap grid-2">
         <div>
           <div class="section-head"><div><div class="eyebrow">News</div><h2>${t().newsTitle}</h2></div><a href="news.html">${t().newsAll} →</a></div>
-          <div class="news-list">${newsItems(6)}</div>
+          <div class="news-cards">${newsItems(6)}</div>
+          ${newsSource()}
         </div>
         <div>
           <div class="section-head"><div><div class="eyebrow">Campus</div><h2>${t().galleryTitle}</h2></div><a href="gallery.html">${t().galleryAll} →</a></div>
@@ -584,8 +597,8 @@ function pages() {
       </div>
     `),
     news: pageShell(zh?"公告":"Announcements", zh?"招生、課程與國際合作最新消息。":"Admissions, courses and partnership updates.", `
-      <p><a class="btn btn-line" href="https://www.management.fju.edu.tw/subweb/immba/news.php" target="_blank" rel="noopener">${zh?"官網公告":"Official news"}</a></p>
-      <div id="latest" class="news-list anchor-section">${newsItems()}</div>
+      <div id="latest" class="news-cards anchor-section">${newsItems()}</div>
+      ${newsSource()}
     `),
     "news-detail": "",
     events: pageShell(zh?"活動集錦":"Events", zh?"交流、參訪與學院活動紀實。":"Exchanges, visits and college events.", `
@@ -671,15 +684,19 @@ function renderNewsDetail() {
   const n = window.IMMBA.news.find(x => x.id === id) || window.IMMBA.news[0];
   const zh = locale()==="zh";
   document.getElementById("main").innerHTML = pageShell(zh?n.zhTitle:n.enTitle, n.date.replaceAll("-", "/"), `
-    <article class="prose"><p>${zh?n.zhBody:n.enBody}</p>
-    <p><a href="news.html">${zh?"回到公告列表":"Back to news"}</a></p></article>
+    <article class="prose">
+      ${n.zhBody || n.enBody ? `<p>${zh?n.zhBody:n.enBody}</p>` : `<p>${zh?"完整內容請見官網公告。":"Read the full announcement on the official site."}</p>`}
+      <p><a class="btn btn-navy" href="${n.href}" target="_blank" rel="noopener">${t().viewDetails} →</a></p>
+      <p><a href="news.html">${zh?"回到公告列表":"Back to news"}</a></p>
+    </article>
+    ${newsSource()}
   `);
 }
 
 function renderSearch() {
   const q = (new URLSearchParams(location.search).get("q") || "").trim().toLowerCase();
   const zh = locale()==="zh";
-  const hits = window.IMMBA.news.filter(n => (n.zhTitle + n.enTitle + n.zhBody + n.enBody).toLowerCase().includes(q));
+  const hits = window.IMMBA.news.filter(n => (n.zhTitle + n.enTitle + (n.zhBody||"") + (n.enBody||"")).toLowerCase().includes(q));
   const facultyHits = window.IMMBA.faculty.filter(f => (f.zhName + f.enName + f.fieldsZh + f.fieldsEn).toLowerCase().includes(q));
   const pageHits = t().nav.flatMap(item => {
     const rows = [[item.href, item.label]];
@@ -689,7 +706,14 @@ function renderSearch() {
   document.getElementById("main").innerHTML = pageShell(zh?"搜尋結果":"Search results", q || (zh?"請輸入關鍵字":"Enter a keyword"), `
     <p>${zh?`找到 ${hits.length} 則公告、${facultyHits.length} 位教師、${pageHits.length} 個頁面。`:`${hits.length} news items, ${facultyHits.length} faculty, ${pageHits.length} pages.`}</p>
     ${pageHits.length ? `<div class="news-list">${pageHits.map(([href,label]) => `<a class="news-item" href="${href}"><time></time><span>${label}</span><span>→</span></a>`).join("")}</div>` : ""}
-    <div class="news-list">${hits.map(n => `<a class="news-item" href="news-detail.html?id=${n.id}"><time>${n.date}</time><span>${zh?n.zhTitle:n.enTitle}</span><span>→</span></a>`).join("") || ""}</div>
+    <div class="news-cards">${hits.map(n => `
+      <article class="news-card">
+        <div class="news-card-copy">
+          <time>${n.date.replaceAll("-", "/")}</time>
+          <h3>${zh?n.zhTitle:n.enTitle}</h3>
+        </div>
+        <a class="news-more" href="${n.href}" target="_blank" rel="noopener">${t().viewDetails} →</a>
+      </article>`).join("") || ""}</div>
     <div class="faculty-grid" style="margin-top:20px">${facultyHits.map(f => facultyCard(f, zh)).join("")}</div>
   `);
 }
