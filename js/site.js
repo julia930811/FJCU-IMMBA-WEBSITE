@@ -306,10 +306,9 @@ function headerHTML() {
           })}
         </nav>
         <div class="action-area" aria-label="Action area">
-          <div class="lang-switch">
-            ${locale()==="zh"
-              ? `<a href="${enHref}">EN</a>`
-              : `<a href="${zhHref}">中文</a>`}
+          <div class="lang-switch" aria-label="${locale()==="zh"?"語言":"Language"}">
+            <a href="${zhHref}" class="${locale()==="zh"?"is-active":""}"${locale()==="zh"?' aria-current="page"':""}>中文</a>
+            <a href="${enHref}" class="${locale()!=="zh"?"is-active":""}"${locale()!=="zh"?' aria-current="page"':""}>EN</a>
           </div>
           <a class="btn btn-apply-navy" href="admissions.html">${L.ctaApply}</a>
         </div>
@@ -340,7 +339,8 @@ function footerHTML() {
               <a href="search.html">${L.search}</a><br>
               <a href="https://fjcu-immba-website-lilac.vercel.app/" target="_blank" rel="noopener">Vercel</a><br>
               <a href="https://www.aacsb.edu/" target="_blank" rel="noopener">AACSB</a><br>
-              <a href="https://www.management.fju.edu.tw/subweb/immba/" target="_blank" rel="noopener">${L.original}</a>
+              <a href="https://www.management.fju.edu.tw/subweb/immba/" target="_blank" rel="noopener">${L.original}</a><br>
+              <a href="admin-news.html">${locale()==="zh"?"公告後台 AdminNews":"AdminNews back office"}</a>
             </p>
           </div>
           <div>
@@ -355,11 +355,17 @@ function footerHTML() {
   `;
 }
 
+function liveNews() {
+  return window.NewsStore ? window.NewsStore.published() : window.IMMBA.news;
+}
+function newsDetailHref(n) {
+  return "news-detail.html?id=" + encodeURIComponent(n.id);
+}
 function newsItems(limit) {
-  const list = [...window.IMMBA.news].sort((a,b) => (b.pinned - a.pinned) || b.date.localeCompare(a.date));
+  const list = liveNews();
   const more = t().viewDetails;
   return (limit ? list.slice(0, limit) : list).map(n => `
-    <a class="news-card" href="${n.href}" target="_blank" rel="noopener">
+    <a class="news-card" href="${newsDetailHref(n)}">
       <div class="news-card-copy">
         <time>${n.date.replaceAll("-", "/")}</time>
         <h3>${n.pinned ? `<span class="tag">TOP</span>` : ""}${locale()==="zh"?n.zhTitle:n.enTitle}</h3>
@@ -383,12 +389,13 @@ function pages() {
   return {
     index: `
       <section class="hero">
-        <img class="hero-poster" src="${locale()==="zh"?"img/hero-poster.jpg":"../img/hero-poster.jpg"}" alt="${t().heroTitle}">
+        <img class="hero-poster" src="${zh?"img/hero-top.jpg":"../img/hero-top.jpg"}" alt="${t().heroTitle}">
         <h1 class="visually-hidden">${t().heroTitle}</h1>
         <div class="hero-actions">
           <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
           <a class="btn btn-ghost" href="marketplace.html">${t().ctaBooks}</a>
         </div>
+        <img class="hero-poster hero-poster-bottom" src="${zh?"img/hero-bottom.jpg":"../img/hero-bottom.jpg"}" alt="">
       </section>
       <div class="stats">${t().stats.map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("")}</div>
       <section class="identity-bar"><div class="identity-inner">${t().identity.map(([a,b]) => `<p><b>${a}</b>${b}</p>`).join("")}</div></section>
@@ -603,6 +610,79 @@ function pages() {
       <div id="latest" class="news-cards anchor-section">${newsItems()}</div>
       ${newsSource()}
     `),
+    "admin-news": pageShell(zh?"公告後台 AdminNews":"AdminNews back office", zh?"管理員在同一頁維護中英公告，並同步到前台網站。":"Administrators manage Chinese and English announcements in one record and sync them to the website.", `
+      <div class="admin-toolbar">
+        <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增公告":"Add a new announcement"}</button>
+        <button type="button" class="btn btn-line" id="btnRestore">${zh?"還原預設清單":"Restore the default list"}</button>
+        <button type="button" class="btn btn-line" id="btnSync">${zh?"同步到前台網站":"Synchronize with the website"}</button>
+        <a class="btn btn-line" href="news.html">${zh?"查看前台公告":"View front-end news"}</a>
+      </div>
+      <p class="admin-count" id="newsCount"></p>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>${zh?"排序":"Order"}</th>
+              <th>${zh?"日期":"Date"}</th>
+              <th>TOP</th>
+              <th>${zh?"狀態":"Status"}</th>
+              <th>${zh?"中文標題":"Chinese title"}</th>
+              <th>${zh?"英文標題":"English title"}</th>
+              <th>${zh?"雙語同步":"Bilingual sync"}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="newsTableBody"></tbody>
+        </table>
+      </div>
+      <form class="admin-form" id="newsForm">
+        <h2 id="formMode">${zh?"新增公告（中英同一筆）":"Create announcement (one record, two languages)"}</h2>
+        <input type="hidden" id="newsId">
+        <div class="admin-shared">
+          <label>${zh?"日期":"Date"}<input id="newsDate" type="date" required></label>
+          <label>${zh?"連結 URL":"Link URL"}<input id="newsHref" type="url" placeholder="https://"></label>
+          <label>${zh?"顯示排序":"Display order"}<input id="newsOrder" type="number" min="1" step="1"></label>
+          <label>${zh?"狀態":"Status"}
+            <select id="newsStatus">
+              <option value="published">${zh?"已發布":"Published"}</option>
+              <option value="draft">${zh?"草稿":"Draft"}</option>
+            </select>
+          </label>
+          <label class="admin-check"><input id="newsPinned" type="checkbox"> TOP</label>
+        </div>
+        <div class="admin-bilingual">
+          <div>
+            <label>${zh?"中文標題":"Chinese title"}
+              <input id="newsZhTitle" required>
+            </label>
+            <button type="button" class="btn btn-line" id="btnAutoZhTitle">${zh?"由英文自動翻譯（可再改）":"Auto-translate from English (editable)"}</button>
+            <label>${zh?"中文內文":"Chinese content"}
+              <textarea id="newsZhBody" rows="6"></textarea>
+            </label>
+            <button type="button" class="btn btn-line" id="btnAutoZhBody">${zh?"由英文自動翻譯內文":"Auto-translate content from English"}</button>
+          </div>
+          <div>
+            <label>${zh?"英文標題":"English title"}
+              <input id="newsEnTitle" required>
+            </label>
+            <button type="button" class="btn btn-line" id="btnAutoEnTitle">${zh?"由中文自動翻譯（可再改）":"Auto-translate from Chinese (editable)"}</button>
+            <label>${zh?"英文內文":"English content"}
+              <textarea id="newsEnBody" rows="6"></textarea>
+            </label>
+            <button type="button" class="btn btn-line" id="btnAutoEnBody">${zh?"由中文自動翻譯內文":"Auto-translate content from Chinese"}</button>
+          </div>
+        </div>
+        <div id="syncBox" class="admin-sync"></div>
+        <div class="admin-preview">
+          <article id="previewZh"></article>
+          <article id="previewEn"></article>
+        </div>
+        <div class="admin-toolbar">
+          <button class="btn btn-navy" type="submit">${zh?"儲存這一筆（中英一起）":"Save both languages as one record"}</button>
+          <button class="btn btn-line" type="button" id="btnDeleteOne">${zh?"刪除（中英一起移除）":"Delete (both languages together)"}</button>
+        </div>
+      </form>
+    `),
     "news-detail": "",
     events: pageShell(zh?"活動集錦":"Events", zh?"交流、參訪與學院活動紀實。":"Exchanges, visits and college events.", `
       <div id="list" class="news-list anchor-section">${window.IMMBA.events.map(e => `
@@ -684,12 +764,14 @@ function facultyCard(f, zh) {
 
 function renderNewsDetail() {
   const id = new URLSearchParams(location.search).get("id");
-  const n = window.IMMBA.news.find(x => x.id === id) || window.IMMBA.news[0];
+  const pool = window.NewsStore ? window.NewsStore.all() : window.IMMBA.news;
+  const n = pool.find(x => x.id === id) || liveNews()[0];
   const zh = locale()==="zh";
+  const body = zh ? (n.zhBody || n.enBody) : (n.enBody || n.zhBody);
   document.getElementById("main").innerHTML = pageShell(zh?n.zhTitle:n.enTitle, n.date.replaceAll("-", "/"), `
     <article class="prose">
-      ${n.zhBody || n.enBody ? `<p>${zh?n.zhBody:n.enBody}</p>` : `<p>${zh?"完整內容請見官網公告。":"Read the full announcement on the official site."}</p>`}
-      <p><a class="btn btn-navy" href="${n.href}" target="_blank" rel="noopener">${t().viewDetails} →</a></p>
+      ${body ? `<p>${body.replaceAll("\n", "<br>")}</p>` : `<p>${zh?"完整內容請見官網公告。":"Read the full announcement on the official site."}</p>`}
+      ${n.href ? `<p><a class="btn btn-navy" href="${n.href}" target="_blank" rel="noopener">${t().viewDetails} →</a></p>` : ""}
       <p><a href="news.html">${zh?"回到公告列表":"Back to news"}</a></p>
     </article>
     ${newsSource()}
@@ -699,7 +781,7 @@ function renderNewsDetail() {
 function renderSearch() {
   const q = (new URLSearchParams(location.search).get("q") || "").trim().toLowerCase();
   const zh = locale()==="zh";
-  const hits = window.IMMBA.news.filter(n => (n.zhTitle + n.enTitle + (n.zhBody||"") + (n.enBody||"")).toLowerCase().includes(q));
+  const hits = liveNews().filter(n => (n.zhTitle + n.enTitle + (n.zhBody||"") + (n.enBody||"")).toLowerCase().includes(q));
   const facultyHits = window.IMMBA.faculty.filter(f => (f.zhName + f.enName + f.fieldsZh + f.fieldsEn).toLowerCase().includes(q));
   const pageHits = t().nav.flatMap(item => {
     const rows = [[item.href, item.label]];
@@ -710,7 +792,7 @@ function renderSearch() {
     <p>${zh?`找到 ${hits.length} 則公告、${facultyHits.length} 位教師、${pageHits.length} 個頁面。`:`${hits.length} news items, ${facultyHits.length} faculty, ${pageHits.length} pages.`}</p>
     ${pageHits.length ? `<div class="news-list">${pageHits.map(([href,label]) => `<a class="news-item" href="${href}"><time></time><span>${label}</span><span>→</span></a>`).join("")}</div>` : ""}
     <div class="news-cards">${hits.map(n => `
-      <a class="news-card" href="${n.href}" target="_blank" rel="noopener">
+      <a class="news-card" href="${newsDetailHref(n)}">
         <div class="news-card-copy">
           <time>${n.date.replaceAll("-", "/")}</time>
           <h3>${zh?n.zhTitle:n.enTitle}</h3>
@@ -775,6 +857,7 @@ function boot() {
   }
   document.body.insertAdjacentHTML("beforeend", footerHTML());
   bind();
+  if (page === "admin-news" && typeof initAdminNews === "function") initAdminNews();
   if (location.hash) {
     const target = document.querySelector(location.hash);
     if (target) target.scrollIntoView();
