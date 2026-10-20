@@ -1,3 +1,5 @@
 {
-  "buildCommand": "node scripts/write-env.js"
+  "framework": null,
+  "buildCommand": "node scripts/write-env.js",
+  "outputDirectory": "."
 }
