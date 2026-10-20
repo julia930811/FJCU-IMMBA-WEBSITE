@@ -855,6 +855,13 @@ function facultyInitials(f) {
   return src.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
+function facultyLocalPhoto(f) {
+  const slug = (f.enName || "faculty").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const ext = (f.imageUrl || "").toLowerCase().includes(".png") ? ".png" : ".jpg";
+  const prefix = locale() === "zh" ? "img/faculty/" : "../img/faculty/";
+  return prefix + slug + ext;
+}
+
 function facultyCard(f, zh) {
   const name = zh ? f.zhName : f.enName;
   const other = zh ? f.enName : f.zhName;
@@ -863,9 +870,9 @@ function facultyCard(f, zh) {
   const edu = zh ? f.eduZh : f.eduEn;
   const fields = zh ? f.fieldsZh : f.fieldsEn;
   const initials = facultyInitials(f);
-  const photo = f.imageUrl
-    ? `<img class="faculty-photo" src="${f.imageUrl}" alt="${name}" onerror="this.style.display='none'; this.nextElementSibling.hidden=false"><div class="faculty-photo-fallback" hidden>${initials}</div>`
-    : `<div class="faculty-photo-fallback">${initials}</div>`;
+  const local = facultyLocalPhoto(f);
+  const remote = f.imageUrl || "";
+  const photo = `<img class="faculty-photo" src="${local}" alt="${name}" referrerpolicy="no-referrer" data-remote="${remote}" onerror="if(this.dataset.remote&&this.src!==this.dataset.remote){this.src=this.dataset.remote;}else{this.style.display='none';this.nextElementSibling.hidden=false;}"><div class="faculty-photo-fallback" hidden>${initials}</div>`;
   return `<article class="faculty-card" data-type="${f.type}">
     <div class="faculty-photo-wrap">${photo}</div>
     <div class="faculty-copy">
