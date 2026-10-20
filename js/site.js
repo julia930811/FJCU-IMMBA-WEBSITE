@@ -258,6 +258,15 @@ function logoMark() {
   return `<img class="brand-mark" src="${src}" alt="imMBA">`;
 }
 
+function adminSwitch() {
+  const zh = locale() === "zh";
+  const page = document.body.dataset.page;
+  return `<nav class="admin-switch" aria-label="${zh ? "後台分頁" : "Back office"}">
+    <a href="admin-news.html" class="${page === "admin-news" ? "is-active" : ""}">${zh ? "公告後台" : "AdminNews"}</a>
+    <a href="admin-faculty.html" class="${page === "admin-faculty" ? "is-active" : ""}">${zh ? "師資後台" : "AdminFaculty"}</a>
+  </nav>`;
+}
+
 function navLink(href, label) {
   return `<a href="${href}" class="${isActive(href) ? "is-active" : ""}">${label}</a>`;
 }
@@ -295,7 +304,7 @@ function headerHTML() {
     <div class="brand-bar">
       <div class="brand-inner">
         <div class="brand">
-          <a class="brand-logo" href="admin-news.html" title="${locale()==="zh"?"公告後台 AdminNews":"AdminNews back office"}">${logoMark()}</a>
+          <a class="brand-logo" href="admin-news.html" title="${locale()==="zh"?"後台：公告／師資":"Back office: news / faculty"}">${logoMark()}</a>
           <a class="brand-copy" href="index.html">
             <span class="brand-text">${L.brand}</span>
             <span class="brand-motto">${L.motto}</span>
@@ -336,7 +345,7 @@ function footerHTML() {
       <div class="footer-inner">
         <div class="footer-grid">
           <div>
-            <a class="brand-logo" href="admin-news.html" title="${locale()==="zh"?"公告後台 AdminNews":"AdminNews back office"}">${logoMark().replace('class="brand-mark"', 'class="brand-mark footer-mark"')}</a>
+            <a class="brand-logo" href="admin-news.html" title="${locale()==="zh"?"後台：公告／師資":"Back office: news / faculty"}">${logoMark().replace('class="brand-mark"', 'class="brand-mark footer-mark"')}</a>
             <h3>imMBA</h3>
             <p class="footer-motto">✝ ${L.motto}</p>
             <p>${L.phone}<br>${L.email}<br>${L.address}</p>
@@ -352,8 +361,8 @@ function footerHTML() {
               <a href="https://fjcu-immba-website-lilac.vercel.app/" target="_blank" rel="noopener">Vercel</a><br>
               <a href="https://www.aacsb.edu/" target="_blank" rel="noopener">AACSB</a><br>
               <a href="https://www.management.fju.edu.tw/subweb/immba/" target="_blank" rel="noopener">${L.original}</a><br>
-              <a href="admin-news.html">${locale()==="zh"?"公告後台 AdminNews":"AdminNews back office"}</a><br>
-              <a href="admin-faculty.html">${locale()==="zh"?"師資後台 AdminFaculty":"AdminFaculty back office"}</a>
+              ${locale()==="zh"?"後台：":"Back office: "}<a href="admin-news.html">${locale()==="zh"?"公告":"News"}</a>
+              · <a href="admin-faculty.html">${locale()==="zh"?"師資":"Faculty"}</a>
             </p>
           </div>
           <div>
@@ -433,23 +442,21 @@ function pages() {
       </section>
       <div class="stats">${t().stats.map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("")}</div>
       <section class="identity-bar"><div class="identity-inner">${t().identity.map(([a,b]) => `<p><b>${a}</b>${b}</p>`).join("")}</div></section>
+      <section class="section section-paper"><div class="wrap">
+        <div class="section-head"><div><div class="eyebrow">News</div><h2>${t().newsTitle}</h2></div><a href="news.html">${t().newsAll} →</a></div>
+        <div class="news-cards">${newsItems(6)}</div>
+        ${newsSource()}
+      </div></section>
       <section class="section"><div class="wrap">
+        <div class="section-head"><div><div class="eyebrow">Campus</div><h2>${t().galleryTitle}</h2></div><a href="gallery.html">${t().galleryAll} →</a></div>
+        <div class="gallery-grid">${window.IMMBA.gallery.slice(0,4).map(g => `<a href="${g.src}" data-lightbox><img src="${g.src}" alt="${zh?g.zh:g.en}"></a>`).join("")}</div>
+      </div></section>
+      <section class="section section-paper"><div class="wrap">
         <div class="section-head"><div><div class="eyebrow">Program</div><h2>${t().highlightsTitle}</h2></div></div>
         <div class="cards">
           <article class="card"><h3>${zh?"國際化教室":"International classroom"}</h3><p>${zh?"來自亞洲、美洲、歐洲與大洋洲三十餘國的學生前來攻讀學位或交換；本地生與國際生合班，在地學習、國際體驗。":"Students from more than 30 countries across Asia, the Americas, Europe and Oceania study or exchange here, sharing the same English-taught classroom."}</p></article>
           <article class="card"><h3>${zh?"MBA × 數位創新":"MBA × digital innovation"}</h3><p>${zh?"課程涵蓋國際企業、行銷、人資、全球供應鏈、財務與服務設計，並納入智慧營運與數位創新。":"Core coverage includes international business, marketing, HR, global supply chain, finance and service design, with digital operations and innovation."}</p></article>
           <article class="card"><h3>${zh?"雙碩士與交換":"Dual degrees and exchange"}</h3><p>${zh?"可銜接密西根大學 Flint、法國 KEDGE、西班牙 IQS；也可申請全球姊妹校免學費交換。":"1+1 dual degrees with UM-Flint, KEDGE and IQS, plus Fu Jen’s worldwide tuition-waiver exchange network."}</p></article>
-        </div>
-      </div></section>
-      <section class="section section-paper"><div class="wrap grid-2">
-        <div>
-          <div class="section-head"><div><div class="eyebrow">News</div><h2>${t().newsTitle}</h2></div><a href="news.html">${t().newsAll} →</a></div>
-          <div class="news-cards">${newsItems(6)}</div>
-          ${newsSource()}
-        </div>
-        <div>
-          <div class="section-head"><div><div class="eyebrow">Campus</div><h2>${t().galleryTitle}</h2></div><a href="gallery.html">${t().galleryAll} →</a></div>
-          <div class="gallery-grid" style="grid-template-columns:1fr 1fr">${window.IMMBA.gallery.slice(0,4).map(g => `<a href="${g.src}" data-lightbox><img src="${g.src}" alt="${zh?g.zh:g.en}"></a>`).join("")}</div>
         </div>
       </div></section>
       <section class="section section-navy"><div class="wrap">
@@ -646,7 +653,7 @@ function pages() {
       <div id="latest" class="news-cards anchor-section">${newsItems()}</div>
       ${newsSource()}
     `),
-    "admin-news": pageShell(zh?"公告後台 AdminNews":"AdminNews back office", zh?"管理員在同一頁維護中英公告，並同步到前台網站。":"Administrators manage Chinese and English announcements in one record and sync them to the website.", `
+    "admin-news": pageShell(zh?"公告後台 AdminNews":"AdminNews back office", zh?"與師資後台同一組後台；管理員在同一頁維護中英公告，並同步到前台網站。":"Same back office as faculty. Administrators manage Chinese and English announcements in one record and sync them to the website.", `
       <div class="admin-toolbar">
         <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增公告":"Add a new announcement"}</button>
         <button type="button" class="btn btn-line" id="btnRestore">${zh?"還原預設清單":"Restore the default list"}</button>
@@ -720,7 +727,7 @@ function pages() {
         </table>
       </div>
     `),
-    "admin-faculty": pageShell(zh?"師資後台 AdminFaculty":"AdminFaculty back office", zh?"管理員新增、編輯、刪除與排序師資，並以照片網址同步到前台。":"Administrators create, read, update, delete and reorder faculty, then sync photo URLs to the front-end page.", `
+    "admin-faculty": pageShell(zh?"師資後台 AdminFaculty":"AdminFaculty back office", zh?"與公告後台同一組後台；管理員新增、編輯、刪除與排序師資，並以照片網址同步到前台。":"Same back office as news. Administrators create, read, update, delete and reorder faculty, then sync photo URLs to the front-end page.", `
       <div class="admin-toolbar">
         <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增師資":"Add faculty"}</button>
         <button type="button" class="btn btn-line" id="btnRestore">${zh?"還原預設清單":"Restore the default list"}</button>
@@ -839,9 +846,12 @@ function pages() {
 
 function pageShell(title, lead, inner) {
   const home = locale()==="zh"?"首頁":"Home";
+  const page = document.body.dataset.page;
+  const tabs = (page === "admin-news" || page === "admin-faculty") ? adminSwitch() : "";
   return `<section class="page-hero"><div class="wrap">
     <div class="crumbs"><a href="index.html">${home}</a> / ${title}</div>
     <h1>${title}</h1><p>${lead}</p>
+    ${tabs}
   </div></section>
   <section class="section"><div class="wrap">${inner}</div></section>`;
 }
