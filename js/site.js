@@ -26,6 +26,7 @@ const I18N = {
       ]},
       { href: "faculty.html", label: "師資介紹", children: [
         ["faculty.html#full", "專任教師"],
+        ["faculty.html#visit", "客座教師"],
         ["faculty.html#adjunct", "兼任教師"]
       ]},
       { href: "guide.html", label: "imMBA全攻略", children: [
@@ -98,9 +99,14 @@ const I18N = {
     applyIntl: "外國學生請見英文版招生說明",
     filterAll: "全部師資",
     filterFull: "專任教師",
+    filterVisit: "客座教師",
     filterAdjunct: "兼任教師",
     fields: "研究領域",
     edu: "學歷",
+    dept: "系所",
+    contact: "聯絡",
+    website: "個人網站",
+    photo: "教師照片",
     send: "送出",
     formOk: "已為您開啟郵件視窗。若未出現，請直接來信 imMBA@mail.fju.edu.tw。",
     required: "此欄必填",
@@ -138,6 +144,7 @@ const I18N = {
       ]},
       { href: "faculty.html", label: "Faculty", children: [
         ["faculty.html#full", "Full-time faculty"],
+        ["faculty.html#visit", "Visiting faculty"],
         ["faculty.html#adjunct", "Adjunct faculty"]
       ]},
       { href: "guide.html", label: "imMBA Guide", children: [
@@ -210,9 +217,14 @@ const I18N = {
     applyIntl: "International applicants: see the English admissions notes below",
     filterAll: "All faculty",
     filterFull: "Full-time",
+    filterVisit: "Visiting",
     filterAdjunct: "Adjunct",
-    fields: "Research",
+    fields: "Research Areas",
     edu: "Education",
+    dept: "Department",
+    contact: "Contact",
+    website: "Website",
+    photo: "Faculty photo",
     send: "Send",
     formOk: "Your email client should open. If it does not, write to imMBA@mail.fju.edu.tw.",
     required: "Required",
@@ -340,7 +352,8 @@ function footerHTML() {
               <a href="https://fjcu-immba-website-lilac.vercel.app/" target="_blank" rel="noopener">Vercel</a><br>
               <a href="https://www.aacsb.edu/" target="_blank" rel="noopener">AACSB</a><br>
               <a href="https://www.management.fju.edu.tw/subweb/immba/" target="_blank" rel="noopener">${L.original}</a><br>
-              <a href="admin-news.html">${locale()==="zh"?"公告後台 AdminNews":"AdminNews back office"}</a>
+              <a href="admin-news.html">${locale()==="zh"?"公告後台 AdminNews":"AdminNews back office"}</a><br>
+              <a href="admin-faculty.html">${locale()==="zh"?"師資後台 AdminFaculty":"AdminFaculty back office"}</a>
             </p>
           </div>
           <div>
@@ -543,16 +556,18 @@ function pages() {
         <p><a class="btn btn-navy" href="https://www.management.fju.edu.tw/subweb/immba/class.php?CID=20" target="_blank" rel="noopener">${zh?"官網課程頁與附件":"Official course files"}</a></p>
       </section>
     `),
-    faculty: pageShell(zh?"師資介紹":"Faculty", zh?"專任與兼任教師，涵蓋策略、行銷、財務、供應鏈、資料科學與跨文化溝通。":"Full-time and adjunct faculty across strategy, marketing, finance, supply chain, data science and intercultural communication.", `
-      <p class="form-note">${zh?"師資名單對照官網師資介紹頁；詳細資訊以官網為準。":"The faculty list follows the official teacher page."} <a href="https://www.management.fju.edu.tw/subweb/immba/teacher.php" target="_blank" rel="noopener">${zh?"官網師資頁":"Official faculty page"}</a></p>
+    faculty: pageShell(zh?"師資介紹":"Faculty", zh?"專任、客座與兼任教師，涵蓋策略、行銷、財務、供應鏈、資料科學與跨文化溝通。":"Full-time, visiting and adjunct faculty across strategy, marketing, finance, supply chain, data science and intercultural communication.", `
+      <p class="form-note">${zh?"師資名單對照官網師資介紹頁；照片由後台紀錄的 image URL 顯示。":"The faculty list follows the official teacher page. Photos come from each record’s image URL."} <a href="https://www.management.fju.edu.tw/subweb/immba/teacher.php" target="_blank" rel="noopener">${zh?"官網師資頁":"Official faculty page"}</a>
+      · <a href="admin-faculty.html">${zh?"師資後台 AdminFaculty":"AdminFaculty back office"}</a></p>
       <div class="faculty-toolbar">
         <select id="facultyFilter">
           <option value="all">${t().filterAll}</option>
           <option value="full">${t().filterFull}</option>
+          <option value="visit">${t().filterVisit}</option>
           <option value="adjunct">${t().filterAdjunct}</option>
         </select>
       </div>
-      <div class="faculty-grid" id="facultyGrid">${window.IMMBA.faculty.map(f => facultyCard(f, zh)).join("")}</div>
+      <div class="faculty-list" id="facultyGrid">${liveFaculty().map(f => facultyCard(f, zh)).join("")}</div>
     `),
     guide: pageShell(zh?"imMBA 全攻略":"Student guide", zh?"從適不適合、如何入學，到碩一選課與論文節奏。":"Who it is for, how admission works, and how to plan year one.", `
       <div class="prose">
@@ -705,6 +720,65 @@ function pages() {
         </table>
       </div>
     `),
+    "admin-faculty": pageShell(zh?"師資後台 AdminFaculty":"AdminFaculty back office", zh?"管理員新增、編輯、刪除與排序師資，並以照片網址同步到前台。":"Administrators create, read, update, delete and reorder faculty, then sync photo URLs to the front-end page.", `
+      <div class="admin-toolbar">
+        <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增師資":"Add faculty"}</button>
+        <button type="button" class="btn btn-line" id="btnRestore">${zh?"還原預設清單":"Restore the default list"}</button>
+        <button type="button" class="btn btn-line" id="btnSync">${zh?"同步到前台網站":"Synchronize with the website"}</button>
+        <a class="btn btn-line" href="faculty.html">${zh?"查看前台師資":"View front-end faculty"}</a>
+      </div>
+      <p class="admin-status" id="adminStatus" hidden></p>
+      <form class="admin-form" id="facultyForm">
+        <h2 id="formMode">${zh?"新增師資（中英同一筆，含照片網址）":"Create faculty (one record, two languages, photo URL)"}</h2>
+        <input type="hidden" id="facId">
+        <div class="admin-shared admin-faculty-shared">
+          <label>${zh?"身分別":"Type"}
+            <select id="facType">
+              <option value="full">${zh?"專任教師":"Full-time Faculty"}</option>
+              <option value="visit">${zh?"客座教師":"Visiting Faculty"}</option>
+              <option value="adjunct">${zh?"兼任教師":"Adjunct Faculty"}</option>
+            </select>
+          </label>
+          <label>${zh?"顯示排序":"Display order"}<input id="facOrder" type="number" min="1" step="1"></label>
+          <label>${zh?"照片網址 image URL":"Faculty photo image URL"}<input id="facImage" type="text" placeholder="https://.../yining.jpg"></label>
+          <label>${zh?"電話 / 研究室":"Phone / office"}<input id="facPhone" type="text"></label>
+          <label>Email<input id="facEmail" type="text"></label>
+          <label>${zh?"個人網站":"Personal website"}<input id="facSite" type="text" placeholder="https://"></label>
+        </div>
+        <div class="admin-photo-row">
+          <div id="photoPreview" class="admin-photo-preview"></div>
+          <p class="form-note">${zh?"Faculty Record → image URL → Faculty Photo。貼上照片網址後，前台卡片會顯示該照片。":"Faculty Record → image URL → Faculty Photo. Paste a photo URL and the front-end card will show it."}</p>
+        </div>
+        <div class="admin-bilingual">
+          <div>
+            <label>${zh?"中文姓名":"Chinese name"}<input id="facZhName" required></label>
+            <label>${zh?"職稱":"Title (ZH)"}<input id="facTitleZh"></label>
+            <label>${zh?"系所 / 單位":"Department (ZH)"}<input id="facDeptZh"></label>
+            <label>${zh?"學歷":"Education (ZH)"}<textarea id="facEduZh" rows="3"></textarea></label>
+            <label>${zh?"研究領域":"Research fields (ZH)"}<textarea id="facFieldsZh" rows="3"></textarea></label>
+          </div>
+          <div>
+            <label>${zh?"英文姓名":"English name"}<input id="facEnName" required></label>
+            <label>${zh?"職稱（英）":"Title (EN)"}<input id="facTitleEn"></label>
+            <label>${zh?"系所（英）":"Department (EN)"}<input id="facDeptEn"></label>
+            <label>${zh?"學歷（英）":"Education (EN)"}<textarea id="facEduEn" rows="3"></textarea></label>
+            <label>${zh?"研究領域（英）":"Research fields (EN)"}<textarea id="facFieldsEn" rows="3"></textarea></label>
+          </div>
+        </div>
+        <div class="admin-toolbar">
+          <button class="btn btn-navy" type="submit">${zh?"儲存這一筆（中英一起）":"Save both languages as one record"}</button>
+          <button class="btn btn-line" type="button" id="btnDeleteOne">${zh?"刪除（中英一起移除）":"Delete (both languages together)"}</button>
+        </div>
+      </form>
+      <p class="admin-count" id="facultyCount"></p>
+      <section class="admin-faculty-panel">
+        <header>
+          <h2>${zh?"師資清單（與前台同步）":"Current Faculty List (Synchronize with Front-end Page)"}</h2>
+          <p>${zh?"可拖曳左側把手調整順序。變更會儲存並同步到前台師資頁。":"Drag the handle to reorder. Changes are saved and synchronized with the faculty page."}</p>
+        </header>
+        <ul class="admin-faculty-board" id="facultyBoard"></ul>
+      </section>
+    `),
     "news-detail": "",
     events: pageShell(zh?"活動集錦":"Events", zh?"交流、參訪與學院活動紀實。":"Exchanges, visits and college events.", `
       <div id="list" class="news-list anchor-section">${window.IMMBA.events.map(e => `
@@ -770,13 +844,38 @@ function pageShell(title, lead, inner) {
   <section class="section"><div class="wrap">${inner}</div></section>`;
 }
 
+function liveFaculty() {
+  return window.FacultyStore ? window.FacultyStore.all() : (window.IMMBA.faculty || []);
+}
+
+function facultyInitials(f) {
+  const src = (f.enName || f.zhName || "?").trim();
+  return src.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+}
+
 function facultyCard(f, zh) {
+  const name = zh ? f.zhName : f.enName;
+  const other = zh ? f.enName : f.zhName;
+  const dept = zh ? f.deptZh : f.deptEn;
+  const title = zh ? f.titleZh : f.titleEn;
+  const edu = zh ? f.eduZh : f.eduEn;
+  const fields = zh ? f.fieldsZh : f.fieldsEn;
+  const initials = facultyInitials(f);
+  const photo = f.imageUrl
+    ? `<img class="faculty-photo" src="${f.imageUrl}" alt="${name}" onerror="this.style.display='none'; this.nextElementSibling.hidden=false"><div class="faculty-photo-fallback" hidden>${initials}</div>`
+    : `<div class="faculty-photo-fallback">${initials}</div>`;
   return `<article class="faculty-card" data-type="${f.type}">
-    <h3>${zh?f.zhName:f.enName}</h3>
-    <div class="role">${zh?f.titleZh:f.titleEn}${f.deptZh ? " · " + (zh?f.deptZh:f.deptEn) : ""}</div>
-    <p><strong>${t().edu}</strong><br>${zh?f.eduZh:f.eduEn}</p>
-    <p><strong>${t().fields}</strong><br>${zh?f.fieldsZh:f.fieldsEn}</p>
-    <p>${f.phone ? f.phone + "<br>" : ""}<a href="mailto:${f.email}">${f.email}</a>${f.site ? `<br><a href="${f.site}" target="_blank" rel="noopener">Website</a>` : ""}</p>
+    <div class="faculty-photo-wrap">${photo}</div>
+    <div class="faculty-copy">
+      <h3>${name}${dept ? ` <span class="faculty-dept">(${dept})</span>` : ""}</h3>
+      ${other && other !== name ? `<p class="faculty-aka">${other}</p>` : ""}
+      <p class="role">${title}</p>
+      ${edu ? `<p><span class="faculty-k">${t().edu}:</span> ${edu}</p>` : ""}
+      ${fields ? `<p><span class="faculty-k">${t().fields}:</span> ${fields}</p>` : ""}
+      ${f.site ? `<p><span class="faculty-k">${t().website}:</span> <a href="${f.site}" target="_blank" rel="noopener">${f.site}</a></p>` : ""}
+      ${f.phone ? `<p><span class="faculty-k">${t().contact}:</span> ${f.phone}</p>` : ""}
+      ${f.email ? `<p><span class="faculty-k">Email:</span> <a href="mailto:${f.email}">${f.email}</a></p>` : ""}
+    </div>
   </article>`;
 }
 
@@ -800,7 +899,7 @@ function renderSearch() {
   const q = (new URLSearchParams(location.search).get("q") || "").trim().toLowerCase();
   const zh = locale()==="zh";
   const hits = liveNews().filter(n => (n.zhTitle + n.enTitle + (n.zhBody||"") + (n.enBody||"")).toLowerCase().includes(q));
-  const facultyHits = window.IMMBA.faculty.filter(f => (f.zhName + f.enName + f.fieldsZh + f.fieldsEn).toLowerCase().includes(q));
+  const facultyHits = liveFaculty().filter(f => (f.zhName + f.enName + f.fieldsZh + f.fieldsEn).toLowerCase().includes(q));
   const pageHits = t().nav.flatMap(item => {
     const rows = [[item.href, item.label]];
     if (item.children) rows.push(...item.children);
@@ -836,7 +935,7 @@ function bind() {
     });
   });
   const facultyHash = location.hash.replace("#", "");
-  if ((facultyHash === "full" || facultyHash === "adjunct") && document.getElementById("facultyFilter")) {
+  if ((facultyHash === "full" || facultyHash === "visit" || facultyHash === "adjunct") && document.getElementById("facultyFilter")) {
     document.getElementById("facultyFilter").value = facultyHash;
     document.getElementById("facultyFilter").dispatchEvent(new Event("change"));
   }
@@ -876,6 +975,7 @@ function boot() {
   document.body.insertAdjacentHTML("beforeend", footerHTML());
   bind();
   if (page === "admin-news" && typeof initAdminNews === "function") initAdminNews();
+  if (page === "admin-faculty" && typeof initAdminFaculty === "function") initAdminFaculty();
   if (location.hash) {
     const target = document.querySelector(location.hash);
     if (target) target.scrollIntoView();
