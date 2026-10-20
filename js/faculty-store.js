@@ -95,6 +95,14 @@
     return cache;
   }
 
+  function withMissingSeed(list) {
+    const names = new Set(list.map((f) => f.zhName));
+    seed().forEach((s, i) => {
+      if (s.zhName && !names.has(s.zhName)) list.push(normalize(s, list.length));
+    });
+    return list;
+  }
+
   function client() {
     return window.IMMBASupabase && window.IMMBASupabase.client;
   }
@@ -113,7 +121,7 @@
         const raw = localStorage.getItem(KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed) && parsed.length) return apply(parsed);
+          if (Array.isArray(parsed) && parsed.length) return apply(withMissingSeed(parsed));
         }
       } catch {}
       return apply(seed());
@@ -130,9 +138,17 @@
         remoteError = again.error.message;
         return apply(seed());
       }
-      return apply((again.data || []).map(fromRow));
+      return apply(withMissingSeed((again.data || []).map(fromRow)));
     }
-    return apply(data.map(fromRow));
+    const list = withMissingSeed(data.map(fromRow));
+    const existing = new Set((data || []).map((row) => row.zh_name || row.zhName));
+    for (const item of list) {
+      if (item.zhName && !existing.has(item.zhName)) {
+        const { error: insertError } = await sb.from("faculty").insert(toRow(item, list.length));
+        if (insertError) remoteError = insertError.message;
+      }
+    }
+    return apply(list);
   }
 
   const FacultyStore = {

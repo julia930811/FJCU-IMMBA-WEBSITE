@@ -449,7 +449,7 @@ function pages() {
       </div></section>
       <section class="section"><div class="wrap">
         <div class="section-head"><div><div class="eyebrow">Campus</div><h2>${t().galleryTitle}</h2></div><a href="gallery.html">${t().galleryAll} →</a></div>
-        <div class="gallery-grid">${liveGallery().slice(0,4).map(g => `<a href="${gallerySrc(g.src)}" data-lightbox><img src="${gallerySrc(g.src)}" alt="${zh?g.zh:g.en}"></a>`).join("")}</div>
+        <div class="gallery-grid">${(window.IMMBA.gallery || []).slice(0,4).map(g => `<a href="${g.src}" data-lightbox><img src="${g.src}" alt="${zh?g.zh:g.en}"></a>`).join("")}</div>
       </div></section>
       <section class="section section-paper"><div class="wrap">
         <div class="section-head"><div><div class="eyebrow">Program</div><h2>${t().highlightsTitle}</h2></div></div>
@@ -814,12 +814,8 @@ function pages() {
         <div class="news-list">${window.IMMBA.downloads.filter((_,i) => i!==0 && i!==4).map(d => fileRow(d.href, zh?d.zh:d.en)).join("")}</div>
       </section>
     `),
-    gallery: pageShell(zh?"相片集錦":"Photo gallery", zh?"複製影像後在此頁貼上（Ctrl/Cmd+V），或點下方區塊選檔新增照片。":"Paste a copied image on this page (Ctrl/Cmd+V), or click the box below to choose a file.", `
-      <div class="gallery-paste" id="galleryPaste" tabindex="0">
-        <p>${zh?"新增照片：貼上複製的影像，或點這裡選檔。":"Add a photo: paste a copied image, or click here to choose a file."}</p>
-        <input id="galleryFile" type="file" accept="image/*" hidden>
-      </div>
-      <div class="gallery-grid" id="galleryGrid">${liveGallery().map(g => `<a href="${gallerySrc(g.src)}" data-lightbox><img src="${gallerySrc(g.src)}" alt="${zh?g.zh:g.en}"></a>`).join("")}</div>
+    gallery: pageShell(zh?"相片集錦":"Photo gallery", zh?"課堂、交流與校園紀實（示意照片，可替換為所辦影像）。":"Classroom, mobility and campus moments (placeholder images, replaceable with official photos).", `
+      <div class="gallery-grid">${(window.IMMBA.gallery || []).map(g => `<a href="${g.src}" data-lightbox><img src="${g.src}" alt="${zh?g.zh:g.en}"></a>`).join("")}</div>
     `),
     contact: pageShell(zh?"聯絡我們":"Contact", zh?"歡迎來信或留言，我們會盡快回覆。":"Write to the office and we will respond as soon as we can.", `
       <div class="contact-grid">
@@ -862,16 +858,6 @@ function pageShell(title, lead, inner) {
 
 function liveFaculty() {
   return window.FacultyStore ? window.FacultyStore.all() : (window.IMMBA.faculty || []);
-}
-
-function liveGallery() {
-  return window.GalleryStore ? window.GalleryStore.all() : (window.IMMBA.gallery || []);
-}
-
-function gallerySrc(src) {
-  if (!src) return "";
-  if (/^(https?:|data:|blob:)/i.test(src)) return src;
-  return locale() === "zh" ? src : "../" + src.replace(/^\.\.\//, "");
 }
 
 function facultyInitials(f) {
@@ -986,7 +972,6 @@ function bind() {
     document.getElementById("formStatus").textContent = t().formOk;
   });
   bindLightbox();
-  bindGalleryPaste();
 }
 
 function bindLightbox() {
@@ -1000,60 +985,6 @@ function bindLightbox() {
     };
   });
   box.onclick = () => box.classList.remove("is-open");
-}
-
-function renderGalleryGrid() {
-  const grid = document.getElementById("galleryGrid");
-  if (!grid) return;
-  const zh = locale() === "zh";
-  grid.innerHTML = liveGallery().map((g) => {
-    const src = gallerySrc(g.src);
-    const alt = zh ? g.zh : g.en;
-    return `<a href="${src}" data-lightbox><img src="${src}" alt="${alt}"></a>`;
-  }).join("");
-  bindLightbox();
-}
-
-function bindGalleryPaste() {
-  const zone = document.getElementById("galleryPaste");
-  if (!zone || !window.GalleryStore || !window.IMMBAImage) return;
-  const fileInput = document.getElementById("galleryFile");
-  const zh = locale() === "zh";
-  async function addFile(file) {
-    if (!file || !String(file.type || "").startsWith("image/")) return;
-    const src = await window.IMMBAImage.fromFile(file);
-    window.GalleryStore.add({ src, zh: zh ? "新增照片" : "New photo", en: "New photo" });
-    renderGalleryGrid();
-  }
-  async function fromEvent(e) {
-    const file = window.IMMBAImage.fileFromClipboard(e);
-    if (!file) return;
-    e.preventDefault();
-    await addFile(file);
-  }
-  zone.addEventListener("paste", fromEvent);
-  document.addEventListener("paste", (e) => {
-    if (document.body.dataset.page !== "gallery") return;
-    if (e.target && ["INPUT", "TEXTAREA"].includes(e.target.tagName)) return;
-    fromEvent(e);
-  });
-  zone.addEventListener("click", () => fileInput && fileInput.click());
-  fileInput?.addEventListener("change", async () => {
-    const file = fileInput.files && fileInput.files[0];
-    await addFile(file);
-    fileInput.value = "";
-  });
-  zone.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    zone.classList.add("is-over");
-  });
-  zone.addEventListener("dragleave", () => zone.classList.remove("is-over"));
-  zone.addEventListener("drop", async (e) => {
-    e.preventDefault();
-    zone.classList.remove("is-over");
-    const file = [...(e.dataTransfer.files || [])].find((f) => String(f.type || "").startsWith("image/"));
-    await addFile(file);
-  });
 }
 
 async function boot() {
