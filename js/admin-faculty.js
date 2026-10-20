@@ -64,11 +64,14 @@ function showStatus(msg) {
   el.textContent = msg || "";
 }
 
-function photoPreview(url, name) {
-  const src = url || "";
+function photoPreview(url, name, record) {
   const initials = (name || "?").split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  if (record && typeof facultyPhotoMarkup === "function") {
+    return facultyPhotoMarkup(record, name);
+  }
+  const src = url || "";
   if (!src) return `<div class="faculty-photo-fallback">${esc(initials)}</div>`;
-  return `<img class="faculty-photo" src="${esc(src)}" alt="${esc(name)}" onerror="this.style.display='none'; this.nextElementSibling.hidden=false"><div class="faculty-photo-fallback" hidden>${esc(initials)}</div>`;
+  return `<img class="faculty-photo" src="${esc(src)}" alt="${esc(name)}" referrerpolicy="no-referrer" onerror="this.style.display='none'; this.nextElementSibling.removeAttribute('hidden')"><div class="faculty-photo-fallback" hidden>${esc(initials)}</div>`;
 }
 
 function fillForm(f) {
@@ -99,7 +102,7 @@ function fillForm(f) {
 function refreshPhotoPreview() {
   const url = document.getElementById("facImage").value.trim();
   const name = document.getElementById("facEnName").value.trim() || document.getElementById("facZhName").value.trim();
-  document.getElementById("photoPreview").innerHTML = photoPreview(url, name);
+  document.getElementById("photoPreview").innerHTML = photoPreview(url, name, { imageUrl: url, enName: name });
 }
 
 function renderList() {
@@ -108,7 +111,7 @@ function renderList() {
   const rows = list.map((f) => `
     <li class="admin-faculty-row" draggable="true" data-id="${esc(f.id)}">
       <span class="admin-drag" title="${zh ? "拖曳排序" : "Drag to reorder"}" aria-hidden="true">⋮⋮</span>
-      <div class="admin-faculty-thumb">${photoPreview(f.imageUrl, f.enName || f.zhName)}</div>
+      <div class="admin-faculty-thumb">${photoPreview(f.imageUrl, f.enName || f.zhName, f)}</div>
       <div class="admin-faculty-meta">
         <p class="admin-faculty-type">${typeLabel(f.type, zh)}</p>
         <h3>${esc(zh ? f.zhName : f.enName)} <span>${esc(zh ? f.enName : f.zhName)}</span></h3>

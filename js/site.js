@@ -557,7 +557,7 @@ function pages() {
       </section>
     `),
     faculty: pageShell(zh?"師資介紹":"Faculty", zh?"專任、客座與兼任教師，涵蓋策略、行銷、財務、供應鏈、資料科學與跨文化溝通。":"Full-time, visiting and adjunct faculty across strategy, marketing, finance, supply chain, data science and intercultural communication.", `
-      <p class="form-note">${zh?"師資名單對照官網師資介紹頁；照片由後台紀錄的 image URL 顯示。":"The faculty list follows the official teacher page. Photos come from each record’s image URL."} <a href="https://www.management.fju.edu.tw/subweb/immba/teacher.php" target="_blank" rel="noopener">${zh?"官網師資頁":"Official faculty page"}</a>
+      <p class="form-note">${zh?"師資名單對照官網師資介紹頁；照片放在左側，一位老師一列。":"The faculty list follows the official teacher page. Each teacher is one row with the photo on the left."} <a href="https://www.management.fju.edu.tw/subweb/immba/teacher.php" target="_blank" rel="noopener">${zh?"官網師資頁":"Official faculty page"}</a>
       · <a href="admin-faculty.html">${zh?"師資後台 AdminFaculty":"AdminFaculty back office"}</a></p>
       <div class="faculty-toolbar">
         <select id="facultyFilter">
@@ -855,11 +855,20 @@ function facultyInitials(f) {
   return src.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
-function facultyLocalPhoto(f) {
-  const slug = (f.enName || "faculty").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  const ext = (f.imageUrl || "").toLowerCase().includes(".png") ? ".png" : ".jpg";
+function facultyPhotoSources(f) {
+  const slug = (f.enName || "faculty").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
   const prefix = locale() === "zh" ? "img/faculty/" : "../img/faculty/";
-  return prefix + slug + ext;
+  const remote = (f.imageUrl || "").trim();
+  const pngFirst = /\.png(\?|$)/i.test(remote);
+  const localA = prefix + slug + (pngFirst ? ".png" : ".jpg");
+  const localB = prefix + slug + (pngFirst ? ".jpg" : ".png");
+  return [localA, localB, remote].filter((src, i, arr) => src && arr.indexOf(src) === i);
+}
+
+function facultyPhotoMarkup(f, name) {
+  const sources = facultyPhotoSources(f);
+  const rest = sources.slice(1).join("|");
+  return `<img class="faculty-photo" src="${sources[0]}" alt="${name}" referrerpolicy="no-referrer" data-srcs="${rest}" onerror="var q=(this.dataset.srcs||'').split('|').filter(Boolean);if(q.length){this.dataset.srcs=q.slice(1).join('|');this.src=q[0];}else{this.style.display='none';this.nextElementSibling.removeAttribute('hidden');}"><div class="faculty-photo-fallback" hidden>${facultyInitials(f)}</div>`;
 }
 
 function facultyCard(f, zh) {
@@ -869,12 +878,8 @@ function facultyCard(f, zh) {
   const title = zh ? f.titleZh : f.titleEn;
   const edu = zh ? f.eduZh : f.eduEn;
   const fields = zh ? f.fieldsZh : f.fieldsEn;
-  const initials = facultyInitials(f);
-  const local = facultyLocalPhoto(f);
-  const remote = f.imageUrl || "";
-  const photo = `<img class="faculty-photo" src="${local}" alt="${name}" referrerpolicy="no-referrer" data-remote="${remote}" onerror="if(this.dataset.remote&&this.src!==this.dataset.remote){this.src=this.dataset.remote;}else{this.style.display='none';this.nextElementSibling.hidden=false;}"><div class="faculty-photo-fallback" hidden>${initials}</div>`;
   return `<article class="faculty-card" data-type="${f.type}">
-    <div class="faculty-photo-wrap">${photo}</div>
+    <div class="faculty-photo-wrap">${facultyPhotoMarkup(f, name)}</div>
     <div class="faculty-copy">
       <h3>${name}${dept ? ` <span class="faculty-dept">(${dept})</span>` : ""}</h3>
       ${other && other !== name ? `<p class="faculty-aka">${other}</p>` : ""}

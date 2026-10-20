@@ -624,21 +624,25 @@ button, input, select, textarea { font-family: inherit; }
   margin-bottom: 20px;
 }
 .faculty-grid,
-.faculty-list { display: grid; grid-template-columns: 1fr; gap: 16px; }
+.faculty-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
 .faculty-card {
   display: grid;
-  grid-template-columns: 148px minmax(0, 1fr);
-  gap: 22px;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 24px;
   align-items: start;
-  padding: 18px 20px;
+  padding: 18px 22px;
 }
 .faculty-photo-wrap {
-  width: 148px;
-  min-height: 148px;
+  width: 160px;
+  min-height: 160px;
 }
 .faculty-photo, .faculty-photo-fallback {
-  width: 148px;
-  height: 148px;
+  width: 160px;
+  height: 160px;
   object-fit: cover;
   object-position: top center;
   border-radius: 10px;
