@@ -1,0 +1,7 @@
+{
+  "name": "fjcu-immba-website",
+  "private": true,
+  "scripts": {
+    "vercel-build": "node scripts/write-env.js"
+  }
+}

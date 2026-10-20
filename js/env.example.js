@@ -1,0 +1,4 @@
+window.IMMBA_ENV = {
+  VITE_SUPABASE_URL: "your_project_url",
+  VITE_SUPABASE_ANON_KEY: "your_anon_key"
+};

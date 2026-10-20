@@ -726,7 +726,9 @@ function pages() {
         <button type="button" class="btn btn-line" id="btnRestore">${zh?"還原預設清單":"Restore the default list"}</button>
         <button type="button" class="btn btn-line" id="btnSync">${zh?"同步到前台網站":"Synchronize with the website"}</button>
         <a class="btn btn-line" href="faculty.html">${zh?"查看前台師資":"View front-end faculty"}</a>
+        <a class="btn btn-line" href="https://supabase.com/dashboard/project/wrkpwyddocjokdtleqme/sql" target="_blank" rel="noopener">${zh?"開啟 Supabase SQL":"Open Supabase SQL"}</a>
       </div>
+      <p class="form-note">${zh?"資料表欄位對照講義：id、name、title、email、image_url。請先在 Supabase SQL Editor 執行 supabase/schema.sql，網站才會把師資寫進雲端。":"The table matches the lecture schema: id, name, title, email, image_url. Run supabase/schema.sql in the Supabase SQL Editor so faculty records sync to the cloud."}</p>
       <p class="admin-status" id="adminStatus" hidden></p>
       <form class="admin-form" id="facultyForm">
         <h2 id="formMode">${zh?"新增師資（中英同一筆，含照片網址）":"Create faculty (one record, two languages, photo URL)"}</h2>
@@ -957,7 +959,10 @@ function bind() {
   box?.addEventListener("click", () => box.classList.remove("is-open"));
 }
 
-function boot() {
+async function boot() {
+  if (window.FacultyStore && window.FacultyStore.ready) {
+    try { await window.FacultyStore.ready; } catch {}
+  }
   document.body.insertAdjacentHTML("afterbegin", headerHTML());
   const main = document.createElement("main");
   main.id = "main";
@@ -982,4 +987,4 @@ function boot() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", boot);
+document.addEventListener("DOMContentLoaded", () => { boot(); });

@@ -146,16 +146,26 @@ function editById(id) {
   document.getElementById("facultyForm").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-function deleteById(id) {
+async function deleteById(id) {
   const zh = locale() === "zh";
   if (!id) return;
   const item = window.FacultyStore.all().find((x) => x.id === id);
   const label = item ? `${item.zhName} / ${item.enName}` : id;
   if (!window.confirm(zh ? `刪除一次即可，中文與英文會一起移除：\n${label}` : `Delete once. Both languages will be removed:\n${label}`)) return;
-  window.FacultyStore.remove(id);
+  await window.FacultyStore.remove(id);
   renderList();
   startNew();
-  showStatus(zh ? "已刪除，並已同步到前台師資頁。" : "Deleted and synchronized with the faculty page.");
+  showStatus(cloudNote(zh ? "已刪除，並已同步到前台師資頁。" : "Deleted and synchronized with the faculty page."));
+}
+
+function cloudNote(msg) {
+  const zh = locale() === "zh";
+  const err = window.FacultyStore.lastError && window.FacultyStore.lastError();
+  if (err) return (zh ? "Supabase 尚未就緒：" : "Supabase is not ready: ") + err;
+  if (window.FacultyStore.usingCloud && window.FacultyStore.usingCloud()) {
+    return msg + (zh ? "（已寫入 Supabase faculty 資料表）" : " (saved to the Supabase faculty table)");
+  }
+  return msg + (zh ? "（目前僅存在本機，請先在 Supabase 執行 supabase/schema.sql）" : " (local only; run supabase/schema.sql first)");
 }
 
 function bindDrag() {
@@ -166,13 +176,13 @@ function bindDrag() {
       dragId = row.dataset.id;
       row.classList.add("is-dragging");
     });
-    row.addEventListener("dragend", () => {
+    row.addEventListener("dragend", async () => {
       row.classList.remove("is-dragging");
       const ids = [...board.querySelectorAll(".admin-faculty-row")].map((el) => el.dataset.id);
-      window.FacultyStore.reorder(ids);
+      await window.FacultyStore.reorder(ids);
       dragId = null;
       renderList();
-      showStatus(locale() === "zh" ? "已更新排序，並同步到前台。" : "Order updated and synchronized with the website.");
+      showStatus(cloudNote(locale() === "zh" ? "已更新排序，並同步到前台。" : "Order updated and synchronized with the website."));
     });
     row.addEventListener("dragover", (e) => {
       e.preventDefault();
@@ -185,12 +195,12 @@ function bindDrag() {
       if (from < to) over.after(dragging);
       else over.before(dragging);
     });
-    row.addEventListener("drop", (e) => {
+    row.addEventListener("drop", async (e) => {
       e.preventDefault();
       const ids = [...board.querySelectorAll(".admin-faculty-row")].map((el) => el.dataset.id);
-      window.FacultyStore.reorder(ids);
+      await window.FacultyStore.reorder(ids);
       renderList();
-      showStatus(locale() === "zh" ? "已更新排序，並同步到前台。" : "Order updated and synchronized with the website.");
+      showStatus(cloudNote(locale() === "zh" ? "已更新排序，並同步到前台。" : "Order updated and synchronized with the website."));
     });
   });
 }
@@ -211,29 +221,30 @@ function bindAdminFaculty() {
     }
   });
   document.getElementById("btnNew").addEventListener("click", startNew);
-  document.getElementById("btnRestore").addEventListener("click", () => {
+  document.getElementById("btnRestore").addEventListener("click", async () => {
     if (!window.confirm(zh ? "還原為預設師資清單？目前後台修改會被清掉。" : "Restore the default faculty list? Current back-office edits will be cleared.")) return;
-    window.FacultyStore.restore();
+    await window.FacultyStore.restore();
     renderList();
     startNew();
-    showStatus(zh ? "已還原預設清單，並已同步到前台。" : "Default list restored and synchronized with the website.");
+    showStatus(cloudNote(zh ? "已還原預設清單，並已同步到前台。" : "Default list restored and synchronized with the website."));
   });
-  document.getElementById("btnSync").addEventListener("click", () => {
-    window.FacultyStore.sync();
+  document.getElementById("btnSync").addEventListener("click", async () => {
+    await window.FacultyStore.sync();
     renderList();
-    showStatus(zh ? "已將後台變更同步到前台師資頁。" : "Back-office changes are synchronized with the faculty page.");
+    showStatus(cloudNote(zh ? "已將後台變更同步到前台師資頁。" : "Back-office changes are synchronized with the faculty page."));
   });
-  document.getElementById("facultyForm").addEventListener("submit", (e) => {
+  document.getElementById("facultyForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = formValues();
     if (!f.zhName || !f.enName) {
       showStatus(zh ? "請同時填寫中文姓名與英文姓名。" : "Please add both Chinese and English names.");
       return;
     }
-    window.FacultyStore.upsert(f);
+    await window.FacultyStore.upsert(f);
     renderList();
-    fillForm(f);
-    showStatus(zh ? "已儲存為一筆雙語師資（含照片網址），並同步到前台。" : "Saved as one bilingual faculty record with photo URL and synchronized with the website.");
+    const saved = window.FacultyStore.all().find((x) => x.enName === f.enName && x.zhName === f.zhName) || f;
+    fillForm(saved);
+    showStatus(cloudNote(zh ? "已儲存為一筆雙語師資（含照片網址），並同步到前台。" : "Saved as one bilingual faculty record with photo URL and synchronized with the website."));
   });
   document.getElementById("btnDeleteOne").addEventListener("click", () => {
     deleteById(document.getElementById("facId").value);
@@ -249,4 +260,5 @@ function initAdminFaculty() {
   fillForm(f);
   renderList();
   bindAdminFaculty();
+  showStatus(cloudNote(locale() === "zh" ? "師資後台已載入。" : "AdminFaculty is ready."));
 }
