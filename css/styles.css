@@ -120,7 +120,7 @@ button, input, select, textarea { font-family: inherit; }
   flex-shrink: 0;
   display: block;
   object-fit: contain;
-  background: #fff;
+  background: transparent;
 }
 .brand-copy {
   display: flex;
@@ -306,7 +306,7 @@ button, input, select, textarea { font-family: inherit; }
   display: grid;
   align-items: center;
   justify-items: end;
-  background: #7eb8c0 url("../img/hero-bg.jpg") left center / cover no-repeat;
+  background: #d7ebe8 url("../img/hero-bg.jpg?v=2") left center / cover no-repeat;
   line-height: normal;
 }
 .hero::before,
@@ -713,7 +713,7 @@ textarea { min-height: 140px; resize: vertical; }
   height: 72px;
   margin-bottom: 12px;
   object-fit: contain;
-  background: #fff;
+  background: #faf6ee;
   border-radius: 50%;
   padding: 6px;
 }
