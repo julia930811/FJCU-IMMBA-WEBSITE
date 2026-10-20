@@ -306,7 +306,7 @@ button, input, select, textarea { font-family: inherit; }
   display: grid;
   align-items: center;
   justify-items: end;
-  background: #d7ebe8 url("../img/hero-bg.jpg?v=2") left center / cover no-repeat;
+  background: #d7ebe8 url("../img/hero-bg.jpg?v=3") left center / cover no-repeat;
   line-height: normal;
 }
 .hero::before,
@@ -586,8 +586,8 @@ button, input, select, textarea { font-family: inherit; }
   position: relative;
   overflow: hidden;
   background:
-    linear-gradient(105deg, rgba(16,50,40,0.82) 0%, rgba(28,92,71,0.55) 55%, rgba(29,122,184,0.32) 100%),
-    url("../img/hero-globe.png") right 18% center / cover no-repeat;
+    linear-gradient(105deg, rgba(16,50,40,0.55) 0%, rgba(28,92,71,0.28) 45%, rgba(250,246,238,0.18) 100%),
+    url("../img/hero-bg.jpg?v=3") left center / cover no-repeat;
   color: #fff;
   padding: 72px 0 48px;
 }
