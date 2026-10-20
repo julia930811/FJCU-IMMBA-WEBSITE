@@ -17,6 +17,7 @@
       enTitle: n.enTitle || "",
       zhBody: n.zhBody || "",
       enBody: n.enBody || "",
+      imageUrl: n.imageUrl || n.image_url || "",
       zhTitleAuto: !!n.zhTitleAuto,
       enTitleAuto: !!n.enTitleAuto,
       zhBodyAuto: !!n.zhBodyAuto,

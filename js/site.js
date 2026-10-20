@@ -383,18 +383,27 @@ function liveNews() {
 function newsDetailHref(n) {
   return "news-detail.html?id=" + encodeURIComponent(n.id);
 }
-function newsItems(limit) {
-  const list = liveNews();
-  const more = t().viewDetails;
-  return (limit ? list.slice(0, limit) : list).map(n => `
-    <a class="news-card" href="${newsDetailHref(n)}">
+function newsPhoto(n, cls) {
+  const src = (n.imageUrl || "").trim();
+  if (!src) return "";
+  return `<img class="${cls}" src="${src}" alt="" referrerpolicy="no-referrer">`;
+}
+function newsCard(n) {
+  const photo = newsPhoto(n, "news-card-photo");
+  return `
+    <a class="news-card${photo ? " has-photo" : ""}" href="${newsDetailHref(n)}">
+      ${photo}
       <div class="news-card-copy">
         <time>${n.date.replaceAll("-", "/")}</time>
         <h3>${n.pinned ? `<span class="tag">TOP</span>` : ""}${locale()==="zh"?n.zhTitle:n.enTitle}</h3>
       </div>
-      <span class="news-more">${more} →</span>
+      <span class="news-more">${t().viewDetails} →</span>
     </a>
-  `).join("");
+  `;
+}
+function newsItems(limit) {
+  const list = liveNews();
+  return (limit ? list.slice(0, limit) : list).map(newsCard).join("");
 }
 
 function newsSource() {
@@ -676,6 +685,11 @@ function pages() {
           </label>
           <label class="admin-check"><input id="newsPinned" type="checkbox"> TOP</label>
         </div>
+        <label>${zh?"照片網址 image URL":"Announcement photo URL"}<input id="newsImage" type="text" placeholder="https://.../photo.jpg"></label>
+        <div class="admin-photo-row">
+          <div id="newsPhotoPreview" class="admin-photo-preview news-photo-preview"></div>
+          <p class="form-note">${zh?"可貼上網址，或直接把複製的影像貼上（Ctrl/Cmd+V）／拖放到預覽區。":"Paste a photo URL, or paste a copied image (Ctrl/Cmd+V) / drop it on the preview."}</p>
+        </div>
         <div class="admin-bilingual">
           <div>
             <label>${zh?"中文標題":"Chinese title"}
@@ -717,6 +731,7 @@ function pages() {
               <th>${zh?"日期":"Date"}</th>
               <th>TOP</th>
               <th>${zh?"狀態":"Status"}</th>
+              <th>${zh?"照片":"Photo"}</th>
               <th>${zh?"中文標題":"Chinese title"}</th>
               <th>${zh?"英文標題":"English title"}</th>
               <th>${zh?"雙語同步":"Bilingual sync"}</th>
@@ -912,6 +927,7 @@ function renderNewsDetail() {
   const body = zh ? (n.zhBody || n.enBody) : (n.enBody || n.zhBody);
   document.getElementById("main").innerHTML = pageShell(zh?n.zhTitle:n.enTitle, n.date.replaceAll("-", "/"), `
     <article class="prose">
+      ${newsPhoto(n, "news-detail-photo")}
       ${body ? `<p>${body.replaceAll("\n", "<br>")}</p>` : `<p>${zh?"完整內容請見官網公告。":"Read the full announcement on the official site."}</p>`}
       ${n.href ? `<p><a class="btn btn-navy" href="${n.href}" target="_blank" rel="noopener">${t().viewDetails} →</a></p>` : ""}
       <p><a href="news.html">${zh?"回到公告列表":"Back to news"}</a></p>
@@ -933,14 +949,7 @@ function renderSearch() {
   document.getElementById("main").innerHTML = pageShell(zh?"搜尋結果":"Search results", q || (zh?"請輸入關鍵字":"Enter a keyword"), `
     <p>${zh?`找到 ${hits.length} 則公告、${facultyHits.length} 位教師、${pageHits.length} 個頁面。`:`${hits.length} news items, ${facultyHits.length} faculty, ${pageHits.length} pages.`}</p>
     ${pageHits.length ? `<div class="news-list">${pageHits.map(([href,label]) => `<a class="news-item" href="${href}"><time></time><span>${label}</span><span>→</span></a>`).join("")}</div>` : ""}
-    <div class="news-cards">${hits.map(n => `
-      <a class="news-card" href="${newsDetailHref(n)}">
-        <div class="news-card-copy">
-          <time>${n.date.replaceAll("-", "/")}</time>
-          <h3>${zh?n.zhTitle:n.enTitle}</h3>
-        </div>
-        <span class="news-more">${t().viewDetails} →</span>
-      </a>`).join("") || ""}</div>
+    <div class="news-cards">${hits.map(newsCard).join("") || ""}</div>
     <div class="faculty-grid" style="margin-top:20px">${facultyHits.map(f => facultyCard(f, zh)).join("")}</div>
   `);
 }
