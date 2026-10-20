@@ -150,6 +150,7 @@ window.IMMBA = {
     { id: "n120", nid: "120", date: "2012-09-03", pinned: false, zhTitle: "學生查詢課​綱網址", enTitle: "學生查詢課​綱網址", href: "https://www.management.fju.edu.tw/subweb/immba/news-detail.php?NID=120", zhBody: "", enBody: "" }
   ],
   gallery: [
+    { src: "img/gallery/julia.jpg", zh: "imMBA 生活紀實", en: "imMBA campus life" },
     { src: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=1200&q=80", zh: "全英語課堂討論", en: "English-taught seminar" },
     { src: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80", zh: "跨國學生合作", en: "International teamwork" },
     { src: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=1200&q=80", zh: "個案與產業對話", en: "Case discussion" },

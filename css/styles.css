@@ -666,6 +666,18 @@ button, input, select, textarea { font-family: inherit; }
 .faculty-k { color: var(--navy); font-weight: 600; }
 .hidden { display: none !important; }
 
+.gallery-paste {
+  border: 1.5px dashed var(--navy);
+  border-radius: 16px;
+  padding: 22px 20px;
+  margin-bottom: 22px;
+  background: #fff;
+  color: var(--navy);
+  text-align: center;
+  cursor: pointer;
+}
+.gallery-paste p { margin: 0; }
+.gallery-paste.is-over { background: var(--paper); }
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

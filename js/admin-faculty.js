@@ -255,6 +255,31 @@ function bindAdminFaculty() {
   ["facImage", "facEnName", "facZhName"].forEach((id) => {
     document.getElementById(id).addEventListener("input", refreshPhotoPreview);
   });
+  async function applyPastedPhoto(file) {
+    if (!file || !window.IMMBAImage) return;
+    const url = await window.IMMBAImage.fromFile(file);
+    document.getElementById("facImage").value = url;
+    refreshPhotoPreview();
+    showStatus(locale() === "zh" ? "已貼上複製的影像，儲存後會同步到前台。" : "Pasted image added. Save to sync it to the website.");
+  }
+  function onPasteImage(e) {
+    const file = window.IMMBAImage && window.IMMBAImage.fileFromClipboard(e);
+    if (!file) return;
+    e.preventDefault();
+    applyPastedPhoto(file);
+  }
+  document.getElementById("facImage").addEventListener("paste", onPasteImage);
+  const preview = document.getElementById("photoPreview");
+  if (preview) {
+    preview.tabIndex = 0;
+    preview.addEventListener("paste", onPasteImage);
+    preview.addEventListener("dragover", (e) => e.preventDefault());
+    preview.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const file = [...(e.dataTransfer.files || [])].find((f) => String(f.type || "").startsWith("image/"));
+      applyPastedPhoto(file);
+    });
+  }
 }
 
 function initAdminFaculty() {
