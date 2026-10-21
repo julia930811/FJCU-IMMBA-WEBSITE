@@ -9,7 +9,9 @@
     if (!url || !key || !window.supabase || typeof window.supabase.createClient !== "function") {
       return null;
     }
-    return window.supabase.createClient(url, key);
+    return window.supabase.createClient(url, key, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
   }
 
   window.IMMBASupabase = {

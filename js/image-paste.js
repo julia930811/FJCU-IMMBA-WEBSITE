@@ -30,5 +30,20 @@
     });
   }
 
-  window.IMMBAImage = { fileFromClipboard, fromFile };
+  async function upload(file, bucket) {
+    const sb = window.IMMBASupabase && window.IMMBASupabase.client;
+    const dataUrl = await fromFile(file);
+    if (!sb || !bucket) return dataUrl;
+    const blob = await (await fetch(dataUrl)).blob();
+    const path = Date.now() + "-" + Math.random().toString(36).slice(2, 8) + ".jpg";
+    const { error } = await sb.storage.from(bucket).upload(path, blob, {
+      contentType: "image/jpeg",
+      upsert: true
+    });
+    if (error) return dataUrl;
+    const pub = sb.storage.from(bucket).getPublicUrl(path);
+    return (pub && pub.data && pub.data.publicUrl) || dataUrl;
+  }
+
+  window.IMMBAImage = { fileFromClipboard, fromFile, upload };
 })();

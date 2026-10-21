@@ -257,10 +257,16 @@ function bindAdminFaculty() {
   });
   async function applyPastedPhoto(file) {
     if (!file || !window.IMMBAImage) return;
-    const url = await window.IMMBAImage.fromFile(file);
+    const canCloud = window.IMMBAAuth && window.IMMBAAuth.canEdit();
+    const url = canCloud
+      ? await window.IMMBAImage.upload(file, "faculty-photos")
+      : await window.IMMBAImage.fromFile(file);
     document.getElementById("facImage").value = url;
     refreshPhotoPreview();
-    showStatus(locale() === "zh" ? "已貼上複製的影像，儲存後會同步到前台。" : "Pasted image added. Save to sync it to the website.");
+    const cloud = canCloud && url.indexOf("data:") !== 0;
+    showStatus(locale() === "zh"
+      ? (cloud ? "已上傳到 Supabase Storage，儲存後會同步到前台師資頁。" : "已貼上影像，儲存後會同步到前台。")
+      : (cloud ? "Uploaded to Supabase Storage. Save to sync it to the faculty page." : "Pasted image added. Save to sync it to the website."));
   }
   function onPasteImage(e) {
     const file = window.IMMBAImage && window.IMMBAImage.fileFromClipboard(e);

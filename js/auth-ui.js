@@ -1,0 +1,215 @@
+function authCopy() {
+  const zh = locale() === "zh";
+  return {
+    zh,
+    next: new URLSearchParams(location.search).get("next") || "admin-faculty.html",
+    loginTitle: zh ? "登入（Authentication）" : "Login (Authentication)",
+    registerTitle: zh ? "註冊帳號" : "Create your account",
+    resetTitle: zh ? "重設密碼" : "Reset password",
+    accountTitle: zh ? "帳號狀態" : "Account status"
+  };
+}
+
+function authStatus(el, msg, ok) {
+  if (!el) return;
+  el.hidden = !msg;
+  el.textContent = msg || "";
+  el.className = "admin-status" + (ok ? "" : " is-warn");
+}
+
+function goNext() {
+  const next = authCopy().next;
+  const allowed = /^(admin-news|admin-faculty|admin-users)\.html$/.test(next) ? next : "admin-faculty.html";
+  location.href = allowed;
+}
+
+function afterLogin() {
+  const Auth = window.IMMBAAuth;
+  if (!Auth.user()) return;
+  if (Auth.canEdit()) {
+    goNext();
+    return;
+  }
+  location.href = "account.html";
+}
+
+function initLogin() {
+  const zh = locale() === "zh";
+  const form = document.getElementById("loginForm");
+  const status = document.getElementById("authStatus");
+  if (!form) return;
+  if (window.IMMBAAuth.canEdit()) {
+    goNext();
+    return;
+  }
+  if (window.IMMBAAuth.user()) {
+    location.href = "account.html";
+    return;
+  }
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("authEmail").value.trim();
+    const password = document.getElementById("authPassword").value;
+    const { error } = await window.IMMBAAuth.signIn(email, password);
+    if (error) {
+      authStatus(status, zh ? "登入失敗：" + error.message : "Login failed: " + error.message, false);
+      return;
+    }
+    afterLogin();
+  });
+}
+
+function initRegister() {
+  const zh = locale() === "zh";
+  const form = document.getElementById("registerForm");
+  const status = document.getElementById("authStatus");
+  if (!form) return;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("authEmail").value.trim();
+    const password = document.getElementById("authPassword").value;
+    const confirm = document.getElementById("authPassword2").value;
+    if (password.length < 6) {
+      authStatus(status, zh ? "密碼至少 6 個字。" : "Password must be at least 6 characters.", false);
+      return;
+    }
+    if (password !== confirm) {
+      authStatus(status, zh ? "兩次密碼不一致。" : "The two passwords do not match.", false);
+      return;
+    }
+    const { data, error } = await window.IMMBAAuth.signUp(email, password);
+    if (error) {
+      authStatus(status, zh ? "註冊失敗：" + error.message : "Registration failed: " + error.message, false);
+      return;
+    }
+    if (data && data.session) {
+      authStatus(status, zh ? "已註冊。請先完成信箱驗證（若已開通則等待管理員核准）。" : "Registered. Confirm your email if asked, then wait for approval.", true);
+      location.href = "account.html";
+      return;
+    }
+    authStatus(status, zh ? "請到信箱點驗證信，確認這個 email 是你的（Email Verification）。" : "Check your inbox and confirm that this email belongs to you (Email Verification).", true);
+  });
+}
+
+function initReset() {
+  const zh = locale() === "zh";
+  const request = document.getElementById("resetRequestForm");
+  const update = document.getElementById("resetUpdateForm");
+  const status = document.getElementById("authStatus");
+  const hasSession = !!(window.IMMBAAuth.user());
+  if (request) request.hidden = hasSession;
+  if (update) update.hidden = !hasSession;
+  if (request) {
+    request.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("authEmail").value.trim();
+      const { error } = await window.IMMBAAuth.resetPassword(email);
+      if (error) {
+        authStatus(status, zh ? "寄送失敗：" + error.message : "Could not send reset email: " + error.message, false);
+        return;
+      }
+      authStatus(status, zh ? "若帳號存在，重設密碼信件已寄出。請從信件回到本頁設定新密碼。" : "If the account exists, a reset email was sent. Open the link to create a new password.", true);
+    });
+  }
+  if (update) {
+    update.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const password = document.getElementById("authPassword").value;
+      const confirm = document.getElementById("authPassword2").value;
+      if (password.length < 6 || password !== confirm) {
+        authStatus(status, zh ? "請輸入兩次相同、至少 6 字的新密碼。" : "Enter the same new password twice (min. 6 characters).", false);
+        return;
+      }
+      const { error } = await window.IMMBAAuth.updatePassword(password);
+      if (error) {
+        authStatus(status, zh ? "更新失敗：" + error.message : "Could not update password: " + error.message, false);
+        return;
+      }
+      authStatus(status, zh ? "密碼已更新，請用新密碼登入。" : "Password updated. Sign in with the new password.", true);
+      await window.IMMBAAuth.signOut();
+      location.href = "login.html";
+    });
+  }
+}
+
+function initAccount() {
+  const box = document.getElementById("accountBox");
+  if (!box) return;
+  const zh = locale() === "zh";
+  const Auth = window.IMMBAAuth;
+  const u = Auth.user();
+  const role = Auth.role() || "pending";
+  if (!u) {
+    box.innerHTML = `<p>${zh ? "尚未登入。" : "You are not signed in."}</p>
+      <p><a class="btn btn-navy" href="login.html">${zh ? "登入" : "Login"}</a>
+      <a class="btn btn-line" href="register.html">${zh ? "註冊" : "Register"}</a></p>`;
+    return;
+  }
+  const labels = {
+    pending: zh ? "pending：已註冊並驗證，尚不能進後台" : "pending: registered and verified, but cannot access the back office yet",
+    admin: zh ? "admin：已核准，可管理網站內容" : "admin: approved and allowed to manage website content",
+    super_admin: zh ? "super_admin：可核准或拒絕其他管理員" : "super_admin: can approve or reject other administrators",
+    rejected: zh ? "未通過：super_admin 未核准此帳號" : "rejected: a super_admin did not approve this account"
+  };
+  box.innerHTML = `
+    <p><strong>${zh ? "目前身分" : "Who are you?"}</strong> ${u.email || ""}</p>
+    <p><span class="role-badge role-${role}">${role}</span> ${labels[role] || role}</p>
+    <p class="form-note">${zh ? "流程：Register → Verify Email → pending → Approval → admin。Authentication ≠ Authorization。" : "Flow: Register → Verify Email → pending → Approval → admin. Authentication ≠ Authorization."}</p>
+    <div class="admin-toolbar">
+      ${Auth.canEdit() ? `<a class="btn btn-navy" href="admin-faculty.html">${zh ? "進入後台" : "Open back office"}</a>` : ""}
+      ${Auth.isSuper() ? `<a class="btn btn-line" href="admin-users.html">${zh ? "核准管理員" : "Approve administrators"}</a>` : ""}
+      <button type="button" class="btn btn-line" id="btnSignOut">${zh ? "登出" : "Log out"}</button>
+    </div>
+  `;
+  document.getElementById("btnSignOut").addEventListener("click", async () => {
+    await Auth.signOut();
+    location.href = "login.html";
+  });
+}
+
+async function initAdminUsers() {
+  const zh = locale() === "zh";
+  const body = document.getElementById("userTableBody");
+  const status = document.getElementById("authStatus");
+  if (!body) return;
+  async function render() {
+    const rows = await window.IMMBAAuth.listProfiles();
+    body.innerHTML = rows.map((p) => `
+      <tr>
+        <td>${p.email || ""}</td>
+        <td><span class="role-badge role-${p.role}">${p.role}</span></td>
+        <td>${(p.created_at || "").slice(0, 10)}</td>
+        <td class="admin-row-actions">
+          ${p.role === "super_admin" ? "" : `
+            <button type="button" class="btn btn-navy" data-approve="${p.id}">${zh ? "核准為 admin" : "Approve as admin"}</button>
+            <button type="button" class="btn btn-line" data-reject="${p.id}">${zh ? "拒絕" : "Reject"}</button>
+          `}
+        </td>
+      </tr>
+    `).join("") || `<tr><td colspan="4">${zh ? "尚無帳號" : "No accounts yet"}</td></tr>`;
+  }
+  document.getElementById("main").addEventListener("click", async (e) => {
+    const approve = e.target.closest("[data-approve]");
+    const reject = e.target.closest("[data-reject]");
+    if (approve) {
+      const { error } = await window.IMMBAAuth.setRole(approve.getAttribute("data-approve"), "admin");
+      authStatus(status, error ? error.message : (zh ? "已核准為 admin，可管理網站內容。" : "Approved as admin. They can now manage website content."), !error);
+      await render();
+    }
+    if (reject) {
+      const { error } = await window.IMMBAAuth.setRole(reject.getAttribute("data-reject"), "rejected");
+      authStatus(status, error ? error.message : (zh ? "已拒絕，此帳號不能進後台。" : "Rejected. This account cannot access the back office."), !error);
+      await render();
+    }
+  });
+  await render();
+}
+
+function initAuthUI() {
+  const page = document.body.dataset.page;
+  if (page === "login") initLogin();
+  if (page === "register") initRegister();
+  if (page === "reset") initReset();
+  if (page === "account") initAccount();
+  if (page === "admin-users") initAdminUsers();
+}

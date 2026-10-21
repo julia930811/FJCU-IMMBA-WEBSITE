@@ -115,7 +115,14 @@ const I18N = {
     mail: "電子郵件",
     tel: "聯絡電話",
     message: "留言內容",
-    topics: ["關於國際經管", "招生與報名", "課程與選課", "雙碩士／交換", "其他"]
+    topics: ["關於國際經管", "招生與報名", "課程與選課", "雙碩士／交換", "其他"],
+    authLogin: "登入",
+    authRegister: "註冊",
+    authReset: "重設密碼",
+    authLogout: "登出",
+    authAccount: "帳號",
+    authBackOffice: "後台",
+    authApprove: "帳號審核"
   },
   en: {
     college: "College of Management",
@@ -233,7 +240,14 @@ const I18N = {
     mail: "Email",
     tel: "Phone",
     message: "Message",
-    topics: ["About the program", "Admissions", "Curriculum", "Dual degree / exchange", "Other"]
+    topics: ["About the program", "Admissions", "Curriculum", "Dual degree / exchange", "Other"],
+    authLogin: "Login",
+    authRegister: "Register",
+    authReset: "Reset password",
+    authLogout: "Log out",
+    authAccount: "Account",
+    authBackOffice: "Back office",
+    authApprove: "Approve admins"
   }
 };
 
@@ -254,17 +268,34 @@ function isActive(href) {
 }
 
 function logoMark() {
-  const src = (locale() === "zh" ? "img/logo.png" : "../img/logo.png") + "?v=3";
+  const src = (locale() === "zh" ? "img/logo.png" : "../img/logo.png") + "?v=4";
   return `<img class="brand-mark" src="${src}" alt="imMBA">`;
 }
 
 function adminSwitch() {
   const zh = locale() === "zh";
   const page = document.body.dataset.page;
+  const Auth = window.IMMBAAuth || {};
+  const superLink = Auth.isSuper && Auth.isSuper()
+    ? `<a href="admin-users.html" class="${page === "admin-users" ? "is-active" : ""}">${zh ? "帳號審核" : "Approve admins"}</a>`
+    : "";
   return `<nav class="admin-switch" aria-label="${zh ? "後台分頁" : "Back office"}">
     <a href="admin-news.html" class="${page === "admin-news" ? "is-active" : ""}">${zh ? "公告後台" : "AdminNews"}</a>
     <a href="admin-faculty.html" class="${page === "admin-faculty" ? "is-active" : ""}">${zh ? "師資後台" : "AdminFaculty"}</a>
+    ${superLink}
   </nav>`;
+}
+
+function authActionHTML() {
+  const L = t();
+  const Auth = window.IMMBAAuth;
+  if (!Auth || !Auth.user || !Auth.user()) {
+    return `<a class="btn btn-line" href="login.html">${L.authLogin}</a>`;
+  }
+  const mail = (Auth.user().email || L.authAccount).split("@")[0];
+  return `<a class="auth-chip" href="account.html">${mail}</a>
+    ${Auth.canEdit() ? `<a class="btn btn-line" href="admin-faculty.html">${L.authBackOffice}</a>` : ""}
+    ${Auth.isSuper() ? `<a class="btn btn-line" href="admin-users.html">${L.authApprove}</a>` : ""}`;
 }
 
 function navLink(href, label) {
@@ -304,7 +335,7 @@ function headerHTML() {
     <div class="brand-bar">
       <div class="brand-inner">
         <div class="brand">
-          <a class="brand-logo" href="admin-news.html" title="${locale()==="zh"?"後台：公告／師資":"Back office: news / faculty"}">${logoMark()}</a>
+          <a class="brand-logo" href="index.html" title="imMBA">${logoMark()}</a>
           <a class="brand-copy" href="index.html">
             <span class="brand-text">${L.brand}</span>
             <span class="brand-motto">${L.motto}</span>
@@ -331,6 +362,7 @@ function headerHTML() {
             <a href="${zhHref}" class="${locale()==="zh"?"is-active":""}"${locale()==="zh"?' aria-current="page"':""}>中文</a>
             <a href="${enHref}" class="${locale()!=="zh"?"is-active":""}"${locale()!=="zh"?' aria-current="page"':""}>EN</a>
           </div>
+          ${authActionHTML()}
           <a class="btn btn-apply-navy" href="admissions.html">${L.ctaApply}</a>
         </div>
       </div>
@@ -345,7 +377,7 @@ function footerHTML() {
       <div class="footer-inner">
         <div class="footer-grid">
           <div>
-            <a class="brand-logo" href="admin-news.html" title="${locale()==="zh"?"後台：公告／師資":"Back office: news / faculty"}">${logoMark().replace('class="brand-mark"', 'class="brand-mark footer-mark"')}</a>
+            <a class="brand-logo" href="index.html" title="imMBA">${logoMark().replace('class="brand-mark"', 'class="brand-mark footer-mark"')}</a>
             <h3>imMBA</h3>
             <p class="footer-motto">✝ ${L.motto}</p>
             <p>${L.phone}<br>${L.email}<br>${L.address}</p>
@@ -361,8 +393,7 @@ function footerHTML() {
               <a href="https://fjcu-immba-website-lilac.vercel.app/" target="_blank" rel="noopener">Vercel</a><br>
               <a href="https://www.aacsb.edu/" target="_blank" rel="noopener">AACSB</a><br>
               <a href="https://www.management.fju.edu.tw/subweb/immba/" target="_blank" rel="noopener">${L.original}</a><br>
-              ${locale()==="zh"?"後台：":"Back office: "}<a href="admin-news.html">${locale()==="zh"?"公告":"News"}</a>
-              · <a href="admin-faculty.html">${locale()==="zh"?"師資":"Faculty"}</a>
+              <a href="login.html">${locale()==="zh"?"登入後台":"Back-office login"}</a>
             </p>
           </div>
           <div>
@@ -662,6 +693,88 @@ function pages() {
       <div id="latest" class="news-cards anchor-section">${newsItems()}</div>
       ${newsSource()}
     `),
+    login: pageShell(zh?"登入｜Authentication":"Login | Authentication", zh?"Authentication 回答 Who are you？Authorization 回答你被允許做什麼。兩者不同。":"Authentication asks who you are. Authorization asks what you are allowed to do. They are not the same.", `
+      <div class="auth-layout">
+        <form class="admin-form auth-form" id="loginForm">
+          <h2>${zh?"登入（驗證身分）":"Login (verify your identity)"}</h2>
+          <p class="form-note">${zh?"用 email 與密碼確認你是誰。":"Enter your email and password to verify your identity."}</p>
+          <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
+          <label>${zh?"密碼":"Password"}<input id="authPassword" type="password" required autocomplete="current-password"></label>
+          <p class="admin-status" id="authStatus" hidden></p>
+          <div class="admin-toolbar">
+            <button class="btn btn-navy" type="submit">${zh?"登入":"Login"}</button>
+            <a class="btn btn-line" href="register.html">${zh?"註冊":"Register"}</a>
+            <a class="btn btn-line" href="reset.html">${zh?"重設密碼":"Reset password"}</a>
+          </div>
+        </form>
+        <aside class="auth-panel">
+          <h2>Authorization</h2>
+          <p>${zh?"登入成功仍不一定能進後台。":"Signing in does not by itself open the back office."}</p>
+          <ul>
+            <li>${zh?"進入後台 Access back office":"Access back office"}</li>
+            <li>${zh?"編輯內容 Edit content":"Edit content"}</li>
+            <li>${zh?"核准管理員 Approve administrators":"Approve administrators"}</li>
+          </ul>
+          <p class="auth-callout">Authentication ≠ Authorization</p>
+        </aside>
+      </div>
+    `),
+    register: pageShell(zh?"註冊｜Create your account":"Register | Create your account", zh?"Register → Verify Email → pending → Approval → admin":"Register → Verify Email → pending → Approval → admin", `
+      <form class="admin-form auth-form" id="registerForm">
+        <h2>${zh?"註冊帳號":"Register"}</h2>
+        <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
+        <label>${zh?"密碼":"Password"}<input id="authPassword" type="password" required autocomplete="new-password"></label>
+        <label>${zh?"再輸入密碼":"Confirm password"}<input id="authPassword2" type="password" required autocomplete="new-password"></label>
+        <p class="form-note">${zh?"送出後請到信箱點驗證信，確認這個 email 屬於你。驗證後角色是 pending，還不能進後台。":"After you submit, confirm the email address belongs to you. Verified accounts stay pending until a super_admin approves them."}</p>
+        <p class="admin-status" id="authStatus" hidden></p>
+        <div class="admin-toolbar">
+          <button class="btn btn-navy" type="submit">${zh?"建立帳號":"Create your account"}</button>
+          <a class="btn btn-line" href="login.html">${zh?"已有帳號，改登入":"Already registered? Login"}</a>
+        </div>
+      </form>
+    `),
+    reset: pageShell(zh?"重設密碼":"Reset password", zh?"用新密碼重新取得帳號。":"Regain access to your account by creating a new password.", `
+      <p class="admin-status" id="authStatus" hidden></p>
+      <form class="admin-form auth-form" id="resetRequestForm">
+        <h2>${zh?"寄送重設信件":"Send reset email"}</h2>
+        <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
+        <button class="btn btn-navy" type="submit">${zh?"寄出信件":"Send email"}</button>
+      </form>
+      <form class="admin-form auth-form" id="resetUpdateForm" hidden>
+        <h2>${zh?"設定新密碼":"Create a new password"}</h2>
+        <label>${zh?"新密碼":"New password"}<input id="authPassword" type="password" required autocomplete="new-password"></label>
+        <label>${zh?"再輸入新密碼":"Confirm new password"}<input id="authPassword2" type="password" required autocomplete="new-password"></label>
+        <button class="btn btn-navy" type="submit">${zh?"更新密碼":"Update password"}</button>
+      </form>
+    `),
+    account: pageShell(zh?"帳號與授權":"Account and authorization", zh?"身分驗證之後，角色才決定你能不能進後台。":"After authentication, your role decides what you are allowed to do.", `
+      <div class="admin-form" id="accountBox"></div>
+      <aside class="auth-panel" style="margin-top:20px">
+        <h2>${zh?"角色":"Admin roles"}</h2>
+        <ul>
+          <li><strong>pending</strong> — ${zh?"已註冊並驗證，尚不能進後台":"Registered and verified, but cannot access the back office yet"}</li>
+          <li><strong>admin</strong> — ${zh?"已核准，可管理網站內容":"Approved and allowed to manage website content"}</li>
+          <li><strong>super_admin</strong> — ${zh?"可核准或拒絕其他管理員":"Can approve or reject other administrators"}</li>
+        </ul>
+      </aside>
+    `),
+    "admin-users": pageShell(zh?"帳號審核":"Approve administrators", zh?"super_admin 核准 pending 成為 admin，或拒絕申請。":"A super_admin approves pending accounts as admin, or rejects them.", `
+      <p class="form-note">${zh?"Register → Verify Email → pending → Approval → admin。只有 super_admin 可以 Approve / Reject。":"Register → Verify Email → pending → Approval → admin. Only super_admin can approve or reject."}</p>
+      <p class="admin-status" id="authStatus" hidden></p>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>${zh?"角色":"Role"}</th>
+              <th>${zh?"建立":"Created"}</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+    `),
     "admin-news": pageShell(zh?"公告後台 AdminNews":"AdminNews back office", zh?"與師資後台同一組後台；管理員在同一頁維護中英公告，並同步到前台網站。":"Same back office as faculty. Administrators manage Chinese and English announcements in one record and sync them to the website.", `
       <div class="admin-toolbar">
         <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增公告":"Add a new announcement"}</button>
@@ -750,7 +863,8 @@ function pages() {
         <a class="btn btn-line" href="faculty.html">${zh?"查看前台師資":"View front-end faculty"}</a>
         <a class="btn btn-line" href="https://supabase.com/dashboard/project/wrkpwyddocjokdtleqme/sql" target="_blank" rel="noopener">${zh?"開啟 Supabase SQL":"Open Supabase SQL"}</a>
       </div>
-      <p class="form-note">${zh?"資料表欄位對照講義：id、name、title、email、image_url。請先在 Supabase SQL Editor 執行 supabase/schema.sql，網站才會把師資寫進雲端。":"The table matches the lecture schema: id, name, title, email, image_url. Run supabase/schema.sql in the Supabase SQL Editor so faculty records sync to the cloud."}</p>
+      <p class="form-note">${zh?"講義進度：1 連接 Supabase　2 師資資料表　3 雲端 CRUD＋排序並同步前台　4 師資照片（可貼上，核准管理員會存進 Storage）　5 查看已部署網站。訪客走 Vercel 前台讀資料；管理員須 Login 後才能進 AdminFaculty。":"Lecture checklist: 1 Connect Supabase. 2 Faculty table. 3 Cloud CRUD + reorder synced to the faculty page. 4 Faculty photo management (paste; approved admins upload to Storage). 5 Check the deployed site. Visitors read the Vercel front end; admins must log in before AdminFaculty."}</p>
+      <p class="form-note">${zh?"請在 Supabase SQL Editor 執行最新 supabase/schema.sql（含 profiles 角色與 faculty-photos 儲存桶）。第一位註冊者會成為 super_admin。":"Run the latest supabase/schema.sql in the SQL Editor (profiles roles and the faculty-photos bucket). The first registered account becomes super_admin."}</p>
       <p class="admin-status" id="adminStatus" hidden></p>
       <form class="admin-form" id="facultyForm">
         <h2 id="formMode">${zh?"新增師資（中英同一筆，含照片網址）":"Create faculty (one record, two languages, photo URL)"}</h2>
@@ -862,7 +976,7 @@ function pages() {
 function pageShell(title, lead, inner) {
   const home = locale()==="zh"?"首頁":"Home";
   const page = document.body.dataset.page;
-  const tabs = (page === "admin-news" || page === "admin-faculty") ? adminSwitch() : "";
+  const tabs = (page === "admin-news" || page === "admin-faculty" || page === "admin-users") ? adminSwitch() : "";
   return `<section class="page-hero"><div class="wrap">
     <div class="crumbs"><a href="index.html">${home}</a> / ${title}</div>
     <h1>${title}</h1><p>${lead}</p>
@@ -996,14 +1110,40 @@ function bindLightbox() {
   box.onclick = () => box.classList.remove("is-open");
 }
 
+async function guardPage(page) {
+  const Auth = window.IMMBAAuth;
+  const gated = page === "admin-news" || page === "admin-faculty" || page === "admin-users";
+  if (!gated) return true;
+  if (Auth && Auth.ready) {
+    try { await Auth.ready; } catch {}
+  }
+  if (!Auth || !Auth.user()) {
+    location.replace("login.html?next=" + encodeURIComponent(page + ".html"));
+    return false;
+  }
+  if (page === "admin-users" && !Auth.isSuper()) {
+    location.replace("account.html");
+    return false;
+  }
+  if (!Auth.canEdit()) {
+    location.replace("account.html");
+    return false;
+  }
+  return true;
+}
+
 async function boot() {
+  if (window.IMMBAAuth && window.IMMBAAuth.ready) {
+    try { await window.IMMBAAuth.ready; } catch {}
+  }
   if (window.FacultyStore && window.FacultyStore.ready) {
     try { await window.FacultyStore.ready; } catch {}
   }
+  const page = document.body.dataset.page;
+  if (!(await guardPage(page))) return;
   document.body.insertAdjacentHTML("afterbegin", headerHTML());
   const main = document.createElement("main");
   main.id = "main";
-  const page = document.body.dataset.page;
   if (page === "news-detail") {
     document.body.appendChild(main);
     renderNewsDetail();
@@ -1018,6 +1158,7 @@ async function boot() {
   bind();
   if (page === "admin-news" && typeof initAdminNews === "function") initAdminNews();
   if (page === "admin-faculty" && typeof initAdminFaculty === "function") initAdminFaculty();
+  if (typeof initAuthUI === "function") initAuthUI();
   if (location.hash) {
     const target = document.querySelector(location.hash);
     if (target) target.scrollIntoView();
