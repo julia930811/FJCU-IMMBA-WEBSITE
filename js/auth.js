@@ -3,6 +3,11 @@
   let profile = null;
   let error = "";
 
+  function fail(msg) {
+    error = msg;
+    return { error: { message: msg } };
+  }
+
   function client() {
     return window.IMMBASupabase && window.IMMBASupabase.client;
   }
@@ -34,10 +39,7 @@
   async function signUp(email, password) {
     error = "";
     const sb = client();
-    if (!sb) {
-      error = "Supabase is not configured.";
-      return { error };
-    }
+    if (!sb) return fail("Supabase 尚未設定，無法註冊。");
     const { data, error: e } = await sb.auth.signUp({
       email,
       password,
@@ -52,10 +54,7 @@
   async function signIn(email, password) {
     error = "";
     const sb = client();
-    if (!sb) {
-      error = "Supabase is not configured.";
-      return { error };
-    }
+    if (!sb) return fail("Supabase 尚未設定，無法登入。");
     const { data, error: e } = await sb.auth.signInWithPassword({ email, password });
     if (e) error = e.message;
     user = data && data.user ? data.user : null;
@@ -73,10 +72,7 @@
   async function resetPassword(email) {
     error = "";
     const sb = client();
-    if (!sb) {
-      error = "Supabase is not configured.";
-      return { error };
-    }
+    if (!sb) return fail("Supabase 尚未設定，無法重設密碼。");
     const { data, error: e } = await sb.auth.resetPasswordForEmail(email, {
       redirectTo: redirectTo("reset.html")
     });
@@ -87,10 +83,7 @@
   async function updatePassword(password) {
     error = "";
     const sb = client();
-    if (!sb) {
-      error = "Supabase is not configured.";
-      return { error };
-    }
+    if (!sb) return fail("Supabase 尚未設定，無法更新密碼。");
     const { data, error: e } = await sb.auth.updateUser({ password });
     if (e) error = e.message;
     return { data, error: e };

@@ -17,6 +17,12 @@ function authStatus(el, msg, ok) {
   el.className = "admin-status" + (ok ? "" : " is-warn");
 }
 
+function errText(err) {
+  if (!err) return "";
+  if (typeof err === "string") return err;
+  return err.message || err.msg || err.error_description || err.error || "";
+}
+
 function goNext() {
   const next = authCopy().next;
   const allowed = /^(admin-news|admin-faculty|admin-users|admin-audit)\.html$/.test(next) ? next : "admin-faculty.html";
@@ -38,6 +44,9 @@ function initLogin() {
   const form = document.getElementById("loginForm");
   const status = document.getElementById("authStatus");
   if (!form) return;
+  if (!window.IMMBAAuth.configured()) {
+    authStatus(status, zh ? "Vercel 尚未設定 Supabase 環境變數，所以現在無法登入。請在 Vercel → Settings → Environment Variables 加上 VITE_SUPABASE_URL 與 VITE_SUPABASE_ANON_KEY 後重新部署。" : "Supabase is not configured on Vercel yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, then redeploy.", false);
+  }
   if (window.IMMBAAuth.canEdit()) {
     goNext();
     return;
@@ -52,7 +61,7 @@ function initLogin() {
     const password = document.getElementById("authPassword").value;
     const { error } = await window.IMMBAAuth.signIn(email, password);
     if (error) {
-      authStatus(status, zh ? "登入失敗：" + error.message : "Login failed: " + error.message, false);
+      authStatus(status, zh ? "登入失敗：" + (errText(error) || "請確認信箱與密碼。") : "Login failed: " + (errText(error) || "Check your email and password."), false);
       return;
     }
     afterLogin();
@@ -79,7 +88,11 @@ function initRegister() {
     }
     const { data, error } = await window.IMMBAAuth.signUp(email, password);
     if (error) {
-      authStatus(status, zh ? "註冊失敗：" + error.message : "Registration failed: " + error.message, false);
+      const msg = errText(error);
+      const exists = /already|registered|exists/i.test(msg);
+      authStatus(status, exists
+        ? (zh ? "這個信箱已經註冊過了，請改按「已有帳號，改登入」。" : "This email is already registered. Use Login instead.")
+        : (zh ? "註冊失敗：" + (msg || "請稍後再試。") : "Registration failed: " + (msg || "Please try again.")), false);
       return;
     }
     if (data && data.session) {
@@ -105,7 +118,7 @@ function initReset() {
       const email = document.getElementById("authEmail").value.trim();
       const { error } = await window.IMMBAAuth.resetPassword(email);
       if (error) {
-        authStatus(status, zh ? "寄送失敗：" + error.message : "Could not send reset email: " + error.message, false);
+        authStatus(status, zh ? "寄送失敗：" + (errText(error) || "請稍後再試。") : "Could not send reset email: " + (errText(error) || "Please try again."), false);
         return;
       }
       authStatus(status, zh ? "若帳號存在，重設密碼信件已寄出。請從信件回到本頁設定新密碼。" : "If the account exists, a reset email was sent. Open the link to create a new password.", true);
@@ -122,7 +135,7 @@ function initReset() {
       }
       const { error } = await window.IMMBAAuth.updatePassword(password);
       if (error) {
-        authStatus(status, zh ? "更新失敗：" + error.message : "Could not update password: " + error.message, false);
+        authStatus(status, zh ? "更新失敗：" + (errText(error) || "請稍後再試。") : "Could not update password: " + (errText(error) || "Please try again."), false);
         return;
       }
       authStatus(status, zh ? "密碼已更新，請用新密碼登入。" : "Password updated. Sign in with the new password.", true);
@@ -226,12 +239,12 @@ async function initAdminUsers() {
     const reject = e.target.closest("[data-reject]");
     if (approve) {
       const { error } = await window.IMMBAAuth.setRole(approve.getAttribute("data-approve"), "admin");
-      authStatus(status, error ? error.message : (zh ? "已核准為 admin，可管理網站內容。" : "Approved as admin. They can now manage website content."), !error);
+      authStatus(status, error ? errText(error) : (zh ? "已核准為 admin，可管理網站內容。" : "Approved as admin. They can now manage website content."), !error);
       await render();
     }
     if (reject) {
       const { error } = await window.IMMBAAuth.setRole(reject.getAttribute("data-reject"), "rejected");
-      authStatus(status, error ? error.message : (zh ? "已拒絕此申請，不能進後台。" : "Application rejected. This account cannot access the back office."), !error);
+      authStatus(status, error ? errText(error) : (zh ? "已拒絕此申請，不能進後台。" : "Application rejected. This account cannot access the back office."), !error);
       await render();
     }
   });

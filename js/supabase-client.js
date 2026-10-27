@@ -6,7 +6,7 @@
   function create() {
     const url = (env().VITE_SUPABASE_URL || "").trim();
     const key = (env().VITE_SUPABASE_ANON_KEY || "").trim();
-    if (!url || !key || !window.supabase || typeof window.supabase.createClient !== "function") {
+    if (!/^https:\/\//.test(url) || key.length < 20 || !window.supabase || typeof window.supabase.createClient !== "function") {
       return null;
     }
     return window.supabase.createClient(url, key, {
