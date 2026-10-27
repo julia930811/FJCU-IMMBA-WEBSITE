@@ -77,6 +77,7 @@ begin
     new.id,
     new.email,
     case
+      when lower(new.email) = 'jiayiwu009@gmail.com' then 'super_admin'
       when not exists (select 1 from public.profiles where role = 'super_admin') then 'super_admin'
       else 'pending'
     end
@@ -201,5 +202,9 @@ create trigger profiles_audit
 alter table public.audit_log enable row level security;
 drop policy if exists audit_select_admin on public.audit_log;
 create policy audit_select_admin on public.audit_log for select using (public.is_admin());
+
+update public.profiles
+set role = 'super_admin'
+where lower(email) = 'jiayiwu009@gmail.com';
 
 notify pgrst, 'reload schema';
