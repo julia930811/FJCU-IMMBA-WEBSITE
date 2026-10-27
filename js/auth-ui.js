@@ -166,8 +166,7 @@ function initAccount() {
   };
   box.innerHTML = `
     <p><strong>${zh ? "目前身分" : "Who are you?"}</strong> ${u.email || ""}</p>
-    <p><span class="role-badge role-${role}">${role}</span> ${labels[role] || role}</p>
-    <p class="form-note">${zh ? "流程：Register → Verify Email → pending → Approval → admin。Authentication ≠ Authorization。" : "Flow: Register → Verify Email → pending → Approval → admin. Authentication ≠ Authorization."}</p>
+    <p>${labels[role] || role}</p>
     <div class="admin-toolbar">
       ${Auth.canEdit() ? `<a class="btn btn-navy" href="admin-faculty.html">${zh ? "進入後台" : "Open back office"}</a>` : ""}
       ${Auth.isSuper() ? `<a class="btn btn-line" href="admin-users.html">${zh ? "核准管理員" : "Approve administrators"}</a>` : ""}

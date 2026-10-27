@@ -279,14 +279,10 @@ function adminSwitch() {
   const superLink = Auth.isSuper && Auth.isSuper()
     ? `<a href="admin-users.html" class="${page === "admin-users" ? "is-active" : ""}">${zh ? "帳號審核" : "Approve admins"}</a>`
     : "";
-  const auditLink = Auth.canEdit && Auth.canEdit()
-    ? `<a href="admin-audit.html" class="${page === "admin-audit" ? "is-active" : ""}">${zh ? "異動紀錄" : "Audit log"}</a>`
-    : "";
   return `<nav class="admin-switch" aria-label="${zh ? "後台分頁" : "Back office"}">
     <a href="admin-news.html" class="${page === "admin-news" ? "is-active" : ""}">${zh ? "公告後台" : "AdminNews"}</a>
     <a href="admin-faculty.html" class="${page === "admin-faculty" ? "is-active" : ""}">${zh ? "師資後台" : "AdminFaculty"}</a>
     ${superLink}
-    ${auditLink}
   </nav>`;
 }
 
@@ -298,8 +294,7 @@ function authActionHTML() {
   }
   const mail = (Auth.user().email || L.authAccount).split("@")[0];
   return `<a class="auth-chip" href="account.html">${mail}</a>
-    ${Auth.canEdit() ? `<a class="btn btn-line" href="admin-faculty.html">${L.authBackOffice}</a>` : ""}
-    ${Auth.isSuper() ? `<a class="btn btn-line" href="admin-users.html">${L.authApprove}</a>` : ""}`;
+    ${Auth.canEdit() ? `<a class="btn btn-line" href="admin-faculty.html">${L.authBackOffice}</a>` : ""}`;
 }
 
 function navLink(href, label) {
@@ -752,14 +747,6 @@ function pages() {
     `),
     account: pageShell(zh?"帳號與授權":"Account and authorization", zh?"身分驗證之後，角色才決定你能不能進後台。":"After authentication, your role decides what you are allowed to do.", `
       <div class="admin-form" id="accountBox"></div>
-      <aside class="auth-panel" style="margin-top:20px">
-        <h2>${zh?"角色":"Admin roles"}</h2>
-        <ul>
-          <li><strong>pending</strong> — ${zh?"已註冊並驗證，尚不能進後台":"Registered and verified, but cannot access the back office yet"}</li>
-          <li><strong>admin</strong> — ${zh?"已核准，可管理網站內容":"Approved and allowed to manage website content"}</li>
-          <li><strong>super_admin</strong> — ${zh?"可核准或拒絕其他管理員":"Can approve or reject other administrators"}</li>
-        </ul>
-      </aside>
     `),
     "admin-users": pageShell(zh?"帳號審核 Dashboard":"Administrator Approval Dashboard", zh?"super_admin 查看 pending 申請、申請人資料與目前狀態，並核准為 admin 或拒絕。":"The super admin views pending requests, applicant information and current status, then approves as admin or rejects.", `
       <p class="form-note">${zh?"Register → Verify Email → pending → Super Admin Review → admin。新帳號在 Supabase public.profiles 的預設角色是 pending。":"Register → Verify Email → pending → Super Admin Review → admin. New rows in Supabase public.profiles default to pending."}</p>
@@ -885,16 +872,12 @@ function pages() {
         </table>
       </div>
     `),
-    "admin-faculty": pageShell(zh?"師資後台 AdminFaculty":"AdminFaculty back office", zh?"與公告後台同一組後台；管理員新增、編輯、刪除與排序師資，並以照片網址同步到前台。":"Same back office as news. Administrators create, read, update, delete and reorder faculty, then sync photo URLs to the front-end page.", `
+    "admin-faculty": pageShell(zh?"師資後台 AdminFaculty":"AdminFaculty back office", "", `
       <div class="admin-toolbar">
         <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增師資":"Add faculty"}</button>
-        <button type="button" class="btn btn-line" id="btnRestore">${zh?"還原預設清單":"Restore the default list"}</button>
         <button type="button" class="btn btn-line" id="btnSync">${zh?"同步到前台網站":"Synchronize with the website"}</button>
         <a class="btn btn-line" href="faculty.html">${zh?"查看前台師資":"View front-end faculty"}</a>
-        <a class="btn btn-line" href="https://supabase.com/dashboard/project/wrkpwyddocjokdtleqme/sql" target="_blank" rel="noopener">${zh?"開啟 Supabase SQL":"Open Supabase SQL"}</a>
       </div>
-      <p class="form-note">${zh?"講義進度：1 連接 Supabase　2 師資資料表　3 雲端 CRUD＋排序並同步前台　4 師資照片（可貼上，核准管理員會存進 Storage）　5 查看已部署網站。訪客走 Vercel 前台讀資料；管理員須 Login 後才能進 AdminFaculty。":"Lecture checklist: 1 Connect Supabase. 2 Faculty table. 3 Cloud CRUD + reorder synced to the faculty page. 4 Faculty photo management (paste; approved admins upload to Storage). 5 Check the deployed site. Visitors read the Vercel front end; admins must log in before AdminFaculty."}</p>
-      <p class="form-note">${zh?"請在 Supabase SQL Editor 執行最新 supabase/schema.sql（含 profiles 角色與 faculty-photos 儲存桶）。第一位註冊者會成為 super_admin。":"Run the latest supabase/schema.sql in the SQL Editor (profiles roles and the faculty-photos bucket). The first registered account becomes super_admin."}</p>
       <p class="admin-status" id="adminStatus" hidden></p>
       <form class="admin-form" id="facultyForm">
         <h2 id="formMode">${zh?"新增師資（中英同一筆，含照片網址）":"Create faculty (one record, two languages, photo URL)"}</h2>
@@ -1009,7 +992,7 @@ function pageShell(title, lead, inner) {
   const tabs = (page === "admin-news" || page === "admin-faculty" || page === "admin-users" || page === "admin-audit") ? adminSwitch() : "";
   return `<section class="page-hero"><div class="wrap">
     <div class="crumbs"><a href="index.html">${home}</a> / ${title}</div>
-    <h1>${title}</h1><p>${lead}</p>
+    <h1>${title}</h1>${lead ? `<p>${lead}</p>` : ""}
     ${tabs}
   </div></section>
   <section class="section"><div class="wrap">${inner}</div></section>`;

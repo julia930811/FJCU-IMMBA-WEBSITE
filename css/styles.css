@@ -11,7 +11,7 @@
   --shadow: 0 18px 50px rgba(28, 92, 71, 0.12);
   --radius: 18px;
   --max: 1180px;
-  --font: "Cormorant Garamond", "Noto Serif TC", serif;
+  --font: "Montserrat", "Noto Sans TC", sans-serif;
   --sans: var(--font);
   --serif: var(--font);
 }
@@ -306,7 +306,7 @@ button, input, select, textarea { font-family: inherit; }
   display: grid;
   align-items: center;
   justify-items: end;
-  background: #d7ebe8 url("../img/hero-bg.jpg?v=3") left center / cover no-repeat;
+  background: #d7ebe8 url("../img/hero-bg.jpg?v=5") left center / cover no-repeat;
   line-height: normal;
 }
 .hero::before,
@@ -606,7 +606,7 @@ button, input, select, textarea { font-family: inherit; }
   overflow: hidden;
   background:
     linear-gradient(105deg, rgba(16,50,40,0.55) 0%, rgba(28,92,71,0.28) 45%, rgba(250,246,238,0.18) 100%),
-    url("../img/hero-bg.jpg?v=3") left center / cover no-repeat;
+    url("../img/hero-bg.jpg?v=5") left center / cover no-repeat;
   color: #fff;
   padding: 72px 0 48px;
 }

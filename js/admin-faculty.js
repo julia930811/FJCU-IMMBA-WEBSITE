@@ -224,13 +224,6 @@ function bindAdminFaculty() {
     }
   });
   document.getElementById("btnNew").addEventListener("click", startNew);
-  document.getElementById("btnRestore").addEventListener("click", async () => {
-    if (!window.confirm(zh ? "還原為預設師資清單？目前後台修改會被清掉。" : "Restore the default faculty list? Current back-office edits will be cleared.")) return;
-    await window.FacultyStore.restore();
-    renderList();
-    startNew();
-    showStatus(cloudNote(zh ? "已還原預設清單，並已同步到前台。" : "Default list restored and synchronized with the website."));
-  });
   document.getElementById("btnSync").addEventListener("click", async () => {
     await window.FacultyStore.sync();
     renderList();
