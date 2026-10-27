@@ -116,6 +116,17 @@
     return { error: e };
   }
 
+  async function listAudit(limit) {
+    const sb = client();
+    if (!sb) return [];
+    const { data, error: e } = await sb.from("audit_log").select("*").order("created_at", { ascending: false }).limit(limit || 200);
+    if (e) {
+      error = e.message;
+      return [];
+    }
+    return data || [];
+  }
+
   function role() {
     return (profile && profile.role) || "";
   }
@@ -136,6 +147,7 @@
     updatePassword,
     listProfiles,
     setRole,
+    listAudit,
     refresh
   };
 

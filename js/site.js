@@ -279,10 +279,14 @@ function adminSwitch() {
   const superLink = Auth.isSuper && Auth.isSuper()
     ? `<a href="admin-users.html" class="${page === "admin-users" ? "is-active" : ""}">${zh ? "帳號審核" : "Approve admins"}</a>`
     : "";
+  const auditLink = Auth.canEdit && Auth.canEdit()
+    ? `<a href="admin-audit.html" class="${page === "admin-audit" ? "is-active" : ""}">${zh ? "異動紀錄" : "Audit log"}</a>`
+    : "";
   return `<nav class="admin-switch" aria-label="${zh ? "後台分頁" : "Back office"}">
     <a href="admin-news.html" class="${page === "admin-news" ? "is-active" : ""}">${zh ? "公告後台" : "AdminNews"}</a>
     <a href="admin-faculty.html" class="${page === "admin-faculty" ? "is-active" : ""}">${zh ? "師資後台" : "AdminFaculty"}</a>
     ${superLink}
+    ${auditLink}
   </nav>`;
 }
 
@@ -363,7 +367,6 @@ function headerHTML() {
             <a href="${enHref}" class="${locale()!=="zh"?"is-active":""}"${locale()!=="zh"?' aria-current="page"':""}>EN</a>
           </div>
           ${authActionHTML()}
-          <a class="btn btn-apply-navy" href="admissions.html">${L.ctaApply}</a>
         </div>
       </div>
     </header>
@@ -758,20 +761,47 @@ function pages() {
         </ul>
       </aside>
     `),
-    "admin-users": pageShell(zh?"帳號審核":"Approve administrators", zh?"super_admin 核准 pending 成為 admin，或拒絕申請。":"A super_admin approves pending accounts as admin, or rejects them.", `
-      <p class="form-note">${zh?"Register → Verify Email → pending → Approval → admin。只有 super_admin 可以 Approve / Reject。":"Register → Verify Email → pending → Approval → admin. Only super_admin can approve or reject."}</p>
+    "admin-users": pageShell(zh?"帳號審核 Dashboard":"Administrator Approval Dashboard", zh?"super_admin 查看 pending 申請、申請人資料與目前狀態，並核准為 admin 或拒絕。":"The super admin views pending requests, applicant information and current status, then approves as admin or rejects.", `
+      <p class="form-note">${zh?"Register → Verify Email → pending → Super Admin Review → admin。新帳號在 Supabase public.profiles 的預設角色是 pending。":"Register → Verify Email → pending → Super Admin Review → admin. New rows in Supabase public.profiles default to pending."}</p>
+      <div class="admin-toolbar">
+        <button type="button" class="btn btn-navy is-active" data-role-filter="pending">${zh?"待審核 pending":"Pending requests"}</button>
+        <button type="button" class="btn btn-line" data-role-filter="admin">admin</button>
+        <button type="button" class="btn btn-line" data-role-filter="rejected">${zh?"已拒絕":"Rejected"}</button>
+        <button type="button" class="btn btn-line" data-role-filter="all">${zh?"全部帳號":"All accounts"}</button>
+        <a class="btn btn-line" href="https://supabase.com/dashboard/project/wrkpwyddocjokdtleqme/editor" target="_blank" rel="noopener">${zh?"在 Supabase 查看 profiles":"Check the record in Supabase"}</a>
+      </div>
+      <p class="admin-count" id="pendingCount"></p>
       <p class="admin-status" id="authStatus" hidden></p>
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
             <tr>
-              <th>Email</th>
-              <th>${zh?"角色":"Role"}</th>
-              <th>${zh?"建立":"Created"}</th>
+              <th>id</th>
+              <th>email</th>
+              <th>role</th>
+              <th>${zh?"申請狀態":"Status"}</th>
+              <th>created_at</th>
               <th></th>
             </tr>
           </thead>
           <tbody id="userTableBody"></tbody>
+        </table>
+      </div>
+    `),
+    "admin-audit": pageShell(zh?"異動紀錄":"Audit log", zh?"多人同時改同一份雲端資料時，要能回答：誰改了什麼、何時改的。":"When several administrators share the same database, the log answers who changed what, and when.", `
+      <p class="form-note">${zh?"師資新增／修改／刪除，以及 super_admin 核准或拒絕帳號，都會寫入 Supabase audit_log。":"Faculty create/update/delete and super_admin approve/reject actions are written to the Supabase audit_log table."}</p>
+      <p class="admin-status" id="authStatus" hidden></p>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>${zh?"何時":"When"}</th>
+              <th>${zh?"誰":"Who"}</th>
+              <th>${zh?"做了什麼":"What changed"}</th>
+              <th>${zh?"對象":"Record"}</th>
+            </tr>
+          </thead>
+          <tbody id="auditTableBody"></tbody>
         </table>
       </div>
     `),
@@ -976,7 +1006,7 @@ function pages() {
 function pageShell(title, lead, inner) {
   const home = locale()==="zh"?"首頁":"Home";
   const page = document.body.dataset.page;
-  const tabs = (page === "admin-news" || page === "admin-faculty" || page === "admin-users") ? adminSwitch() : "";
+  const tabs = (page === "admin-news" || page === "admin-faculty" || page === "admin-users" || page === "admin-audit") ? adminSwitch() : "";
   return `<section class="page-hero"><div class="wrap">
     <div class="crumbs"><a href="index.html">${home}</a> / ${title}</div>
     <h1>${title}</h1><p>${lead}</p>
@@ -1112,7 +1142,7 @@ function bindLightbox() {
 
 async function guardPage(page) {
   const Auth = window.IMMBAAuth;
-  const gated = page === "admin-news" || page === "admin-faculty" || page === "admin-users";
+  const gated = page === "admin-news" || page === "admin-faculty" || page === "admin-users" || page === "admin-audit";
   if (!gated) return true;
   if (Auth && Auth.ready) {
     try { await Auth.ready; } catch {}

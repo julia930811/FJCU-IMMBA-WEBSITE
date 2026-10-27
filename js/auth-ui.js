@@ -19,7 +19,7 @@ function authStatus(el, msg, ok) {
 
 function goNext() {
   const next = authCopy().next;
-  const allowed = /^(admin-news|admin-faculty|admin-users)\.html$/.test(next) ? next : "admin-faculty.html";
+  const allowed = /^(admin-news|admin-faculty|admin-users|admin-audit)\.html$/.test(next) ? next : "admin-faculty.html";
   location.href = allowed;
 }
 
@@ -167,27 +167,60 @@ function initAccount() {
   });
 }
 
+function applicationStatus(role, zh) {
+  if (role === "pending") return zh ? "待 super_admin 審核" : "Pending Super Admin Review";
+  if (role === "admin") return zh ? "已核准為 admin" : "Approved as admin";
+  if (role === "rejected") return zh ? "已拒絕" : "Rejected";
+  if (role === "super_admin") return "super_admin";
+  return role || "";
+}
+
+function shortId(id) {
+  const s = String(id || "");
+  return s.length > 12 ? s.slice(0, 8) + "…" : s;
+}
+
 async function initAdminUsers() {
   const zh = locale() === "zh";
   const body = document.getElementById("userTableBody");
   const status = document.getElementById("authStatus");
+  const count = document.getElementById("pendingCount");
   if (!body) return;
-  async function render() {
-    const rows = await window.IMMBAAuth.listProfiles();
-    body.innerHTML = rows.map((p) => `
+  let filter = "pending";
+  let rows = [];
+  function applyFilter() {
+    const list = filter === "all" ? rows : rows.filter((p) => p.role === filter);
+    body.innerHTML = list.map((p) => `
       <tr>
+        <td title="${p.id || ""}"><code>${shortId(p.id)}</code></td>
         <td>${p.email || ""}</td>
         <td><span class="role-badge role-${p.role}">${p.role}</span></td>
-        <td>${(p.created_at || "").slice(0, 10)}</td>
+        <td>${applicationStatus(p.role, zh)}</td>
+        <td>${(p.created_at || "").replace("T", " ").slice(0, 19)}</td>
         <td class="admin-row-actions">
-          ${p.role === "super_admin" ? "" : `
-            <button type="button" class="btn btn-navy" data-approve="${p.id}">${zh ? "核准為 admin" : "Approve as admin"}</button>
-            <button type="button" class="btn btn-line" data-reject="${p.id}">${zh ? "拒絕" : "Reject"}</button>
+          ${p.role === "super_admin" ? "—" : `
+            ${p.role === "admin" ? "" : `<button type="button" class="btn btn-navy" data-approve="${p.id}">${zh ? "核准為 admin" : "Approve as admin"}</button>`}
+            ${p.role === "rejected" ? "" : `<button type="button" class="btn btn-line" data-reject="${p.id}">${zh ? "拒絕申請" : "Reject"}</button>`}
           `}
         </td>
       </tr>
-    `).join("") || `<tr><td colspan="4">${zh ? "尚無帳號" : "No accounts yet"}</td></tr>`;
+    `).join("") || `<tr><td colspan="6">${zh ? "這個篩選沒有申請。" : "No applications in this filter."}</td></tr>`;
+    if (count) {
+      const n = rows.filter((p) => p.role === "pending").length;
+      count.textContent = zh ? `目前 ${n} 筆 pending 申請待審核。` : `${n} pending administrator request(s) awaiting review.`;
+    }
   }
+  async function render() {
+    rows = await window.IMMBAAuth.listProfiles();
+    applyFilter();
+  }
+  document.querySelectorAll("[data-role-filter]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      filter = btn.getAttribute("data-role-filter");
+      document.querySelectorAll("[data-role-filter]").forEach((b) => b.classList.toggle("is-active", b === btn));
+      applyFilter();
+    });
+  });
   document.getElementById("main").addEventListener("click", async (e) => {
     const approve = e.target.closest("[data-approve]");
     const reject = e.target.closest("[data-reject]");
@@ -198,11 +231,45 @@ async function initAdminUsers() {
     }
     if (reject) {
       const { error } = await window.IMMBAAuth.setRole(reject.getAttribute("data-reject"), "rejected");
-      authStatus(status, error ? error.message : (zh ? "已拒絕，此帳號不能進後台。" : "Rejected. This account cannot access the back office."), !error);
+      authStatus(status, error ? error.message : (zh ? "已拒絕此申請，不能進後台。" : "Application rejected. This account cannot access the back office."), !error);
       await render();
     }
   });
   await render();
+}
+
+function auditActionLabel(row, zh) {
+  const act = row.action || "";
+  const ent = row.entity || "";
+  if (ent === "profiles" && act === "update") {
+    const next = row.after_data && row.after_data.role;
+    if (next === "admin") return zh ? "核准為 admin" : "Approved as admin";
+    if (next === "rejected") return zh ? "拒絕申請" : "Rejected application";
+  }
+  if (ent === "profiles" && act === "insert") return zh ? "新帳號（pending）" : "New account (pending)";
+  if (ent === "faculty" && act === "insert") return zh ? "新增師資" : "Added faculty";
+  if (ent === "faculty" && act === "update") return zh ? "修改師資" : "Edited faculty";
+  if (ent === "faculty" && act === "delete") return zh ? "刪除師資" : "Deleted faculty";
+  return act + " " + ent;
+}
+
+async function initAdminAudit() {
+  const zh = locale() === "zh";
+  const body = document.getElementById("auditTableBody");
+  const status = document.getElementById("authStatus");
+  if (!body) return;
+  const rows = await window.IMMBAAuth.listAudit(200);
+  if (window.IMMBAAuth.lastError()) {
+    authStatus(status, window.IMMBAAuth.lastError(), false);
+  }
+  body.innerHTML = rows.map((row) => `
+    <tr>
+      <td>${(row.created_at || "").replace("T", " ").slice(0, 19)}</td>
+      <td>${row.actor_email || (zh ? "（系統／未登入）" : "(system / unknown)")}</td>
+      <td>${auditActionLabel(row, zh)}</td>
+      <td>${row.summary || row.entity_id || ""}</td>
+    </tr>
+  `).join("") || `<tr><td colspan="4">${zh ? "尚無異動紀錄。請先在 SQL Editor 執行最新 schema.sql。" : "No audit rows yet. Run the latest schema.sql in the SQL Editor first."}</td></tr>`;
 }
 
 function initAuthUI() {
@@ -212,4 +279,5 @@ function initAuthUI() {
   if (page === "reset") initReset();
   if (page === "account") initAccount();
   if (page === "admin-users") initAdminUsers();
+  if (page === "admin-audit") initAdminAudit();
 }

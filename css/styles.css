@@ -859,6 +859,11 @@ textarea { min-height: 140px; resize: vertical; }
   gap: 10px;
   margin-bottom: 16px;
 }
+.admin-toolbar .btn.is-active {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
 .admin-count { color: var(--muted); margin: 20px 0 12px; }
 .admin-status {
   background: #e7f6ee;
