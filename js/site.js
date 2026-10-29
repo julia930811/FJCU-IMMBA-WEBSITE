@@ -274,7 +274,7 @@ function isActive(href) {
 }
 
 function logoMark() {
-  const src = (locale() === "zh" ? "img/logo.png" : "../img/logo.png") + "?v=5";
+  const src = (locale() === "zh" ? "img/logo.png" : "../img/logo.png") + "?v=6";
   return `<img class="brand-mark" src="${src}" alt="imMBA">`;
 }
 
