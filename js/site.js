@@ -474,6 +474,7 @@ function pages() {
   return {
     index: `
       <section class="hero">
+        <img class="hero-earth" src="${locale()==="zh"?"img/hero-earth.gif?v=3":"../img/hero-earth.gif?v=3"}" alt="">
         <div class="hero-inner">
           <p class="kicker">${t().heroKicker}</p>
           <h1>${t().heroTitle}</h1>
@@ -1292,18 +1293,20 @@ async function guardPage(page) {
 
 let booted = false;
 
+function settle(p, ms) {
+  if (!p) return Promise.resolve();
+  return Promise.race([
+    Promise.resolve(p).catch(() => {}),
+    new Promise((resolve) => setTimeout(resolve, ms || 2500))
+  ]);
+}
+
 async function boot() {
   if (booted) return;
   booted = true;
-  if (window.IMMBAAuth && window.IMMBAAuth.ready) {
-    try { await window.IMMBAAuth.ready; } catch {}
-  }
-  if (window.FacultyStore && window.FacultyStore.ready) {
-    try { await window.FacultyStore.ready; } catch {}
-  }
-  if (window.AlumniStore && window.AlumniStore.ready) {
-    try { await window.AlumniStore.ready; } catch {}
-  }
+  await settle(window.IMMBAAuth && window.IMMBAAuth.ready);
+  await settle(window.FacultyStore && window.FacultyStore.ready);
+  await settle(window.AlumniStore && window.AlumniStore.ready);
   const page = document.body.dataset.page;
   if (!(await guardPage(page))) return;
   document.body.insertAdjacentHTML("afterbegin", headerHTML());
