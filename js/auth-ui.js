@@ -25,7 +25,7 @@ function errText(err) {
 
 function goNext() {
   const next = authCopy().next;
-  const allowed = /^(admin-news|admin-faculty|admin-users|admin-audit)\.html$/.test(next) ? next : "admin-faculty.html";
+  const allowed = /^(admin-news|admin-faculty|admin-alumni|admin-users|admin-audit)\.html$/.test(next) ? next : "admin-faculty.html";
   location.href = allowed;
 }
 

@@ -29,6 +29,9 @@ const I18N = {
         ["faculty.html#visit", "客座教師"],
         ["faculty.html#adjunct", "兼任教師"]
       ]},
+      { href: "alumni.html", label: "校友", children: [
+        ["alumni.html#directory", "校友名錄"]
+      ]},
       { href: "guide.html", label: "imMBA全攻略", children: [
         ["guide.html#who", "適合誰"],
         ["guide.html#year-one", "碩一怎麼排課"]
@@ -154,6 +157,9 @@ const I18N = {
         ["faculty.html#visit", "Visiting faculty"],
         ["faculty.html#adjunct", "Adjunct faculty"]
       ]},
+      { href: "alumni.html", label: "Alumni", children: [
+        ["alumni.html#directory", "Alumni directory"]
+      ]},
       { href: "guide.html", label: "imMBA Guide", children: [
         ["guide.html#who", "Who it is for"],
         ["guide.html#year-one", "Year-one planning"]
@@ -268,7 +274,7 @@ function isActive(href) {
 }
 
 function logoMark() {
-  const src = (locale() === "zh" ? "img/logo.png" : "../img/logo.png") + "?v=4";
+  const src = (locale() === "zh" ? "img/logo.png" : "../img/logo.png") + "?v=5";
   return `<img class="brand-mark" src="${src}" alt="imMBA">`;
 }
 
@@ -282,6 +288,7 @@ function adminSwitch() {
   return `<nav class="admin-switch" aria-label="${zh ? "後台分頁" : "Back office"}">
     <a href="admin-news.html" class="${page === "admin-news" ? "is-active" : ""}">${zh ? "公告後台" : "AdminNews"}</a>
     <a href="admin-faculty.html" class="${page === "admin-faculty" ? "is-active" : ""}">${zh ? "師資後台" : "AdminFaculty"}</a>
+    <a href="admin-alumni.html" class="${page === "admin-alumni" ? "is-active" : ""}">${zh ? "校友後台" : "AdminAlumni"}</a>
     ${superLink}
   </nav>`;
 }
@@ -385,6 +392,7 @@ function footerHTML() {
             <p>
               <a href="https://www.management.fju.edu.tw/" target="_blank" rel="noopener">${L.college}</a><br>
               <a href="https://www.fju.edu.tw/" target="_blank" rel="noopener">${L.university}</a><br>
+              <a href="alumni.html">${locale()==="zh"?"校友名錄":"Alumni"}</a><br>
               <a href="gallery.html">${locale()==="zh"?"相片集錦":"Gallery"}</a><br>
               <a href="contact.html">${locale()==="zh"?"聯絡我們":"Contact"}</a><br>
               <a href="search.html">${L.search}</a><br>
@@ -614,6 +622,17 @@ function pages() {
       </div>
       <div class="faculty-list" id="facultyGrid">${liveFaculty().map(f => facultyCard(f, zh)).join("")}</div>
     `),
+    alumni: pageShell(zh?"校友名錄":"Alumni directory", zh?"查看校友紀錄，並以姓名、學號、公司與畢業年搜尋篩選。":"View alumni records, then search and filter by name, student ID, company, or graduation year.", `
+      <p class="form-note">${zh?"欄位依講義 Alumni Data Structure：full_name、student_id、department、degree_program、admission_year、graduation_year、email、phone、company、job_title、notes。":"Fields follow the lecture Alumni Data Structure: full_name, student_id, department, degree_program, admission_year, graduation_year, email, phone, company, job_title, notes."} <a href="admin-alumni.html">${zh?"校友後台 AdminAlumni":"AdminAlumni back office"}</a></p>
+      <div class="alumni-toolbar" id="directory">
+        <label>${zh?"搜尋":"Search"}<input id="alumniQ" type="search" placeholder="${zh?"姓名、學號、公司、職稱":"Name, student ID, company, title"}"></label>
+        <label>${zh?"系所 department":"department"}<select id="alumniDept"><option value="">${zh?"全部":"All"}</option></select></label>
+        <label>${zh?"學位 degree_program":"degree_program"}<select id="alumniProgram"><option value="">${zh?"全部":"All"}</option></select></label>
+        <label>${zh?"畢業年 graduation_year":"graduation_year"}<select id="alumniYear"><option value="">${zh?"全部":"All"}</option></select></label>
+      </div>
+      <p class="admin-count" id="alumniPublicCount"></p>
+      <div class="alumni-cards" id="alumniGrid"></div>
+    `),
     guide: pageShell(zh?"imMBA 全攻略":"Student guide", zh?"從適不適合、如何入學，到碩一選課與論文節奏。":"Who it is for, how admission works, and how to plan year one.", `
       <div class="prose">
         <p>${zh?"國際經管imMBA獲AACSB認證是全英授課的碩士班，學生組成除本地生外，尚有亞洲、美洲、歐洲、大洋洲等超過30個不同國家的學生前來攻讀學位或交換學習，本地生與國際學生1:1合班上課，授予MBA學位。":"imMBA is an AACSB-accredited, English-taught MBA. Local and international students share classes in roughly equal numbers, with classmates from more than 30 countries."}</p>
@@ -717,7 +736,7 @@ function pages() {
         </aside>
       </div>
     `),
-    register: pageShell(zh?"註冊｜Create your account":"Register | Create your account", zh?"Register → Verify Email → pending → Approval → admin":"Register → Verify Email → pending → Approval → admin", `
+    register: pageShell(zh?"註冊｜Create your account":"Register | Create your account", "", `
       <form class="admin-form auth-form" id="registerForm">
         <h2>${zh?"註冊帳號":"Register"}</h2>
         <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
@@ -749,7 +768,6 @@ function pages() {
       <div class="admin-form" id="accountBox"></div>
     `),
     "admin-users": pageShell(zh?"帳號審核 Dashboard":"Administrator Approval Dashboard", zh?"super_admin 查看 pending 申請、申請人資料與目前狀態，並核准為 admin 或拒絕。":"The super admin views pending requests, applicant information and current status, then approves as admin or rejects.", `
-      <p class="form-note">${zh?"Register → Verify Email → pending → Super Admin Review → admin。新帳號在 Supabase public.profiles 的預設角色是 pending。":"Register → Verify Email → pending → Super Admin Review → admin. New rows in Supabase public.profiles default to pending."}</p>
       <div class="admin-toolbar">
         <button type="button" class="btn btn-navy is-active" data-role-filter="pending">${zh?"待審核 pending":"Pending requests"}</button>
         <button type="button" class="btn btn-line" data-role-filter="admin">admin</button>
@@ -930,6 +948,69 @@ function pages() {
         <ul class="admin-faculty-board" id="facultyBoard"></ul>
       </section>
     `),
+    "admin-alumni": pageShell(zh?"校友後台 AdminAlumni":"AdminAlumni back office", "", `
+      <div class="admin-toolbar">
+        <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增校友 Add alumni":"Add alumni"}</button>
+        <label class="btn btn-line alumni-import-btn">${zh?"批次匯入 CSV":"Import alumni in batches"}
+          <input id="alImport" type="file" accept=".csv,text/csv" hidden>
+        </label>
+        <a class="btn btn-line" href="sample/alumni_sample_20_english.csv" download>${zh?"下載 20 筆英文範本":"Download 20-row English sample"}</a>
+        <a class="btn btn-line" href="sample/alumni.csv" download>${zh?"下載欄位範本":"Download field template"}</a>
+        <a class="btn btn-line" href="alumni.html">${zh?"查看前台校友":"View alumni directory"}</a>
+      </div>
+      <p class="admin-status" id="adminStatus" hidden></p>
+      <form class="admin-form" id="alumniForm">
+        <h2 id="formMode">${zh?"新增校友":"Add alumni"}</h2>
+        <input type="hidden" id="alId">
+        <div class="admin-shared admin-alumni-shared">
+          <label>full_name ${zh?"校友姓名":"Alumni name"}<input id="alFullName" required></label>
+          <label>student_id ${zh?"學號":"Student ID"}<input id="alStudentId"></label>
+          <label>department ${zh?"系所 / 學程":"Department / Program"}<select id="alDepartment"></select></label>
+          <label>degree_program ${zh?"學位層級":"Degree level"}<select id="alDegree"></select></label>
+          <label>admission_year ${zh?"入學年":"Admission year"}<input id="alAdmit" type="number" min="1980" max="2100"></label>
+          <label>graduation_year ${zh?"畢業年":"Graduation year"}<input id="alGrad" type="number" min="1980" max="2100"></label>
+          <label>email Email<input id="alEmail" type="email"></label>
+          <label>phone ${zh?"電話":"Phone"}<input id="alPhone"></label>
+          <label>company ${zh?"任職公司":"Current company"}<input id="alCompany"></label>
+          <label>job_title ${zh?"職稱":"Current position"}<input id="alJob"></label>
+        </div>
+        <label>notes ${zh?"補充資訊":"Additional information"}<textarea id="alNotes" rows="3"></textarea></label>
+        <div class="admin-toolbar">
+          <button class="btn btn-navy" type="submit">${zh?"儲存（新增 / 編輯）":"Save (add / edit)"}</button>
+          <button class="btn btn-line" type="button" id="btnDeleteOne">${zh?"刪除 Delete alumni":"Delete alumni"}</button>
+        </div>
+      </form>
+      <div class="alumni-toolbar">
+        <label>${zh?"搜尋 Search and filter":"Search and filter"}<input id="alSearch" type="search" placeholder="${zh?"姓名、學號、公司、職稱":"Name, student ID, company, title"}"></label>
+        <label>department<select id="alFilterDept"></select></label>
+        <label>degree_program<select id="alFilterProgram"></select></label>
+        <label>graduation_year<select id="alFilterYear"></select></label>
+      </div>
+      <p class="admin-count" id="alumniCount"></p>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>full_name</th>
+              <th>student_id</th>
+              <th>department</th>
+              <th>degree_program</th>
+              <th>admission_year</th>
+              <th>graduation_year</th>
+              <th>email</th>
+              <th>company</th>
+              <th>job_title</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="alumniTableBody"></tbody>
+        </table>
+      </div>
+      <section class="alumni-activity">
+        <h2>${zh?"管理員異動紀錄 Track administrator activities":"Track administrator activities"}</h2>
+        <ul id="alumniActivity"></ul>
+      </section>
+    `),
     "news-detail": "",
     events: pageShell(zh?"活動集錦":"Events", zh?"交流、參訪與學院活動紀實。":"Exchanges, visits and college events.", `
       <div id="list" class="news-list anchor-section">${window.IMMBA.events.map(e => `
@@ -989,7 +1070,7 @@ function pages() {
 function pageShell(title, lead, inner) {
   const home = locale()==="zh"?"首頁":"Home";
   const page = document.body.dataset.page;
-  const tabs = (page === "admin-news" || page === "admin-faculty" || page === "admin-users" || page === "admin-audit") ? adminSwitch() : "";
+  const tabs = (page === "admin-news" || page === "admin-faculty" || page === "admin-alumni" || page === "admin-users" || page === "admin-audit") ? adminSwitch() : "";
   return `<section class="page-hero"><div class="wrap">
     <div class="crumbs"><a href="index.html">${home}</a> / ${title}</div>
     <h1>${title}</h1>${lead ? `<p>${lead}</p>` : ""}
@@ -1000,6 +1081,66 @@ function pageShell(title, lead, inner) {
 
 function liveFaculty() {
   return window.FacultyStore ? window.FacultyStore.all() : (window.IMMBA.faculty || []);
+}
+
+function liveAlumni() {
+  return window.AlumniStore ? window.AlumniStore.all() : [];
+}
+
+function alumniCard(a, zh) {
+  const rows = [
+    ["student_id", zh ? "學號" : "Student ID", a.studentId],
+    ["department", zh ? "系所" : "Department", a.department],
+    ["degree_program", zh ? "學位" : "Degree", a.degreeProgram],
+    ["admission_year", zh ? "入學年" : "Admission year", a.admissionYear],
+    ["graduation_year", zh ? "畢業年" : "Graduation year", a.graduationYear],
+    ["email", "Email", a.email],
+    ["phone", zh ? "電話" : "Phone", a.phone],
+    ["company", zh ? "公司" : "Company", a.company],
+    ["job_title", zh ? "職稱" : "Position", a.jobTitle]
+  ].filter((row) => row[2] !== "" && row[2] != null);
+  return `<article class="alumni-card">
+    <h3>${a.fullName || "—"}</h3>
+    <p class="alumni-role">${[a.jobTitle, a.company].filter(Boolean).join(" · ")}</p>
+    <dl>${rows.map(([, label, value]) => `<div><dt>${label}</dt><dd>${value}</dd></div>`).join("")}</dl>
+    ${a.notes ? `<p class="alumni-notes">${a.notes}</p>` : ""}
+  </article>`;
+}
+
+function bindAlumniDirectory() {
+  const grid = document.getElementById("alumniGrid");
+  if (!grid || !window.AlumniStore) return;
+  const zh = locale() === "zh";
+  const qEl = document.getElementById("alumniQ");
+  const deptEl = document.getElementById("alumniDept");
+  const programEl = document.getElementById("alumniProgram");
+  const yearEl = document.getElementById("alumniYear");
+  const keepD = deptEl.value;
+  const keepP = programEl.value;
+  const keepY = yearEl.value;
+  deptEl.innerHTML = `<option value="">${zh ? "全部" : "All"}</option>` +
+    window.AlumniStore.departments().map((d) => `<option value="${d}">${d}</option>`).join("");
+  programEl.innerHTML = `<option value="">${zh ? "全部" : "All"}</option>` +
+    window.AlumniStore.programs().map((d) => `<option value="${d}">${d}</option>`).join("");
+  yearEl.innerHTML = `<option value="">${zh ? "全部" : "All"}</option>` +
+    window.AlumniStore.years().map((y) => `<option value="${y}">${y}</option>`).join("");
+  deptEl.value = keepD;
+  programEl.value = keepP;
+  yearEl.value = keepY;
+  function paint() {
+    const list = window.AlumniStore.search(qEl.value, deptEl.value, yearEl.value, programEl.value);
+    grid.innerHTML = list.map((a) => alumniCard(a, zh)).join("") ||
+      `<p class="form-note">${zh ? "沒有符合的校友紀錄。" : "No matching alumni records."}</p>`;
+    const count = document.getElementById("alumniPublicCount");
+    if (count) count.textContent = zh
+      ? `顯示 ${list.length} / ${window.AlumniStore.all().length} 筆`
+      : `Showing ${list.length} of ${window.AlumniStore.all().length} records`;
+  }
+  qEl.addEventListener("input", paint);
+  deptEl.addEventListener("change", paint);
+  programEl.addEventListener("change", paint);
+  yearEl.addEventListener("change", paint);
+  paint();
 }
 
 function facultyInitials(f) {
@@ -1068,16 +1209,18 @@ function renderSearch() {
   const zh = locale()==="zh";
   const hits = liveNews().filter(n => (n.zhTitle + n.enTitle + (n.zhBody||"") + (n.enBody||"")).toLowerCase().includes(q));
   const facultyHits = liveFaculty().filter(f => (f.zhName + f.enName + f.fieldsZh + f.fieldsEn).toLowerCase().includes(q));
+  const alumniHits = window.AlumniStore ? window.AlumniStore.search(q) : [];
   const pageHits = t().nav.flatMap(item => {
     const rows = [[item.href, item.label]];
     if (item.children) rows.push(...item.children);
     return rows;
   }).filter(([, label]) => q && label.toLowerCase().includes(q));
   document.getElementById("main").innerHTML = pageShell(zh?"搜尋結果":"Search results", q || (zh?"請輸入關鍵字":"Enter a keyword"), `
-    <p>${zh?`找到 ${hits.length} 則公告、${facultyHits.length} 位教師、${pageHits.length} 個頁面。`:`${hits.length} news items, ${facultyHits.length} faculty, ${pageHits.length} pages.`}</p>
+    <p>${zh?`找到 ${hits.length} 則公告、${facultyHits.length} 位教師、${alumniHits.length} 位校友、${pageHits.length} 個頁面。`:`${hits.length} news items, ${facultyHits.length} faculty, ${alumniHits.length} alumni, ${pageHits.length} pages.`}</p>
     ${pageHits.length ? `<div class="news-list">${pageHits.map(([href,label]) => `<a class="news-item" href="${href}"><time></time><span>${label}</span><span>→</span></a>`).join("")}</div>` : ""}
     <div class="news-cards">${hits.map(newsCard).join("") || ""}</div>
     <div class="faculty-grid" style="margin-top:20px">${facultyHits.map(f => facultyCard(f, zh)).join("")}</div>
+    <div class="alumni-cards" style="margin-top:20px">${alumniHits.map((a) => alumniCard(a, zh)).join("")}</div>
   `);
 }
 
@@ -1100,6 +1243,7 @@ function bind() {
     document.getElementById("facultyFilter").value = facultyHash;
     document.getElementById("facultyFilter").dispatchEvent(new Event("change"));
   }
+  bindAlumniDirectory();
   document.getElementById("contactForm")?.addEventListener("submit", (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -1125,7 +1269,7 @@ function bindLightbox() {
 
 async function guardPage(page) {
   const Auth = window.IMMBAAuth;
-  const gated = page === "admin-news" || page === "admin-faculty" || page === "admin-users" || page === "admin-audit";
+  const gated = page === "admin-news" || page === "admin-faculty" || page === "admin-alumni" || page === "admin-users" || page === "admin-audit";
   if (!gated) return true;
   if (Auth && Auth.ready) {
     try { await Auth.ready; } catch {}
@@ -1133,6 +1277,9 @@ async function guardPage(page) {
   if (!Auth || !Auth.user()) {
     location.replace("login.html?next=" + encodeURIComponent(page + ".html"));
     return false;
+  }
+  if (!Auth.canEdit()) {
+    try { await Auth.refresh(); } catch {}
   }
   if (page === "admin-users" && !Auth.isSuper()) {
     location.replace("account.html");
@@ -1145,12 +1292,19 @@ async function guardPage(page) {
   return true;
 }
 
+let booted = false;
+
 async function boot() {
+  if (booted) return;
+  booted = true;
   if (window.IMMBAAuth && window.IMMBAAuth.ready) {
     try { await window.IMMBAAuth.ready; } catch {}
   }
   if (window.FacultyStore && window.FacultyStore.ready) {
     try { await window.FacultyStore.ready; } catch {}
+  }
+  if (window.AlumniStore && window.AlumniStore.ready) {
+    try { await window.AlumniStore.ready; } catch {}
   }
   const page = document.body.dataset.page;
   if (!(await guardPage(page))) return;
@@ -1171,6 +1325,7 @@ async function boot() {
   bind();
   if (page === "admin-news" && typeof initAdminNews === "function") initAdminNews();
   if (page === "admin-faculty" && typeof initAdminFaculty === "function") initAdminFaculty();
+  if (page === "admin-alumni" && typeof initAdminAlumni === "function") initAdminAlumni();
   if (typeof initAuthUI === "function") initAuthUI();
   if (location.hash) {
     const target = document.querySelector(location.hash);
@@ -1178,4 +1333,8 @@ async function boot() {
   }
 }
 
-document.addEventListener("DOMContentLoaded", () => { boot(); });
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => { boot(); });
+} else {
+  boot();
+}

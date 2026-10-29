@@ -1080,9 +1080,48 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .btn-danger:hover { background: #c62828; color: #fff; border-color: #c62828; }
 .admin-faculty-empty { color: #d5e6dc; padding: 16px; }
+.alumni-toolbar {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(140px, 1fr) minmax(140px, 1fr) minmax(120px, 0.8fr);
+  gap: 12px;
+  margin: 8px 0 20px;
+  align-items: end;
+}
+.alumni-toolbar label { margin: 0; }
+.alumni-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+.alumni-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 18px 14px;
+}
+.alumni-card h3 { margin: 0 0 4px; font-size: 20px; }
+.alumni-role { color: var(--muted); margin: 0 0 12px; min-height: 1.4em; }
+.alumni-card dl { margin: 0; display: grid; gap: 6px; }
+.alumni-card dl div { display: grid; grid-template-columns: 96px 1fr; gap: 8px; font-size: 14px; }
+.alumni-card dt { color: var(--muted); }
+.alumni-card dd { margin: 0; }
+.alumni-notes { margin: 12px 0 0; color: var(--muted); font-size: 14px; }
+.admin-alumni-shared { grid-template-columns: repeat(2, 1fr); }
+.alumni-import-btn { cursor: pointer; display: inline-flex; align-items: center; }
+.alumni-activity {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 18px 20px;
+  margin-bottom: 32px;
+}
+.alumni-activity h2 { margin: 0 0 10px; font-size: 18px; }
+.alumni-activity ul { margin: 0; padding-left: 18px; color: var(--muted); }
+.alumni-activity li { margin: 6px 0; }
+.alumni-activity time { color: var(--navy); font-variant-numeric: tabular-nums; }
 
 @media (max-width: 960px) {
-  .admin-shared, .admin-bilingual, .admin-preview, .admin-faculty-shared { grid-template-columns: 1fr; }
+  .admin-shared, .admin-bilingual, .admin-preview, .admin-faculty-shared, .admin-alumni-shared, .alumni-toolbar { grid-template-columns: 1fr; }
   .admin-faculty-row { grid-template-columns: 28px 1fr; }
   .admin-faculty-thumb { grid-column: 1 / -1; }
   .admin-faculty-thumb .faculty-photo,
