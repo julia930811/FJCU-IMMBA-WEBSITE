@@ -344,7 +344,6 @@ function headerHTML() {
           <a class="brand-logo" href="index.html" title="imMBA">${logoMark()}</a>
           <a class="brand-copy" href="index.html">
             <span class="brand-text">${L.brand}</span>
-            <span class="brand-motto">${L.motto}</span>
           </a>
         </div>
       </div>
@@ -384,7 +383,6 @@ function footerHTML() {
           <div>
             <a class="brand-logo" href="index.html" title="imMBA">${logoMark().replace('class="brand-mark"', 'class="brand-mark footer-mark"')}</a>
             <h3>imMBA</h3>
-            <p class="footer-motto">✝ ${L.motto}</p>
             <p>${L.phone}<br>${L.email}<br>${L.address}</p>
           </div>
           <div>
