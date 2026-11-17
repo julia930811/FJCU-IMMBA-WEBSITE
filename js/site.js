@@ -50,7 +50,7 @@ const I18N = {
       ]},
       { href: "marketplace.html", label: "教材市集", children: [
         ["marketplace.html#cases", "個案與讀本"],
-        ["marketplace.html#books", "二手書交流"]
+        ["market.html", "二手書交流"]
       ]},
       { href: "events.html", label: "活動集錦", children: [
         ["events.html#list", "活動紀實"],
@@ -178,7 +178,7 @@ const I18N = {
       ]},
       { href: "marketplace.html", label: "Marketplace", children: [
         ["marketplace.html#cases", "Cases and readings"],
-        ["marketplace.html#books", "Used-book exchange"]
+        ["market.html", "Used-book exchange"]
       ]},
       { href: "events.html", label: "Events", children: [
         ["events.html#list", "Event highlights"],
@@ -310,7 +310,7 @@ function navLink(href, label) {
 
 function navItem(item) {
   const parentOn = currentFile() === item.href;
-  const blank = href => href.startsWith("http") ? ` target="_blank" rel="noopener"` : "";
+  const blank = href => (href.startsWith("http") || href === "market.html") ? ` target="_blank" rel="noopener"` : "";
   if (!item.children) return navLink(item.href, item.label);
   return `<div class="nav-item has-dropdown">
     <a href="${item.href}" class="nav-parent ${parentOn ? "is-active" : ""}" aria-haspopup="true"${blank(item.href)}>${item.label}</a>
@@ -481,7 +481,7 @@ function pages() {
           <p class="hero-lead">${t().heroLead}</p>
           <div class="hero-actions">
             <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
-            <a class="btn btn-ghost" href="marketplace.html">${t().ctaBooks}</a>
+            <a class="btn btn-ghost" href="market.html" target="_blank" rel="noopener">${t().ctaBooks}</a>
           </div>
         </div>
       </section>
@@ -1018,10 +1018,11 @@ function pages() {
       <p style="margin-top:24px"><a class="btn btn-line" href="gallery.html">${zh?"相片集錦":"Photo gallery"}</a>
       ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=241")}</p>
     `),
+    market: pageShell(zh?"C2C 二手書市集":"C2C used-book marketplace", zh?"角色分工的同學對同學市集：Buyer、Seller、Platform Admin。":"A role-based classmate-to-classmate marketplace for buyers, sellers, and platform admins.", `<div id="marketRoot"></div>`),
     marketplace: pageShell(zh?"教材與書籍市集":"Books & materials marketplace", zh?"課程讀本、二手書交流與論文範本入口。":"Course readings, used-book exchange, and thesis templates.", `
       <div class="cards">
         <article class="card" id="cases"><h3>${zh?window.IMMBA.marketplace[0].zhTitle:window.IMMBA.marketplace[0].enTitle}</h3><p>${zh?window.IMMBA.marketplace[0].zh:window.IMMBA.marketplace[0].en}</p><p><a class="btn btn-navy" href="${window.IMMBA.marketplace[0].href}">${zh?"前往":"Open"}</a></p></article>
-        <article class="card" id="books"><h3>${zh?window.IMMBA.marketplace[1].zhTitle:window.IMMBA.marketplace[1].enTitle}</h3><p>${zh?window.IMMBA.marketplace[1].zh:window.IMMBA.marketplace[1].en}</p><p><a class="btn btn-navy" href="${window.IMMBA.marketplace[1].href}">${zh?"前往":"Open"}</a></p></article>
+        <article class="card" id="books"><h3>${zh?window.IMMBA.marketplace[1].zhTitle:window.IMMBA.marketplace[1].enTitle}</h3><p>${zh?window.IMMBA.marketplace[1].zh:window.IMMBA.marketplace[1].en}</p><p><a class="btn btn-navy" href="${window.IMMBA.marketplace[1].href}" target="_blank" rel="noopener">${zh?"前往":"Open"}</a></p></article>
         <article class="card" id="templates"><h3>${zh?window.IMMBA.marketplace[2].zhTitle:window.IMMBA.marketplace[2].enTitle}</h3><p>${zh?window.IMMBA.marketplace[2].zh:window.IMMBA.marketplace[2].en}</p><p><a class="btn btn-navy" href="${window.IMMBA.marketplace[2].href}">${zh?"前往":"Open"}</a></p></article>
       </div>
     `),
@@ -1307,6 +1308,7 @@ async function boot() {
   await settle(window.IMMBAAuth && window.IMMBAAuth.ready);
   await settle(window.FacultyStore && window.FacultyStore.ready);
   await settle(window.AlumniStore && window.AlumniStore.ready);
+  await settle(window.MarketStore && window.MarketStore.ready);
   const page = document.body.dataset.page;
   if (!(await guardPage(page))) return;
   document.body.insertAdjacentHTML("afterbegin", headerHTML());
@@ -1328,6 +1330,7 @@ async function boot() {
   if (page === "admin-faculty" && typeof initAdminFaculty === "function") initAdminFaculty();
   if (page === "admin-alumni" && typeof initAdminAlumni === "function") initAdminAlumni();
   if (typeof initAuthUI === "function") initAuthUI();
+  if (page === "market" && typeof initMarket === "function") initMarket();
   if (location.hash) {
     const target = document.querySelector(location.hash);
     if (target) target.scrollIntoView();
