@@ -37,6 +37,11 @@ function friendlyAuthError(err, zh) {
   if (/not configured|尚未設定/i.test(msg)) {
     return zh ? "登入服務還沒接上。請重新整理；若仍不行，請確認 Vercel 已設定 Supabase 環境變數。" : "Auth is not configured. Refresh, or set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY on Vercel.";
   }
+  if (/rate limit|over_email_send_rate_limit|email rate limit/i.test(msg)) {
+    return zh
+      ? "驗證信寄太多次了。請等約一小時再用同一個信箱註冊，或改用還沒試過的信箱。"
+      : "Too many confirmation emails were sent. Wait about an hour, or use an email you have not tried yet.";
+  }
   return msg;
 }
 
@@ -127,13 +132,16 @@ function initRegister() {
       authStatus(status, zh ? "兩次密碼不一致。" : "The two passwords do not match.", false);
       return;
     }
+    const submit = form.querySelector('button[type="submit"]');
+    if (submit) submit.disabled = true;
     const { data, error } = await window.IMMBAAuth.signUp(email, password);
+    if (submit) submit.disabled = false;
     if (error) {
       const msg = errText(error);
       const exists = /already|registered|exists/i.test(msg);
       authStatus(status, exists
         ? (zh ? "這個信箱已經註冊過了，請改按「已有帳號，改登入」。" : "This email is already registered. Use Login instead.")
-        : (zh ? "註冊失敗：" + (msg || "請稍後再試。") : "Registration failed: " + (msg || "Please try again.")), false);
+        : (zh ? "註冊失敗：" + (friendlyAuthError(error, true) || msg || "請稍後再試。") : "Registration failed: " + (friendlyAuthError(error, false) || msg || "Please try again.")), false);
       return;
     }
     if (data && data.session) {
