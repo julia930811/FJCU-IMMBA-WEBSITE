@@ -2,7 +2,7 @@
   const KEY = "immba-c2c-market-v2";
   const STATUSES = ["waiting_payment", "ready_to_ship", "shipped", "completed"];
   const STATUS_LABEL = {
-    waiting_payment: { zh: "待付款", en: "Waiting for Payment" },
+    waiting_payment: { zh: "待確認付款", en: "Waiting for Payment Confirmation" },
     ready_to_ship: { zh: "待出貨", en: "Ready to Ship" },
     shipped: { zh: "已出貨", en: "Shipped" },
     completed: { zh: "已完成", en: "Completed" }
@@ -43,6 +43,7 @@
       total: 740,
       sellerNet: 676,
       createdAt: "2026-10-12T10:00:00.000Z",
+      updatedAt: "2026-10-12T10:00:00.000Z",
       items: [{ productId: "mp1", name: "International Marketing (Kotler)", price: 680, quantity: 1 }]
     },
     {
@@ -59,6 +60,7 @@
       total: 280,
       sellerNet: 216,
       createdAt: "2026-11-17T02:10:00.000Z",
+      updatedAt: "2026-11-17T02:10:00.000Z",
       items: [{ productId: "mp2", name: "Corporate Finance notes (2025)", price: 220, quantity: 1 }]
     },
     {
@@ -75,6 +77,7 @@
       total: 210,
       sellerNet: 146,
       createdAt: "2026-11-16T09:40:00.000Z",
+      updatedAt: "2026-11-16T09:40:00.000Z",
       items: [{ productId: "mp3", name: "Harvard-style case pack: Global Strategy", price: 150, quantity: 1 }]
     }
   ];
@@ -293,6 +296,7 @@
         total: money.total,
         sellerNet: money.sellerNet,
         createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
         items: orderItems
       };
       state.orders.unshift(order);
@@ -328,8 +332,10 @@
     requireSeller(order);
     const i = STATUSES.indexOf(order.status);
     const j = STATUSES.indexOf(next);
-    if (j !== i + 1) throw new Error(t("訂單必須依序：待付款 → 待出貨 → 已出貨 → 已完成。", "Orders must move in sequence: Waiting for Payment → Ready to Ship → Shipped → Completed."));
+    if (order.status === "completed") throw new Error(t("已完成的訂單必須保留，不能再改或刪除。", "Completed transactions must be kept as business records."));
+    if (j !== i + 1) throw new Error(t("訂單必須依序：下單 → 待確認付款 → 待出貨 → 已出貨 → 已完成。", "Orders must move in sequence: Order Placed → Waiting for Payment → Ready to Ship → Shipped → Completed."));
     order.status = next;
+    order.updatedAt = new Date().toISOString();
     save();
     notify(t("訂單 " + order.orderNo + " 已更新為" + STATUS_LABEL[next].zh + "。", "Order " + order.orderNo + " is now " + STATUS_LABEL[next].en + "."), order.buyerEmail);
     return order;
@@ -416,6 +422,8 @@
       monthlyShipping: scoped.reduce((s, o) => s + Number(orderMoney(o).shipping || 0), 0),
       itemsSold: scoped.reduce((s, o) => s + (o.items || []).reduce((n, i) => n + Number(i.quantity || 0), 0), 0),
       completedCount: completed.length,
+      listedCount: sellerProducts().length,
+      purchasedCount: completed.reduce((s, o) => s + (o.items || []).reduce((n, i) => n + Number(i.quantity || 0), 0), 0),
       pendingPayments: orders.filter((o) => o.status === "waiting_payment").length,
       waitingShipment: orders.filter((o) => o.status === "ready_to_ship" || o.status === "shipped").length
     };

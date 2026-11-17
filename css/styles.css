@@ -1287,10 +1287,30 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .market-panel h3, .market-manage > h3, .market-finance h3 { margin: 0 0 10px; font-size: 16px; }
 .market-order {
-  border-top: 1px solid var(--line);
-  padding: 12px 0 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin: 0 0 12px;
+  background: #fff;
 }
 .market-order p { margin: 4px 0; }
+.market-action {
+  font-size: 14px;
+  padding: 8px 14px;
+}
+.market-life {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 0 0 16px;
+}
+.market-life h3 { margin: 0 0 10px; font-size: 16px; }
+.market-lifecycle {
+  margin: 0;
+  padding-left: 18px;
+}
+.market-lifecycle li { margin: 4px 0; }
 .market-finance-bar {
   display: flex;
   flex-wrap: wrap;

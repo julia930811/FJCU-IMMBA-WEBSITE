@@ -41,9 +41,14 @@ function initMarket() {
     items: "商品",
     amount: "金額",
     status: "狀態",
-    kept: "紀錄保留",
-    buyerOrders: "我的訂單",
-    lifecycle: "狀態依序為：待付款 → 待出貨 → 已出貨 → 已完成。完成後紀錄仍保留。",
+    kept: "已完成紀錄保留，不可刪除",
+    buyerOrders: "買家訂單紀錄",
+    buyerHistNote: "已完成的交易會留在買家訂單紀錄，不可刪除。",
+    lifecycle: "下單 → 待確認付款 → 付款確認 → 待出貨 → 已出貨 → 已完成",
+    lifecycleTitle: "訂單生命週期",
+    placed: "下單",
+    payConfirmed: "付款確認",
+    keepRecords: "已完成的交易必須保留，作為商業紀錄。",
     name: "商品名稱",
     category: "類別",
     desc: "商品說明",
@@ -56,9 +61,15 @@ function initMarket() {
     update: "更新商品",
     create: "上架",
     cancel: "取消",
-    markPaid: "確認已付款（移至待出貨）",
+    markPaid: "已收到付款（待出貨）",
     markShip: "確認出貨",
-    markDone: "標記完成",
+    markDone: "訂單完成",
+    payStatus: "付款狀態",
+    orderDate: "下單日期",
+    sellerMode: "賣家模式",
+    listedN: "上架商品數",
+    purchasedN: "已售件數",
+    currentMode: "目前模式",
     amountDue: "應付金額",
     none: "目前沒有。",
     sellerTitle: "賣家儀表板：銷售與帳務",
@@ -68,9 +79,9 @@ function initMarket() {
     pendingPay: "待付款",
     waitShip: "待出貨",
     manage: "賣家訂單管理",
-    pendingPayItems: "待付款訂單",
-    pendingShipItems: "待出貨訂單",
-    completedHist: "已完成訂單｜銷售歷史",
+    pendingPayItems: "待付款",
+    pendingShipItems: "待出貨",
+    completedHist: "已完成訂單（銷售歷史）",
     finance: "財務管理（月報）",
     filterMonth: "依月份篩選",
     allMonths: "全部月份",
@@ -149,9 +160,14 @@ function initMarket() {
     items: "Items",
     amount: "Amount",
     status: "Status",
-    kept: "Record kept",
-    buyerOrders: "My orders",
-    lifecycle: "Status moves in order: Waiting for Payment → Ready to Ship → Shipped → Completed. Completed records are kept.",
+    kept: "Completed record kept; do not delete",
+    buyerOrders: "Buyer order history",
+    buyerHistNote: "Completed transactions stay in buyer order history and must not be deleted.",
+    lifecycle: "Order Placed → Waiting for Payment Confirmation → Payment Confirmed → Ready to Ship → Shipped → Completed",
+    lifecycleTitle: "Order lifecycle",
+    placed: "Order Placed",
+    payConfirmed: "Payment Confirmed",
+    keepRecords: "Do not delete completed transactions. Keep them as business records.",
     name: "Product name",
     category: "Category",
     desc: "Description",
@@ -164,9 +180,15 @@ function initMarket() {
     update: "Update listing",
     create: "Create listing",
     cancel: "Cancel",
-    markPaid: "Mark as paid (move to pending shipment)",
+    markPaid: "Payment Received (Awaiting Shipment)",
     markShip: "Confirm shipment",
-    markDone: "Mark order as completed",
+    markDone: "Order Completed",
+    payStatus: "Payment status",
+    orderDate: "Order date",
+    sellerMode: "Seller Mode",
+    listedN: "Number of listed products",
+    purchasedN: "Number of purchased items",
+    currentMode: "Current mode",
     amountDue: "Amount due",
     lastUpdated: "Last updated",
     none: "None.",
@@ -177,9 +199,9 @@ function initMarket() {
     pendingPay: "Pending payments",
     waitShip: "Waiting for shipment",
     manage: "Seller order management",
-    pendingPayItems: "Pending payment items",
-    pendingShipItems: "Pending shipment items",
-    completedHist: "Completed orders · Sales history",
+    pendingPayItems: "Pending Payments",
+    pendingShipItems: "Pending Shipments",
+    completedHist: "Completed Orders (sales history)",
     finance: "Financial management (monthly report)",
     filterMonth: "Filter by month",
     allMonths: "All months",
@@ -241,6 +263,19 @@ function initMarket() {
   function catText(id) {
     const row = S.CATEGORY_LABEL[id];
     return row ? (zh ? row.zh : row.en) : id;
+  }
+
+  function stamp(o) {
+    return (o.updatedAt || o.createdAt || "").replace("T", " ").slice(0, 16);
+  }
+
+  function lifecycleHtml() {
+    const steps = [L.placed, statusText("waiting_payment"), L.payConfirmed, statusText("ready_to_ship"), statusText("shipped"), statusText("completed")];
+    return `<div class="market-life">
+      <h3>${L.lifecycleTitle}</h3>
+      <ol class="market-lifecycle">${steps.map((s) => `<li>${s}</li>`).join("")}</ol>
+      <p class="market-callout">${L.keepRecords}</p>
+    </div>`;
   }
 
   function go(next) {
@@ -402,10 +437,12 @@ function initMarket() {
   }
 
   function ordersView() {
+    const rows = S.mine("buyer");
     return `
       <h2>${L.buyerOrders}</h2>
-      <p>${L.lifecycle}</p>
-      ${orderTable(S.mine("buyer"), false)}
+      ${lifecycleHtml()}
+      <p class="market-note">${L.buyerHistNote}</p>
+      ${orderTable(rows, false)}
     `;
   }
 
@@ -444,14 +481,17 @@ function initMarket() {
   function sellerOrderCard(o) {
     const next = S.STATUSES[S.STATUSES.indexOf(o.status) + 1];
     const names = (o.items || []).map((i) => i.name + (i.quantity > 1 ? " × " + i.quantity : "")).join(" · ");
-    return `<div class="market-order">
+    const m = S.orderMoney(o);
+    return `<article class="market-order">
       <p><strong>${names}</strong></p>
-      <p>${L.subtotal} ${money(S.orderMoney(o).subtotal)} · ${L.shipping} ${money(S.orderMoney(o).shipping)} · ${L.fee} ${money(S.orderMoney(o).fee)}</p>
-      <p>${o.status === "waiting_payment" ? L.amountDue : L.total}: ${money(S.orderMoney(o).total)} · ${L.sellerNet} ${money(S.orderMoney(o).sellerNet)}</p>
-      <p>${L.orderId} ${o.orderNo} · ${L.buyerCol} ${o.buyerEmail}</p>
-      <p>${L.lastUpdated}: ${(o.createdAt || "").replace("T", " ").slice(0, 16)}</p>
-      ${next ? `<p><button type="button" class="btn btn-line" data-advance="${o.id}" data-next="${next}">${sellerActionLabel(o.status)}</button></p>` : ""}
-    </div>`;
+      <p>${L.orderId}: ${o.orderNo}</p>
+      <p>${L.buyerCol}: ${o.buyerEmail}</p>
+      <p>${L.orderDate}: ${(o.createdAt || "").replace("T", " ").slice(0, 16)}</p>
+      <p>${L.lastUpdated}: ${stamp(o)}</p>
+      <p>${L.payStatus}: ${statusText(o.status)}</p>
+      <p>${L.total}: ${money(m.total)}</p>
+      ${next ? `<p><button type="button" class="btn btn-navy market-action" data-advance="${o.id}" data-next="${next}">${sellerActionLabel(o.status)}</button></p>` : `<p class="market-note">${L.kept}</p>`}
+    </article>`;
   }
 
   function sellerPanel(title, rows) {
@@ -473,11 +513,11 @@ function initMarket() {
     return `
       <h2>${L.sellerTitle}</h2>
       <p class="market-note">${L.sellerNote}</p>
+      ${lifecycleHtml()}
       <div class="stats market-stats">
-        <div><strong>${money(dash.monthlyRevenue)}</strong><span>${L.rev}</span></div>
-        <div><strong>${dash.completedCount}</strong><span>${L.completedN}</span></div>
-        <div><strong>${dash.pendingPayments}</strong><span>${L.pendingPay}</span></div>
-        <div><strong>${dash.waitingShipment}</strong><span>${L.waitShip}</span></div>
+        <div><strong>${dash.listedCount}</strong><span>${L.listedN}</span></div>
+        <div><strong>${dash.purchasedCount}</strong><span>${L.purchasedN}</span></div>
+        <div><strong>${L.sellerMode}</strong><span>${L.currentMode}</span></div>
       </div>
       <section class="market-manage">
         <h3>${L.manage}</h3>
@@ -528,7 +568,7 @@ function initMarket() {
     const names = (o.items || []).map((i) => i.name + (i.quantity > 1 ? " × " + i.quantity : "")).join(" · ");
     return `<article class="market-tx">
       <p><strong>${L.orderId}</strong> ${o.orderNo}</p>
-      <p>${L.lastUpdated}: ${(o.createdAt || "").replace("T", " ").slice(0, 16)}</p>
+      <p>${L.lastUpdated}: ${stamp(o)}</p>
       <p>${names}</p>
       <p>${L.buyerCol}: ${o.buyerEmail} · ${L.sellerCol}: ${o.sellerEmail}</p>
       <p>${L.status}: ${statusText(o.status)}</p>
@@ -552,7 +592,7 @@ function initMarket() {
     return `
       <h2>${L.adminTitle}</h2>
       <p class="market-note">${L.adminLead}</p>
-      <p class="market-callout">${L.adminNote}</p>
+      <p class="market-callout">${L.adminNote} ${L.keepRecords}</p>
       <section class="market-panel">
         <h3>${L.allTx}</h3>
         <form id="feeForm" class="market-fee-form">
