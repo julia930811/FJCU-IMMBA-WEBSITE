@@ -308,7 +308,6 @@ function authActionHTML() {
     <button type="button" class="auth-chip" id="accountMenuBtn" aria-haspopup="true" aria-expanded="false">${mail}</button>
     <div class="dropdown account-dropdown" role="menu">
       <a href="account.html" role="menuitem">${L.authStatus}</a>
-      ${Auth.canEdit() ? `<a href="admin-faculty.html" role="menuitem">${L.authBackOffice}</a>` : ""}
       <button type="button" class="dropdown-action" id="headerSignOut" role="menuitem">${L.authLogout}</button>
     </div>
   </div>`;
@@ -1272,17 +1271,17 @@ function bindAuthMenu() {
   const btn = document.getElementById("accountMenuBtn");
   const out = document.getElementById("headerSignOut");
   if (btn) {
-    btn.addEventListener("click", (e) => {
+    btn.onclick = (e) => {
       e.stopPropagation();
       const open = menu.classList.toggle("is-open");
       btn.setAttribute("aria-expanded", open ? "true" : "false");
-    });
+    };
   }
   if (out) {
-    out.addEventListener("click", async () => {
+    out.onclick = async () => {
       if (window.IMMBAAuth && window.IMMBAAuth.signOut) await window.IMMBAAuth.signOut();
       location.href = "login.html";
-    });
+    };
   }
   if (authMenuDocBound) return;
   authMenuDocBound = true;

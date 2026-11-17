@@ -806,7 +806,7 @@ textarea { min-height: 140px; resize: vertical; }
     max-height: calc(100vh - 64px);
     overflow: auto;
   }
-  .nav-bar.is-open .dropdown {
+  .nav-bar.is-open .nav .dropdown {
     display: block;
     position: static;
     border: 0;
@@ -814,7 +814,7 @@ textarea { min-height: 140px; resize: vertical; }
     padding: 0 0 8px 12px;
     min-width: 0;
   }
-  .nav-bar.is-open .dropdown a {
+  .nav-bar.is-open .nav .dropdown a {
     padding: 8px 4px;
   }
   .action-area {
@@ -921,8 +921,9 @@ textarea { min-height: 140px; resize: vertical; }
   margin: 0;
 }
 .auth-chip {
+  appearance: none;
   text-decoration: none;
-  border: 1px solid var(--line);
+  border: 1px solid var(--navy);
   border-radius: 999px;
   padding: 8px 14px;
   background: #fff;
@@ -930,6 +931,7 @@ textarea { min-height: 140px; resize: vertical; }
   font-weight: 600;
   font-family: inherit;
   font-size: 14px;
+  line-height: 1.2;
   cursor: pointer;
 }
 .account-menu {
@@ -938,12 +940,26 @@ textarea { min-height: 140px; resize: vertical; }
 .account-dropdown {
   right: 0;
   left: auto;
-  min-width: 180px;
+  min-width: 160px;
+  top: calc(100% + 6px);
+  z-index: 80;
 }
-.account-menu:hover .account-dropdown,
-.account-menu:focus-within .account-dropdown,
-.account-menu.is-open .account-dropdown {
+.account-dropdown::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -10px;
+  height: 10px;
+}
+.account-menu.is-open .account-dropdown,
+.account-menu:focus-within .account-dropdown {
   display: block;
+}
+@media (hover: hover) and (pointer: fine) {
+  .account-menu:hover .account-dropdown {
+    display: block;
+  }
 }
 .dropdown-action {
   display: block;
