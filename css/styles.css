@@ -617,24 +617,17 @@ button, input, select, textarea { font-family: inherit; }
 .page-hero {
   position: relative;
   overflow: hidden;
-  background:
-    linear-gradient(105deg, rgba(16,50,40,0.55) 0%, rgba(28,92,71,0.28) 45%, rgba(250,246,238,0.18) 100%),
-    url("../img/hero-bg.jpg?v=5") left center / cover no-repeat;
+  background: #1c5c47;
   color: #fff;
   padding: 72px 0 48px;
 }
 .page-hero::after {
-  content: "✝";
-  position: absolute;
-  right: 6%;
-  top: 18%;
-  font-size: 72px;
-  color: rgba(255,255,255,0.22);
-  pointer-events: none;
+  content: none;
+  display: none;
 }
-.page-hero p { color: #e4efe6; max-width: 640px; }
-.crumbs { font-size: 12px; color: #c5d9cc; margin-bottom: 12px; }
-.crumbs a { color: #e4efe6; text-decoration: none; }
+.page-hero p { color: rgba(255, 255, 255, 0.92); max-width: 640px; }
+.crumbs { font-size: 12px; color: rgba(255, 255, 255, 0.92); margin-bottom: 12px; }
+.crumbs a { color: rgba(255, 255, 255, 0.92); text-decoration: none; }
 
 .prose { max-width: 760px; }
 .prose h2, .prose h3 { font-family: var(--serif); color: var(--navy); }
@@ -1374,16 +1367,3 @@ textarea { min-height: 140px; resize: vertical; }
   .notice-inner { font-size: 12px; }
 }
 
-body[data-page="market"] .page-hero {
-  background: #1c5c47;
-  color: #fff;
-}
-body[data-page="market"] .page-hero::after {
-  content: none;
-  display: none;
-}
-body[data-page="market"] .page-hero p,
-body[data-page="market"] .crumbs,
-body[data-page="market"] .crumbs a {
-  color: rgba(255, 255, 255, 0.92);
-}

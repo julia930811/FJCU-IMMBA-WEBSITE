@@ -234,7 +234,7 @@ function bindAdmin() {
   document.getElementById("btnSync").addEventListener("click", () => {
     window.NewsStore.sync();
     renderList();
-    showStatus(zh ? "已將後台變更同步到前台網站。" : "Back-office changes are synchronized with the website.");
+    showStatus("");
   });
   document.getElementById("newsForm").addEventListener("submit", (e) => {
     e.preventDefault();

@@ -618,7 +618,7 @@ function pages() {
       </section>
     `),
     faculty: pageShell(zh?"師資介紹":"Faculty", zh?"專任、客座與兼任教師，涵蓋策略、行銷、財務、供應鏈、資料科學與跨文化溝通。":"Full-time, visiting and adjunct faculty across strategy, marketing, finance, supply chain, data science and intercultural communication.", `
-      <p class="form-note">${zh?"師資名單對照官網師資介紹頁；照片放在左側，一位老師一列。":"The faculty list follows the official teacher page. Each teacher is one row with the photo on the left."} <a href="https://www.management.fju.edu.tw/subweb/immba/teacher.php" target="_blank" rel="noopener">${zh?"官網師資頁":"Official faculty page"}</a>
+      <p class="form-note"><a href="https://www.management.fju.edu.tw/subweb/immba/teacher.php" target="_blank" rel="noopener">${zh?"官網師資頁":"Official faculty page"}</a>
       · <a href="admin-faculty.html">${zh?"師資後台 AdminFaculty":"AdminFaculty back office"}</a></p>
       <div class="faculty-toolbar">
         <select id="facultyFilter">
@@ -721,7 +721,6 @@ function pages() {
     login: pageShell(zh?"登入｜Authentication":"Login | Authentication", "", `
       <form class="admin-form auth-form" id="loginForm">
         <h2>${zh?"登入（驗證身分）":"Login (verify your identity)"}</h2>
-        <p class="form-note">${zh?"用 email 與密碼確認你是誰。":"Enter your email and password to verify your identity."}</p>
         <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
         <label>${zh?"密碼":"Password"}<input id="authPassword" type="password" required autocomplete="current-password"></label>
         <p class="admin-status" id="authStatus" hidden></p>
@@ -788,8 +787,7 @@ function pages() {
         </table>
       </div>
     `),
-    "admin-audit": pageShell(zh?"異動紀錄":"Audit log", zh?"多人同時改同一份雲端資料時，要能回答：誰改了什麼、何時改的。":"When several administrators share the same database, the log answers who changed what, and when.", `
-      <p class="form-note">${zh?"師資新增／修改／刪除，以及 super_admin 核准或拒絕帳號，都會寫入 Supabase audit_log。":"Faculty create/update/delete and super_admin approve/reject actions are written to the Supabase audit_log table."}</p>
+    "admin-audit": pageShell(zh?"異動紀錄":"Audit log", "", `
       <p class="admin-status" id="authStatus" hidden></p>
       <div class="admin-table-wrap">
         <table class="admin-table">

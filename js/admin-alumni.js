@@ -272,10 +272,4 @@ function initAdminAlumni() {
   renderList();
   renderActivity();
   bindAdminAlumni();
-  const err = window.AlumniStore.lastError();
-  if (err && /alumni/.test(err)) {
-    showStatus(locale() === "zh"
-      ? "雲端還沒有 alumni 資料表。請在 Supabase SQL Editor 再執行一次 supabase/schema.sql，資料才會同步。"
-      : "The alumni table is missing. Run supabase/schema.sql in the SQL Editor to sync records.");
-  }
 }
