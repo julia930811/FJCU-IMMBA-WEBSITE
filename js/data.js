@@ -168,7 +168,7 @@ window.IMMBA = {
   ],
   marketplace: [
     { zhTitle: "個案與指定讀本", enTitle: "Cases and required readings", zh: "各科指定個案與教科書清單，開學前三週以 Email 公告。", en: "Course cases and textbooks are emailed about three weeks before term starts.", href: "curriculum.html" },
-    { zhTitle: "二手書交流", enTitle: "Used-book exchange", zh: "開啟 C2C 二手書市集（Buyer / Seller / Platform Admin）。", en: "Opens the C2C used-book marketplace (Buyer / Seller / Platform Admin).", href: "market.html" },
+    { zhTitle: "二手書交流", enTitle: "Used-book exchange", zh: "開啟二手書市集（買家、賣家、平台管理員）。", en: "Opens the used-book marketplace (buyer, seller, platform admin).", href: "market.html" },
     { zhTitle: "論文格式範本", enTitle: "Thesis templates", zh: "口試與離校所需格式檔，請至下載區取得最新版本。", en: "Defense and leaving-school templates live in Downloads.", href: "downloads.html" }
   ],
   downloads: [

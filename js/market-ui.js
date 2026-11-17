@@ -4,12 +4,13 @@ function initMarket() {
   const zh = document.documentElement.lang !== "en";
   const S = window.MarketStore;
   const L = zh ? {
-    buyer: "買家｜逛賣場",
+    buyer: "買家",
     cart: "購物車",
     orders: "我的訂單",
-    seller: "賣家中心",
+    seller: "賣家",
     admin: "平台管理員",
-    roleNote: "訪客可瀏覽。登入後同一帳號可當買家與賣家；平台管理員只監看交易，不代替買賣雙方處理訂單。",
+    roleNote: "只有三種角色：買家、賣家、平台管理員。同一帳號可以切換。未登入只能以買家瀏覽，不能管理帳號。",
+    adminOnly: "只有平台管理員可以監看交易。",
     stock: "可售庫存",
     browse: "瀏覽商品",
     details: "商品詳情",
@@ -94,12 +95,13 @@ function initMarket() {
     confirmDel: "確定下架此商品？",
     needCheckout: "結帳"
   } : {
-    buyer: "Buyer · Browse",
+    buyer: "Buyer",
     cart: "Cart",
     orders: "My orders",
-    seller: "Seller dashboard",
+    seller: "Seller",
     admin: "Platform admin",
-    roleNote: "Visitors may browse. A signed-in account is both buyer and seller. Platform admins monitor transactions and do not process orders for buyers or sellers.",
+    roleNote: "There are only three roles: buyer, seller, and platform admin. One account can switch among them. Without signing in you may browse as a buyer, but you cannot manage accounts.",
+    adminOnly: "Only the platform admin can monitor transactions.",
     stock: "Available stock",
     browse: "Browse listings",
     details: "Details",
@@ -224,21 +226,32 @@ function initMarket() {
     return false;
   }
 
+  function isBuyerView() {
+    return view === "browse" || view === "cart" || view === "orders" || String(view).startsWith("product-");
+  }
+
   function roleBar() {
-    const user = S.me();
-    const admin = S.isPlatformAdmin();
     const tabs = [
       ["browse", L.buyer],
-      ["cart", L.cart],
-      ["orders", L.orders]
+      ["seller", L.seller],
+      ["admin", L.admin]
     ];
-    if (user) tabs.push(["seller", L.seller]);
-    if (admin) tabs.push(["admin", L.admin]);
+    const buyerOn = isBuyerView();
+    const buyerTools = buyerOn ? `
+      <div class="market-buyer-tools">
+        <button type="button" class="market-role${view === "browse" || String(view).startsWith("product-") ? " is-on" : ""}" data-view="browse">${L.browse}</button>
+        <button type="button" class="market-role${view === "cart" ? " is-on" : ""}" data-view="cart">${L.cart}</button>
+        <button type="button" class="market-role${view === "orders" ? " is-on" : ""}" data-view="orders">${L.orders}</button>
+      </div>` : "";
     return `
       <div class="market-roles">
-        ${tabs.map(([id, label]) => `<button type="button" class="market-role${view === id || (view.startsWith("product-") && id === "browse") ? " is-on" : ""}" data-view="${id}">${label}</button>`).join("")}
+        ${tabs.map(([id, label]) => {
+          const on = id === "browse" ? buyerOn : view === id;
+          return `<button type="button" class="market-role${on ? " is-on" : ""}" data-view="${id}">${label}</button>`;
+        }).join("")}
       </div>
       <p class="market-note">${L.roleNote}</p>
+      ${buyerTools}
     `;
   }
 
@@ -504,7 +517,10 @@ function initMarket() {
   }
 
   function render() {
-    if (view === "admin" && !S.isPlatformAdmin()) view = "browse";
+    if (view === "admin" && !S.isPlatformAdmin()) {
+      root.innerHTML = roleBar() + `<p class="market-note">${L.adminOnly} ${S.me() ? "" : `<a href="${loginHref()}">${L.signIn}</a>`}</p>`;
+      return;
+    }
     if ((view === "seller" || view === "orders") && !S.me()) {
       root.innerHTML = roleBar() + `<p class="market-note">${L.signInFirst} <a href="${loginHref()}">${L.signIn}</a></p>`;
       return;

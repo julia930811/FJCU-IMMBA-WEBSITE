@@ -398,8 +398,8 @@ function footerHTML() {
               <a href="search.html">${L.search}</a><br>
               <a href="https://fjcu-immba-website-lilac.vercel.app/" target="_blank" rel="noopener">Vercel</a><br>
               <a href="https://www.aacsb.edu/" target="_blank" rel="noopener">AACSB</a><br>
-              <a href="https://www.management.fju.edu.tw/subweb/immba/" target="_blank" rel="noopener">${L.original}</a><br>
-              <a href="login.html">${locale()==="zh"?"登入後台":"Back-office login"}</a>
+              <a href="https://www.management.fju.edu.tw/subweb/immba/" target="_blank" rel="noopener">${L.original}</a>
+              ${window.IMMBAAuth && window.IMMBAAuth.canEdit && window.IMMBAAuth.canEdit() ? `<br><a href="admin-faculty.html">${locale()==="zh"?"後台":"Back office"}</a>` : ""}
             </p>
           </div>
           <div>
@@ -711,7 +711,7 @@ function pages() {
       <div id="latest" class="news-cards anchor-section">${newsItems()}</div>
       ${newsSource()}
     `),
-    login: pageShell(zh?"登入｜Authentication":"Login | Authentication", zh?"Authentication 回答 Who are you？Authorization 回答你被允許做什麼。兩者不同。":"Authentication asks who you are. Authorization asks what you are allowed to do. They are not the same.", `
+    login: pageShell(zh?"登入｜Authentication":"Login | Authentication", zh?"學校網站登入只有三種角色：pending、admin、super_admin。訪客未登入，不能管理帳號。":"School-site login has only three roles: pending, admin, and super_admin. Visitors are not signed in and cannot manage accounts.", `
       <div class="auth-layout">
         <form class="admin-form auth-form" id="loginForm">
           <h2>${zh?"登入（驗證身分）":"Login (verify your identity)"}</h2>
@@ -726,12 +726,12 @@ function pages() {
           </div>
         </form>
         <aside class="auth-panel">
-          <h2>Authorization</h2>
-          <p>${zh?"登入成功仍不一定能進後台。":"Signing in does not by itself open the back office."}</p>
+          <h2>${zh?"三種角色":"Three roles"}</h2>
+          <p>${zh?"登入成功仍不一定能進後台。訪客不能管理帳號。":"Signing in does not by itself open the back office. Visitors cannot manage accounts."}</p>
           <ul>
-            <li>${zh?"進入後台 Access back office":"Access back office"}</li>
-            <li>${zh?"編輯內容 Edit content":"Edit content"}</li>
-            <li>${zh?"核准管理員 Approve administrators":"Approve administrators"}</li>
+            <li><strong>pending</strong> ${zh?"一般使用者：可登入，不能進後台、不能審核帳號":"regular user: can sign in, cannot open the back office or review accounts"}</li>
+            <li><strong>admin</strong> ${zh?"管理員：可編輯網站內容":"administrator: can edit site content"}</li>
+            <li><strong>super_admin</strong> ${zh?"超級管理員：可核准帳號為 admin":"super admin: can approve accounts as admin"}</li>
           </ul>
           <p class="auth-callout">Authentication ≠ Authorization</p>
         </aside>
@@ -743,7 +743,7 @@ function pages() {
         <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
         <label>${zh?"密碼":"Password"}<input id="authPassword" type="password" required autocomplete="new-password"></label>
         <label>${zh?"再輸入密碼":"Confirm password"}<input id="authPassword2" type="password" required autocomplete="new-password"></label>
-        <p class="form-note">${zh?"送出後請到信箱點驗證信，確認這個 email 屬於你。驗證後角色是 pending，還不能進後台。":"After you submit, confirm the email address belongs to you. Verified accounts stay pending until a super_admin approves them."}</p>
+        <p class="form-note">${zh?"送出後請到信箱點驗證信。驗證後角色是 pending（三種角色之一），還不能進後台。":"After you submit, confirm your email. The role is pending (one of the three roles) until a super_admin approves you as admin."}</p>
         <p class="admin-status" id="authStatus" hidden></p>
         <div class="admin-toolbar">
           <button class="btn btn-navy" type="submit">${zh?"建立帳號":"Create your account"}</button>
@@ -765,14 +765,14 @@ function pages() {
         <button class="btn btn-navy" type="submit">${zh?"更新密碼":"Update password"}</button>
       </form>
     `),
-    account: pageShell(zh?"帳號與授權":"Account and authorization", zh?"身分驗證之後，角色才決定你能不能進後台。":"After authentication, your role decides what you are allowed to do.", `
+    account: pageShell(zh?"帳號與授權":"Account and authorization", zh?"學校網站只有三種角色：pending、admin、super_admin。":"The school site has only three roles: pending, admin, and super_admin.", `
       <div class="admin-form" id="accountBox"></div>
     `),
-    "admin-users": pageShell(zh?"帳號審核 Dashboard":"Administrator Approval Dashboard", zh?"super_admin 查看 pending 申請、申請人資料與目前狀態，並核准為 admin 或拒絕。":"The super admin views pending requests, applicant information and current status, then approves as admin or rejects.", `
+    "admin-users": pageShell(zh?"帳號審核 Dashboard":"Administrator Approval Dashboard", zh?"super_admin 把 pending 核准為 admin。只有這三種角色。":"The super admin approves pending accounts as admin. There are only these three roles.", `
       <div class="admin-toolbar">
-        <button type="button" class="btn btn-navy is-active" data-role-filter="pending">${zh?"待審核 pending":"Pending requests"}</button>
+        <button type="button" class="btn btn-navy is-active" data-role-filter="pending">pending</button>
         <button type="button" class="btn btn-line" data-role-filter="admin">admin</button>
-        <button type="button" class="btn btn-line" data-role-filter="rejected">${zh?"已拒絕":"Rejected"}</button>
+        <button type="button" class="btn btn-line" data-role-filter="super_admin">super_admin</button>
         <button type="button" class="btn btn-line" data-role-filter="all">${zh?"全部帳號":"All accounts"}</button>
         <a class="btn btn-line" href="https://supabase.com/dashboard/project/wrkpwyddocjokdtleqme/editor" target="_blank" rel="noopener">${zh?"在 Supabase 查看 profiles":"Check the record in Supabase"}</a>
       </div>
@@ -1271,15 +1271,17 @@ function bindLightbox() {
 
 async function guardPage(page) {
   const Auth = window.IMMBAAuth;
+  const needsLogin = page === "account";
   const gated = page === "admin-news" || page === "admin-faculty" || page === "admin-alumni" || page === "admin-users" || page === "admin-audit";
-  if (!gated) return true;
+  if (!gated && !needsLogin) return true;
   if (Auth && Auth.ready) {
-    try { await Auth.ready; } catch {}
+    await settle(Auth.ready, 2500);
   }
   if (!Auth || !Auth.user()) {
     location.replace("login.html?next=" + encodeURIComponent(page + ".html"));
     return false;
   }
+  if (needsLogin) return true;
   if (!Auth.canEdit()) {
     try { await Auth.refresh(); } catch {}
   }

@@ -35,7 +35,7 @@ create table if not exists public.faculty (
 create table if not exists public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text,
-  role text not null default 'pending' check (role in ('pending', 'admin', 'super_admin', 'rejected')),
+  role text not null default 'pending' check (role in ('pending', 'admin', 'super_admin')),
   created_at timestamptz default now()
 );
 
@@ -323,6 +323,14 @@ create trigger market_orders_audit
 alter table public.audit_log enable row level security;
 drop policy if exists audit_select_admin on public.audit_log;
 create policy audit_select_admin on public.audit_log for select using (public.is_admin());
+
+update public.profiles
+set role = 'pending'
+where role = 'rejected';
+
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check
+  check (role in ('pending', 'admin', 'super_admin'));
 
 update public.profiles
 set role = 'super_admin'

@@ -200,14 +200,14 @@ function initAccount() {
     return;
   }
   const labels = {
-    pending: zh ? "pending：已註冊並驗證，尚不能進後台" : "pending: registered and verified, but cannot access the back office yet",
-    admin: zh ? "admin：已核准，可管理網站內容" : "admin: approved and allowed to manage website content",
-    super_admin: zh ? "super_admin：可核准或拒絕其他管理員" : "super_admin: can approve or reject other administrators",
-    rejected: zh ? "未通過：super_admin 未核准此帳號" : "rejected: a super_admin did not approve this account"
+    pending: zh ? "pending：一般使用者，可登入，不能進後台、不能管理帳號" : "pending: regular user; can sign in, cannot open the back office or manage accounts",
+    admin: zh ? "admin：管理員，可編輯網站內容" : "admin: can edit site content",
+    super_admin: zh ? "super_admin：超級管理員，可把 pending 核准為 admin" : "super_admin: can approve pending accounts as admin"
   };
   box.innerHTML = `
     <p><strong>${zh ? "目前身分" : "Who are you?"}</strong> ${u.email || ""}</p>
     <p>${labels[role] || role}</p>
+    <p class="form-note">${zh ? "學校網站登入只有這三種角色。" : "School-site login has only these three roles."}</p>
     <div class="admin-toolbar">
       ${Auth.canEdit() ? `<a class="btn btn-navy" href="admin-faculty.html">${zh ? "進入後台" : "Open back office"}</a>` : ""}
       ${Auth.isSuper() ? `<a class="btn btn-line" href="admin-users.html">${zh ? "核准管理員" : "Approve administrators"}</a>` : ""}
@@ -221,9 +221,8 @@ function initAccount() {
 }
 
 function applicationStatus(role, zh) {
-  if (role === "pending") return zh ? "待 super_admin 審核" : "Pending Super Admin Review";
-  if (role === "admin") return zh ? "已核准為 admin" : "Approved as admin";
-  if (role === "rejected") return zh ? "已拒絕" : "Rejected";
+  if (role === "pending") return zh ? "pending：待核准" : "pending: awaiting approval";
+  if (role === "admin") return zh ? "admin：已核准" : "admin: approved";
   if (role === "super_admin") return "super_admin";
   return role || "";
 }
@@ -251,10 +250,11 @@ async function initAdminUsers() {
         <td>${applicationStatus(p.role, zh)}</td>
         <td>${(p.created_at || "").replace("T", " ").slice(0, 19)}</td>
         <td class="admin-row-actions">
-          ${p.role === "super_admin" ? "—" : `
-            ${p.role === "admin" ? "" : `<button type="button" class="btn btn-navy" data-approve="${p.id}">${zh ? "核准為 admin" : "Approve as admin"}</button>`}
-            ${p.role === "rejected" ? "" : `<button type="button" class="btn btn-line" data-reject="${p.id}">${zh ? "拒絕申請" : "Reject"}</button>`}
-          `}
+          ${p.role === "super_admin" ? "—" : (
+            p.role === "admin"
+              ? `<button type="button" class="btn btn-line" data-pending="${p.id}">${zh ? "改回 pending" : "Set pending"}</button>`
+              : `<button type="button" class="btn btn-navy" data-approve="${p.id}">${zh ? "核准為 admin" : "Approve as admin"}</button>`
+          )}
         </td>
       </tr>
     `).join("") || `<tr><td colspan="6">${zh ? "這個篩選沒有申請。" : "No applications in this filter."}</td></tr>`;
@@ -276,15 +276,15 @@ async function initAdminUsers() {
   });
   document.getElementById("main").addEventListener("click", async (e) => {
     const approve = e.target.closest("[data-approve]");
-    const reject = e.target.closest("[data-reject]");
+    const pending = e.target.closest("[data-pending]");
     if (approve) {
       const { error } = await window.IMMBAAuth.setRole(approve.getAttribute("data-approve"), "admin");
       authStatus(status, error ? errText(error) : (zh ? "已核准為 admin，可管理網站內容。" : "Approved as admin. They can now manage website content."), !error);
       await render();
     }
-    if (reject) {
-      const { error } = await window.IMMBAAuth.setRole(reject.getAttribute("data-reject"), "rejected");
-      authStatus(status, error ? errText(error) : (zh ? "已拒絕此申請，不能進後台。" : "Application rejected. This account cannot access the back office."), !error);
+    if (pending) {
+      const { error } = await window.IMMBAAuth.setRole(pending.getAttribute("data-pending"), "pending");
+      authStatus(status, error ? errText(error) : (zh ? "已改回 pending。" : "Role set back to pending."), !error);
       await render();
     }
   });
@@ -297,7 +297,7 @@ function auditActionLabel(row, zh) {
   if (ent === "profiles" && act === "update") {
     const next = row.after_data && row.after_data.role;
     if (next === "admin") return zh ? "核准為 admin" : "Approved as admin";
-    if (next === "rejected") return zh ? "拒絕申請" : "Rejected application";
+    if (next === "pending") return zh ? "改回 pending" : "Set pending";
   }
   if (ent === "profiles" && act === "insert") return zh ? "新帳號（pending）" : "New account (pending)";
   if (ent === "faculty" && act === "insert") return zh ? "新增師資" : "Added faculty";

@@ -1143,11 +1143,16 @@ textarea { min-height: 140px; resize: vertical; }
 .alumni-activity li { margin: 6px 0; }
 .alumni-activity time { color: var(--navy); font-variant-numeric: tabular-nums; }
 
-.market-roles {
+.market-roles,
+.market-buyer-tools {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin: 0 0 12px;
+}
+.market-buyer-tools .market-role {
+  padding: 6px 12px;
+  font-size: 14px;
 }
 .market-role {
   border: 1px solid var(--line);
