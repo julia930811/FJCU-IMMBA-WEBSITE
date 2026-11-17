@@ -8,6 +8,10 @@
     return { error: { message: msg } };
   }
 
+  function notify() {
+    window.dispatchEvent(new CustomEvent("immba-auth"));
+  }
+
   function client() {
     return window.IMMBASupabase && window.IMMBASupabase.client;
   }
@@ -34,6 +38,7 @@
     const { data } = await sb.auth.getSession();
     user = data && data.session ? data.session.user : null;
     await loadProfile();
+    notify();
   }
 
   async function signUp(email, password) {
@@ -59,6 +64,7 @@
     if (e) error = e.message;
     user = data && data.user ? data.user : null;
     await loadProfile();
+    notify();
     return { data, error: e };
   }
 
@@ -67,6 +73,7 @@
     if (sb) await sb.auth.signOut();
     user = null;
     profile = null;
+    notify();
   }
 
   async function resetPassword(email) {
@@ -150,6 +157,7 @@
     sb.auth.onAuthStateChange(async (event, session) => {
       user = session && session.user ? session.user : null;
       await loadProfile();
+      notify();
       if (event === "PASSWORD_RECOVERY" && document.body.dataset.page !== "reset") {
         location.href = "reset.html";
       }

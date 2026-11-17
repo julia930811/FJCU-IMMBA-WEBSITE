@@ -322,7 +322,7 @@
   load();
 
   window.MarketStore = {
-    ready: Promise.resolve(),
+    ready: window.IMMBAAuth && window.IMMBAAuth.ready ? window.IMMBAAuth.ready : Promise.resolve(),
     STATUSES,
     STATUS_LABEL,
     CATEGORIES,

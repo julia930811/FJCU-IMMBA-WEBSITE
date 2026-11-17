@@ -297,7 +297,9 @@ function authActionHTML() {
   const L = t();
   const Auth = window.IMMBAAuth;
   if (!Auth || !Auth.user || !Auth.user()) {
-    return `<a class="btn btn-line" href="login.html">${L.authLogin}</a>`;
+    const page = document.body.dataset.page;
+    const next = page === "market" ? "?next=" + encodeURIComponent("market.html" + (location.hash || "")) : "";
+    return `<a class="btn btn-line" href="login.html${next}">${L.authLogin}</a>`;
   }
   const mail = (Auth.user().email || L.authAccount).split("@")[0];
   return `<a class="auth-chip" href="account.html">${mail}</a>

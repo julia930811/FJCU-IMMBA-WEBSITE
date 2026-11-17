@@ -212,10 +212,15 @@ function initMarket() {
     render();
   }
 
+  function loginHref() {
+    const next = "market.html" + (location.hash && location.hash !== "#browse" ? location.hash : "");
+    return "login.html?next=" + encodeURIComponent(next);
+  }
+
   function needUser(action) {
     if (S.me()) return true;
     alert(zh ? "請先登入才能" + action : "Please sign in to " + action);
-    location.href = "login.html";
+    location.href = loginHref();
     return false;
   }
 
@@ -501,7 +506,7 @@ function initMarket() {
   function render() {
     if (view === "admin" && !S.isPlatformAdmin()) view = "browse";
     if ((view === "seller" || view === "orders") && !S.me()) {
-      root.innerHTML = roleBar() + `<p class="market-note">${L.signInFirst} <a href="login.html">${L.signIn}</a></p>`;
+      root.innerHTML = roleBar() + `<p class="market-note">${L.signInFirst} <a href="${loginHref()}">${L.signIn}</a></p>`;
       return;
     }
     root.innerHTML = roleBar() + body();
@@ -649,7 +654,10 @@ function initMarket() {
     view = (location.hash || "#browse").replace("#", "") || "browse";
     render();
   });
+  window.addEventListener("immba-auth", render);
+  if (window.IMMBAAuth && window.IMMBAAuth.ready) {
+    window.IMMBAAuth.ready.then(render).catch(() => {});
+  }
 
   render();
-  setTimeout(render, 400);
 }

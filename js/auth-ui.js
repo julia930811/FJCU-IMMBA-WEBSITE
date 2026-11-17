@@ -2,7 +2,7 @@ function authCopy() {
   const zh = locale() === "zh";
   return {
     zh,
-    next: new URLSearchParams(location.search).get("next") || "admin-faculty.html",
+    next: new URLSearchParams(location.search).get("next") || "",
     loginTitle: zh ? "登入（Authentication）" : "Login (Authentication)",
     registerTitle: zh ? "註冊帳號" : "Create your account",
     resetTitle: zh ? "重設密碼" : "Reset password",
@@ -23,17 +23,44 @@ function errText(err) {
   return err.message || err.msg || err.error_description || err.error || "";
 }
 
+function friendlyAuthError(err, zh) {
+  const msg = errText(err);
+  if (/email not confirmed|confirm your email/i.test(msg)) {
+    return zh ? "這個信箱還沒驗證。請到信箱點開驗證信後再登入。" : "Please confirm your email before signing in.";
+  }
+  if (/invalid login credentials|invalid_credentials/i.test(msg)) {
+    return zh ? "信箱或密碼不正確。" : "Email or password is incorrect.";
+  }
+  if (/not configured|尚未設定/i.test(msg)) {
+    return zh ? "登入服務還沒接上。請重新整理；若仍不行，請確認 Vercel 已設定 Supabase 環境變數。" : "Auth is not configured. Refresh, or set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY on Vercel.";
+  }
+  return msg;
+}
+
+function safeNext() {
+  const raw = (authCopy().next || "").replace(/^\//, "");
+  const file = raw.split("#")[0];
+  const hash = raw.includes("#") ? raw.slice(raw.indexOf("#")) : "";
+  if (/^(admin-news|admin-faculty|admin-alumni|admin-users|admin-audit|account|market)\.html$/.test(file)) {
+    return file + hash;
+  }
+  return "";
+}
+
 function goNext() {
-  const next = authCopy().next;
-  const allowed = /^(admin-news|admin-faculty|admin-alumni|admin-users|admin-audit)\.html$/.test(next) ? next : "admin-faculty.html";
-  location.href = allowed;
+  location.href = safeNext() || "admin-faculty.html";
 }
 
 function afterLogin() {
   const Auth = window.IMMBAAuth;
   if (!Auth.user()) return;
+  const next = safeNext();
+  if (next) {
+    location.href = next;
+    return;
+  }
   if (Auth.canEdit()) {
-    goNext();
+    location.href = "admin-faculty.html";
     return;
   }
   location.href = "account.html";
@@ -45,23 +72,27 @@ function initLogin() {
   const status = document.getElementById("authStatus");
   if (!form) return;
   if (!window.IMMBAAuth.configured()) {
-    authStatus(status, zh ? "Vercel 尚未設定 Supabase 環境變數，所以現在無法登入。請在 Vercel → Settings → Environment Variables 加上 VITE_SUPABASE_URL 與 VITE_SUPABASE_ANON_KEY 後重新部署。" : "Supabase is not configured on Vercel yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, then redeploy.", false);
-  }
-  if (window.IMMBAAuth.canEdit()) {
-    goNext();
-    return;
+    const envOk = !!(window.IMMBA_ENV && /^https:\/\//.test(window.IMMBA_ENV.VITE_SUPABASE_URL || "") && String(window.IMMBA_ENV.VITE_SUPABASE_ANON_KEY || "").length >= 20);
+    const sdkOk = !!(window.supabase && typeof window.supabase.createClient === "function");
+    const msg = !sdkOk
+      ? (zh ? "登入程式庫沒載入成功（CDN）。請硬重新整理後再試。" : "The auth library did not load. Hard-refresh and try again.")
+      : !envOk
+        ? (zh ? "Vercel 尚未設定 Supabase 環境變數，所以現在無法登入。請在 Vercel → Settings → Environment Variables 加上 VITE_SUPABASE_URL 與 VITE_SUPABASE_ANON_KEY 後重新部署。" : "Supabase is not configured on Vercel yet. Add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY, then redeploy.")
+        : (zh ? "登入服務還沒接上。請重新整理後再試。" : "Auth is not ready. Refresh and try again.");
+    authStatus(status, msg, false);
   }
   if (window.IMMBAAuth.user()) {
-    location.href = "account.html";
+    afterLogin();
     return;
   }
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = document.getElementById("authEmail").value.trim();
     const password = document.getElementById("authPassword").value;
+    authStatus(status, zh ? "登入中…" : "Signing in…", true);
     const { error } = await window.IMMBAAuth.signIn(email, password);
     if (error) {
-      authStatus(status, zh ? "登入失敗：" + (errText(error) || "請確認信箱與密碼。") : "Login failed: " + (errText(error) || "Check your email and password."), false);
+      authStatus(status, zh ? "登入失敗：" + (friendlyAuthError(error, true) || "請確認信箱與密碼。") : "Login failed: " + (friendlyAuthError(error, false) || "Check your email and password."), false);
       return;
     }
     afterLogin();
