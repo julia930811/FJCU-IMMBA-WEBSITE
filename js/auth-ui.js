@@ -145,11 +145,11 @@ function initRegister() {
       return;
     }
     if (data && data.session) {
-      authStatus(status, zh ? "已註冊。請先完成信箱驗證（若已開通則等待管理員核准）。" : "Registered. Confirm your email if asked, then wait for approval.", true);
+      authStatus(status, zh ? "已註冊。角色是 pending，可以登入，還不能進後台。" : "Registered as pending. You can sign in, but you cannot open the back office yet.", true);
       location.href = "account.html";
       return;
     }
-    authStatus(status, zh ? "請到信箱點驗證信，確認這個 email 是你的（Email Verification）。" : "Check your inbox and confirm that this email belongs to you (Email Verification).", true);
+    authStatus(status, zh ? "帳號已建立。請立刻登入（不必等驗證信）。" : "Account created. Sign in now; you do not need a confirmation email.", true);
   });
 }
 

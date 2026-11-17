@@ -743,7 +743,7 @@ function pages() {
         <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
         <label>${zh?"密碼":"Password"}<input id="authPassword" type="password" required autocomplete="new-password"></label>
         <label>${zh?"再輸入密碼":"Confirm password"}<input id="authPassword2" type="password" required autocomplete="new-password"></label>
-        <p class="form-note">${zh?"送出後請到信箱點驗證信。驗證後角色是 pending（三種角色之一），還不能進後台。":"After you submit, confirm your email. The role is pending (one of the three roles) until a super_admin approves you as admin."}</p>
+        <p class="form-note">${zh?"任何人都可以註冊。送出後即可登入，角色是 pending，還不能進後台。":"Anyone can register. After you submit you can sign in as pending, but you cannot open the back office yet."}</p>
         <p class="admin-status" id="authStatus" hidden></p>
         <div class="admin-toolbar">
           <button class="btn btn-navy" type="submit">${zh?"建立帳號":"Create your account"}</button>

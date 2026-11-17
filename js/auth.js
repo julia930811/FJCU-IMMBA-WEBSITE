@@ -59,8 +59,30 @@
     notify();
   }
 
+  async function signUpViaApi(email, password) {
+    try {
+      const r = await fetch(location.origin + "/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const ct = r.headers.get("content-type") || "";
+      if (r.status === 404 || !/json/i.test(ct)) return { used: false };
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return { used: true, error: j.error || "註冊失敗" };
+      return { used: true };
+    } catch {
+      return { used: false };
+    }
+  }
+
   async function signUp(email, password) {
     error = "";
+    const viaApi = await signUpViaApi(email, password);
+    if (viaApi.used) {
+      if (viaApi.error) return fail(viaApi.error);
+      return signIn(email, password);
+    }
     const sb = client();
     if (!sb) return fail("Supabase 尚未設定，無法註冊。");
     const { data, error: e } = await sb.auth.signUp({
