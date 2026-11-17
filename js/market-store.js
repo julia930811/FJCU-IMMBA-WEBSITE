@@ -2,12 +2,22 @@
   const KEY = "immba-c2c-market-v1";
   const STATUSES = ["waiting_payment", "ready_to_ship", "shipped", "completed"];
   const STATUS_LABEL = {
-    waiting_payment: { zh: "Waiting for Payment 待付款", en: "Waiting for Payment" },
-    ready_to_ship: { zh: "Ready to Ship 待出貨", en: "Ready to Ship" },
-    shipped: { zh: "Shipped 已出貨", en: "Shipped" },
-    completed: { zh: "Completed 已完成", en: "Completed" }
+    waiting_payment: { zh: "待付款", en: "Waiting for Payment" },
+    ready_to_ship: { zh: "待出貨", en: "Ready to Ship" },
+    shipped: { zh: "已出貨", en: "Shipped" },
+    completed: { zh: "已完成", en: "Completed" }
   };
   const CATEGORIES = ["Textbook", "Notes", "Case", "Other"];
+  const CATEGORY_LABEL = {
+    Textbook: { zh: "教科書", en: "Textbook" },
+    Notes: { zh: "筆記", en: "Notes" },
+    Case: { zh: "個案", en: "Case" },
+    Other: { zh: "其他", en: "Other" }
+  };
+
+  function t(zh, en) {
+    return document.documentElement.lang !== "en" ? zh : en;
+  }
 
   const seedProducts = [
     { id: "mp1", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "International Marketing (Kotler)", category: "Textbook", description: "imMBA core reading. Highlighted chapters 1–8. Good condition.", price: 680, quantity: 4, imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80", status: "active" },
@@ -107,14 +117,14 @@
 
   function addToCart(productId, qty) {
     const product = state.products.find((p) => p.id === productId);
-    if (!product || product.status !== "active") throw new Error("Product is not available.");
+    if (!product || product.status !== "active") throw new Error(t("此商品目前無法購買。", "Product is not available."));
     const u = me();
-    if (u && (u.id === product.sellerId || u.email === product.sellerEmail)) throw new Error("Sellers cannot purchase their own listing.");
+    if (u && (u.id === product.sellerId || u.email === product.sellerEmail)) throw new Error(t("不能購買自己上架的商品。", "Sellers cannot purchase their own listing."));
     const n = Math.max(1, Number(qty || 1));
     const items = cart().slice();
     const existing = items.find((i) => i.productId === productId);
     const nextQty = (existing ? Number(existing.quantity) : 0) + n;
-    if (nextQty > availableStock(product)) throw new Error("Requested quantity exceeds available stock.");
+    if (nextQty > availableStock(product)) throw new Error(t("數量超過可售庫存。", "Requested quantity exceeds available stock."));
     if (existing) existing.quantity = nextQty;
     else items.push({ productId, quantity: n });
     setCart(items);
@@ -126,7 +136,7 @@
     let items = cart().slice();
     if (!n) items = items.filter((i) => i.productId !== productId);
     else {
-      if (product && n > availableStock(product)) throw new Error("Requested quantity exceeds available stock.");
+      if (product && n > availableStock(product)) throw new Error(t("數量超過可售庫存。", "Requested quantity exceeds available stock."));
       const row = items.find((i) => i.productId === productId);
       if (row) row.quantity = n;
     }
@@ -135,14 +145,14 @@
 
   function checkout() {
     const u = me();
-    if (!u) throw new Error("Please sign in to check out.");
+    if (!u) throw new Error(t("請先登入再結帳。", "Please sign in to check out."));
     const items = cart();
-    if (!items.length) throw new Error("Cart is empty.");
+    if (!items.length) throw new Error(t("購物車是空的。", "Cart is empty."));
     const groups = {};
     items.forEach((line) => {
       const product = state.products.find((p) => p.id === line.productId);
-      if (!product || product.status !== "active") throw new Error("A listing is no longer available.");
-      if (line.quantity > availableStock(product)) throw new Error(product.name + " exceeds available stock.");
+      if (!product || product.status !== "active") throw new Error(t("有商品已下架，無法結帳。", "A listing is no longer available."));
+      if (line.quantity > availableStock(product)) throw new Error(t(product.name + " 超過可售庫存。", product.name + " exceeds available stock."));
       const key = product.sellerId || product.sellerEmail;
       if (!groups[key]) groups[key] = { product, lines: [] };
       groups[key].lines.push({ product, quantity: Number(line.quantity) });
@@ -173,50 +183,60 @@
       };
       state.orders.unshift(order);
       created.push(order);
-      notify("New order " + order.orderNo + " is waiting for payment.", g.sellerEmail);
+      notify(t("新訂單 " + order.orderNo + " 待確認付款。", "New order " + order.orderNo + " is waiting for payment."), g.sellerEmail);
     });
     setCart([]);
     save();
     return created;
   }
 
+  function isOwnProduct(product) {
+    const u = me();
+    if (!u || !product) return false;
+    return u.id === product.sellerId || (u.email && u.email === product.sellerEmail);
+  }
+
+  function isOwnOrder(order) {
+    const u = me();
+    if (!u || !order) return false;
+    return u.id === order.sellerId || (u.email && u.email === order.sellerEmail);
+  }
+
   function requireSeller(order) {
     const u = me();
-    if (!u) throw new Error("Please sign in.");
-    if (u.id === order.sellerId || u.email === order.sellerEmail) return;
-    if (order.sellerEmail === "demo.seller@immba.local") return;
-    throw new Error("Only the seller can update this order.");
+    if (!u) throw new Error(t("請先登入。", "Please sign in."));
+    if (!isOwnOrder(order)) throw new Error(t("只能處理自己賣出的訂單。", "You can only update orders for listings you uploaded."));
   }
 
   function setStatus(orderId, next) {
     const order = state.orders.find((o) => o.id === orderId);
-    if (!order) throw new Error("Order not found.");
+    if (!order) throw new Error(t("找不到訂單。", "Order not found."));
     requireSeller(order);
     const i = STATUSES.indexOf(order.status);
     const j = STATUSES.indexOf(next);
-    if (j !== i + 1) throw new Error("Orders must move in sequence: Waiting for Payment → Ready to Ship → Shipped → Completed.");
+    if (j !== i + 1) throw new Error(t("訂單必須依序：待付款 → 待出貨 → 已出貨 → 已完成。", "Orders must move in sequence: Waiting for Payment → Ready to Ship → Shipped → Completed."));
     order.status = next;
     save();
-    notify("Order " + order.orderNo + " is now " + next.replace(/_/g, " ") + ".", order.buyerEmail);
+    notify(t("訂單 " + order.orderNo + " 已更新為" + STATUS_LABEL[next].zh + "。", "Order " + order.orderNo + " is now " + STATUS_LABEL[next].en + "."), order.buyerEmail);
     return order;
   }
 
   function upsertProduct(input) {
     const u = me();
-    if (!u) throw new Error("Please sign in as a seller.");
+    if (!u) throw new Error(t("請先登入後再上架。", "Please sign in as a seller."));
     const name = String(input.name || "").trim();
     const category = String(input.category || "").trim();
     const description = String(input.description || "").trim();
     const price = Number(input.price);
     const quantity = Number(input.quantity);
-    if (!name || !category || !description) throw new Error("Product name, category and description are required.");
-    if (!(price >= 0) || Number.isNaN(price)) throw new Error("Price is required.");
-    if (!(quantity >= 0) || Number.isNaN(quantity)) throw new Error("Quantity is required.");
+    if (!name || !category || !description) throw new Error(t("商品名稱、類別與說明為必填。", "Product name, category and description are required."));
+    if (!(price >= 0) || Number.isNaN(price)) throw new Error(t("請填價格。", "Price is required."));
+    if (!(quantity >= 0) || Number.isNaN(quantity)) throw new Error(t("請填數量。", "Quantity is required."));
     const status = input.status === "hidden" ? "hidden" : "active";
     if (input.id) {
       const product = state.products.find((p) => p.id === input.id);
-      if (!product) throw new Error("Listing not found.");
-      if (!isPlatformAdmin() && u.id !== product.sellerId && u.email !== product.sellerEmail && product.sellerEmail !== "demo.seller@immba.local") throw new Error("You can only edit your own listings.");
+      if (!product) throw new Error(t("找不到商品。", "Listing not found."));
+      if (!isOwnProduct(product)) throw new Error(t("只能修改自己上傳的商品。", "You can only edit listings you uploaded."));
       Object.assign(product, { name, category, description, price, quantity, imageUrl: input.imageUrl || product.imageUrl || "", status });
       save();
       return product;
@@ -240,10 +260,10 @@
 
   function removeProduct(id) {
     const u = me();
-    if (!u) throw new Error("Please sign in.");
+    if (!u) throw new Error(t("請先登入。", "Please sign in."));
     const product = state.products.find((p) => p.id === id);
     if (!product) return;
-    if (!isPlatformAdmin() && u.id !== product.sellerId && u.email !== product.sellerEmail && product.sellerEmail !== "demo.seller@immba.local") throw new Error("You can only remove your own listings.");
+    if (!isOwnProduct(product)) throw new Error(t("只能下架自己上傳的商品。", "You can only remove listings you uploaded."));
     state.products = state.products.filter((p) => p.id !== id);
     save();
   }
@@ -251,27 +271,37 @@
   function mine(kind) {
     const u = me();
     if (!u) return [];
-    if (kind === "seller") return state.orders.filter((o) => o.sellerId === u.id || o.sellerEmail === u.email || o.sellerEmail === "demo.seller@immba.local");
+    if (kind === "seller") return state.orders.filter((o) => isOwnOrder(o));
     return state.orders.filter((o) => o.buyerId === u.id || o.buyerEmail === u.email);
   }
 
   function sellerProducts() {
     const u = me();
     if (!u) return [];
-    return state.products.filter((p) => p.sellerId === u.id || p.sellerEmail === u.email || p.sellerEmail === "demo.seller@immba.local");
+    return state.products.filter((p) => isOwnProduct(p));
   }
 
-  function dashboard() {
+  function sellerMonths() {
+    const months = {};
+    mine("seller").forEach((o) => {
+      const m = (o.createdAt || "").slice(0, 7);
+      if (m) months[m] = true;
+    });
+    months[new Date().toISOString().slice(0, 7)] = true;
+    return Object.keys(months).sort().reverse();
+  }
+
+  function dashboard(month) {
     const orders = mine("seller");
-    const now = new Date();
-    const month = now.toISOString().slice(0, 7);
     const completed = orders.filter((o) => o.status === "completed");
-    const monthly = completed.filter((o) => (o.createdAt || "").slice(0, 7) === month);
+    const scoped = month ? completed.filter((o) => (o.createdAt || "").slice(0, 7) === month) : completed;
     return {
-      monthlyRevenue: monthly.reduce((s, o) => s + Number(o.total || 0), 0),
+      month: month || "all",
+      monthlyRevenue: scoped.reduce((s, o) => s + Number(o.total || 0), 0),
+      itemsSold: scoped.reduce((s, o) => s + (o.items || []).reduce((n, i) => n + Number(i.quantity || 0), 0), 0),
       completedCount: completed.length,
       pendingPayments: orders.filter((o) => o.status === "waiting_payment").length,
-      waitingShipment: orders.filter((o) => o.status === "ready_to_ship").length
+      waitingShipment: orders.filter((o) => o.status === "ready_to_ship" || o.status === "shipped").length
     };
   }
 
@@ -296,6 +326,7 @@
     STATUSES,
     STATUS_LABEL,
     CATEGORIES,
+    CATEGORY_LABEL,
     me,
     isPlatformAdmin,
     products: () => state.products,
@@ -314,12 +345,18 @@
       if (!u) return [];
       return state.notices.filter((n) => !n.toEmail || n.toEmail === u.email);
     },
+    isOwnProduct,
+    isOwnOrder,
     setStatus,
     upsertProduct,
     removeProduct,
     dashboard,
+    sellerMonths,
     csv,
-    exportSellerCsv() { return csv(mine("seller")); },
+    exportSellerCsv(month) {
+      const rows = mine("seller");
+      return csv(month ? rows.filter((o) => (o.createdAt || "").slice(0, 7) === month) : rows);
+    },
     exportAdminCsv(rows) { return csv(rows || state.orders); }
   };
 })();

@@ -1018,7 +1018,7 @@ function pages() {
       <p style="margin-top:24px"><a class="btn btn-line" href="gallery.html">${zh?"相片集錦":"Photo gallery"}</a>
       ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=241")}</p>
     `),
-    market: pageShell(zh?"C2C 二手書市集":"C2C used-book marketplace", zh?"角色分工的同學對同學市集：Buyer、Seller、Platform Admin。":"A role-based classmate-to-classmate marketplace for buyers, sellers, and platform admins.", `<div id="marketRoot"></div>`),
+    market: pageShell(zh?"二手書市集":"Used-book marketplace", zh?"買家瀏覽下單、賣家上架出貨、平台管理員監看交易。":"Buyers browse and order, sellers list and ship, and platform admins monitor transactions.", `<div id="marketRoot"></div>`),
     marketplace: pageShell(zh?"教材與書籍市集":"Books & materials marketplace", zh?"課程讀本、二手書交流與論文範本入口。":"Course readings, used-book exchange, and thesis templates.", `
       <div class="cards">
         <article class="card" id="cases"><h3>${zh?window.IMMBA.marketplace[0].zhTitle:window.IMMBA.marketplace[0].enTitle}</h3><p>${zh?window.IMMBA.marketplace[0].zh:window.IMMBA.marketplace[0].en}</p><p><a class="btn btn-navy" href="${window.IMMBA.marketplace[0].href}">${zh?"前往":"Open"}</a></p></article>
