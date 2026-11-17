@@ -928,6 +928,38 @@ textarea { min-height: 140px; resize: vertical; }
   background: #fff;
   color: var(--navy);
   font-weight: 600;
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.account-menu {
+  position: relative;
+}
+.account-dropdown {
+  right: 0;
+  left: auto;
+  min-width: 180px;
+}
+.account-menu:hover .account-dropdown,
+.account-menu:focus-within .account-dropdown,
+.account-menu.is-open .account-dropdown {
+  display: block;
+}
+.dropdown-action {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--navy);
+  cursor: pointer;
+}
+.dropdown-action:hover {
+  background: var(--paper);
+  color: var(--blue);
 }
 .role-badge {
   display: inline-block;
@@ -1350,4 +1382,18 @@ textarea { min-height: 140px; resize: vertical; }
   .news-card-photo { width: 100%; height: 180px; }
   .brand-text, .brand-motto { display: none; }
   .notice-inner { font-size: 12px; }
+}
+
+body[data-page="market"] .page-hero {
+  background: #1c5c47;
+  color: #fff;
+}
+body[data-page="market"] .page-hero::after {
+  content: none;
+  display: none;
+}
+body[data-page="market"] .page-hero p,
+body[data-page="market"] .crumbs,
+body[data-page="market"] .crumbs a {
+  color: rgba(255, 255, 255, 0.92);
 }

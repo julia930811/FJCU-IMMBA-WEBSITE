@@ -124,6 +124,7 @@ const I18N = {
     authReset: "重設密碼",
     authLogout: "登出",
     authAccount: "帳號",
+    authStatus: "帳號狀態",
     authBackOffice: "後台",
     authApprove: "帳號審核"
   },
@@ -252,6 +253,7 @@ const I18N = {
     authReset: "Reset password",
     authLogout: "Log out",
     authAccount: "Account",
+    authStatus: "Account status",
     authBackOffice: "Back office",
     authApprove: "Approve admins"
   }
@@ -302,8 +304,14 @@ function authActionHTML() {
     return `<a class="btn btn-line" href="login.html${next}">${L.authLogin}</a>`;
   }
   const mail = (Auth.user().email || L.authAccount).split("@")[0];
-  return `<a class="auth-chip" href="account.html">${mail}</a>
-    ${Auth.canEdit() ? `<a class="btn btn-line" href="admin-faculty.html">${L.authBackOffice}</a>` : ""}`;
+  return `<div class="account-menu">
+    <button type="button" class="auth-chip" id="accountMenuBtn" aria-haspopup="true" aria-expanded="false">${mail}</button>
+    <div class="dropdown account-dropdown" role="menu">
+      <a href="account.html" role="menuitem">${L.authStatus}</a>
+      ${Auth.canEdit() ? `<a href="admin-faculty.html" role="menuitem">${L.authBackOffice}</a>` : ""}
+      <button type="button" class="dropdown-action" id="headerSignOut" role="menuitem">${L.authLogout}</button>
+    </div>
+  </div>`;
 }
 
 function navLink(href, label) {
@@ -1245,6 +1253,8 @@ function bind() {
     document.getElementById("facultyFilter").value = facultyHash;
     document.getElementById("facultyFilter").dispatchEvent(new Event("change"));
   }
+  bindAuthMenu();
+  window.addEventListener("immba-auth", refreshAuthHeader);
   bindAlumniDirectory();
   document.getElementById("contactForm")?.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -1254,6 +1264,46 @@ function bind() {
     document.getElementById("formStatus").textContent = t().formOk;
   });
   bindLightbox();
+}
+
+let authMenuDocBound = false;
+
+function bindAuthMenu() {
+  const menu = document.querySelector(".account-menu");
+  if (!menu) return;
+  const btn = document.getElementById("accountMenuBtn");
+  const out = document.getElementById("headerSignOut");
+  if (btn) {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = menu.classList.toggle("is-open");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+  }
+  if (out) {
+    out.addEventListener("click", async () => {
+      if (window.IMMBAAuth && window.IMMBAAuth.signOut) await window.IMMBAAuth.signOut();
+      location.href = "login.html";
+    });
+  }
+  if (authMenuDocBound) return;
+  authMenuDocBound = true;
+  document.addEventListener("click", (e) => {
+    const m = document.querySelector(".account-menu");
+    const b = document.getElementById("accountMenuBtn");
+    if (m && !m.contains(e.target)) {
+      m.classList.remove("is-open");
+      if (b) b.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
+function refreshAuthHeader() {
+  const area = document.querySelector(".action-area");
+  if (!area) return;
+  const lang = area.querySelector(".lang-switch");
+  area.innerHTML = (lang ? lang.outerHTML : "") + authActionHTML();
+  bindAuthMenu();
 }
 
 function bindLightbox() {
