@@ -7,6 +7,8 @@
     shipped: { zh: "已出貨", en: "Shipped" },
     completed: { zh: "已完成", en: "Completed" }
   };
+  const PLATFORM_FEE = 4;
+  const SHIPPING_FEE = 60;
   const CATEGORIES = ["Textbook", "Notes", "Case", "Other"];
   const CATEGORY_LABEL = {
     Textbook: { zh: "教科書", en: "Textbook" },
@@ -35,7 +37,11 @@
       sellerId: "demo-seller",
       sellerEmail: "demo.seller@immba.local",
       status: "completed",
-      total: 680,
+      subtotal: 680,
+      fee: 4,
+      shipping: 60,
+      total: 740,
+      sellerNet: 676,
       createdAt: "2026-10-12T10:00:00.000Z",
       items: [{ productId: "mp1", name: "International Marketing (Kotler)", price: 680, quantity: 1 }]
     }
@@ -84,6 +90,34 @@
       if (exceptOrderId && order.id === exceptOrderId) return sum;
       return sum + (order.items || []).reduce((s, item) => item.productId === productId ? s + Number(item.quantity || 0) : s, 0);
     }, 0);
+  }
+
+  function totalsFromSubtotal(subtotal) {
+    const n = Number(subtotal || 0);
+    return {
+      subtotal: n,
+      fee: PLATFORM_FEE,
+      shipping: SHIPPING_FEE,
+      total: n + SHIPPING_FEE,
+      sellerNet: Math.max(0, n - PLATFORM_FEE)
+    };
+  }
+
+  function orderMoney(order) {
+    if (order && order.subtotal != null) {
+      const subtotal = Number(order.subtotal || 0);
+      const fee = Number(order.fee != null ? order.fee : PLATFORM_FEE);
+      const shipping = Number(order.shipping != null ? order.shipping : SHIPPING_FEE);
+      return {
+        subtotal,
+        fee,
+        shipping,
+        total: Number(order.total != null ? order.total : subtotal + shipping),
+        sellerNet: Number(order.sellerNet != null ? order.sellerNet : Math.max(0, subtotal - fee))
+      };
+    }
+    const subtotal = Number(order && order.total || 0);
+    return { subtotal, fee: 0, shipping: 0, total: subtotal, sellerNet: subtotal };
   }
 
   function availableStock(product) {
@@ -168,7 +202,8 @@
         price: Number(line.product.price),
         quantity: line.quantity
       }));
-      const total = orderItems.reduce((s, i) => s + i.price * i.quantity, 0);
+      const subtotal = orderItems.reduce((s, i) => s + i.price * i.quantity, 0);
+      const money = totalsFromSubtotal(subtotal);
       const order = {
         id: "mo" + Date.now() + Math.floor(Math.random() * 99),
         orderNo: "ORD-" + new Date().toISOString().slice(0, 7).replace("-", "") + "-" + String(Date.now()).slice(-4),
@@ -177,7 +212,11 @@
         sellerId: g.sellerId,
         sellerEmail: g.sellerEmail,
         status: "waiting_payment",
-        total,
+        subtotal: money.subtotal,
+        fee: money.fee,
+        shipping: money.shipping,
+        total: money.total,
+        sellerNet: money.sellerNet,
         createdAt: new Date().toISOString(),
         items: orderItems
       };
@@ -297,7 +336,9 @@
     const scoped = month ? completed.filter((o) => (o.createdAt || "").slice(0, 7) === month) : completed;
     return {
       month: month || "all",
-      monthlyRevenue: scoped.reduce((s, o) => s + Number(o.total || 0), 0),
+      monthlyRevenue: scoped.reduce((s, o) => s + Number(orderMoney(o).sellerNet || 0), 0),
+      monthlyFees: scoped.reduce((s, o) => s + Number(orderMoney(o).fee || 0), 0),
+      monthlyShipping: scoped.reduce((s, o) => s + Number(orderMoney(o).shipping || 0), 0),
       itemsSold: scoped.reduce((s, o) => s + (o.items || []).reduce((n, i) => n + Number(i.quantity || 0), 0), 0),
       completedCount: completed.length,
       pendingPayments: orders.filter((o) => o.status === "waiting_payment").length,
@@ -306,16 +347,23 @@
   }
 
   function csv(rows) {
-    const header = ["Order ID", "Date", "Buyer", "Seller", "Products", "Amount", "Status"];
-    const body = rows.map((o) => [
-      o.orderNo,
-      (o.createdAt || "").slice(0, 10),
-      o.buyerEmail,
-      o.sellerEmail,
-      (o.items || []).map((i) => i.name + " x" + i.quantity).join("; "),
-      o.total,
-      o.status
-    ]);
+    const header = ["Order ID", "Date", "Buyer", "Seller", "Products", "Subtotal", "Platform fee", "Shipping", "Buyer total", "Seller net", "Status"];
+    const body = rows.map((o) => {
+      const m = orderMoney(o);
+      return [
+        o.orderNo,
+        (o.createdAt || "").slice(0, 10),
+        o.buyerEmail,
+        o.sellerEmail,
+        (o.items || []).map((i) => i.name + " x" + i.quantity).join("; "),
+        m.subtotal,
+        m.fee,
+        m.shipping,
+        m.total,
+        m.sellerNet,
+        o.status
+      ];
+    });
     return [header].concat(body).map((line) => line.map((cell) => `"${String(cell == null ? "" : cell).replace(/"/g, '""')}"`).join(",")).join("\n");
   }
 
@@ -327,6 +375,10 @@
     STATUS_LABEL,
     CATEGORIES,
     CATEGORY_LABEL,
+    PLATFORM_FEE,
+    SHIPPING_FEE,
+    totalsFromSubtotal,
+    orderMoney,
     me,
     isPlatformAdmin,
     products: () => state.products,

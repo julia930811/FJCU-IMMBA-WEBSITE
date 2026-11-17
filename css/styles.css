@@ -1220,7 +1220,32 @@ textarea { min-height: 140px; resize: vertical; }
 .market-finance-sum { margin: 8px 0 0; }
 .market-notices { color: var(--muted); }
 .market-notices time { color: var(--navy); }
-.market-check { display: flex; align-items: center; gap: 8px; }
+.market-admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 8px 0 20px;
+  align-items: center;
+}
+.market-admin-toolbar input[type="search"],
+.market-admin-toolbar select {
+  min-width: 180px;
+  flex: 1 1 180px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.market-admin-toolbar .btn {
+  flex: 0 0 auto;
+}
+.market-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
 .market-manage, .market-finance, .market-panel {
   background: #fff;
   border: 1px solid var(--line);

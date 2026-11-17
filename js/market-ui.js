@@ -26,6 +26,11 @@ function initMarket() {
     qtyCol: "數量",
     remove: "移除",
     total: "合計",
+    subtotal: "商品小計",
+    shipping: "運費",
+    fee: "平台抽成",
+    sellerNet: "賣家實收",
+    feeNote: "每筆訂單平台抽成 NT$4，運費 NT$60（由買家支付）。",
     checkout: "結帳並建立訂單",
     emptyCart: "購物車是空的。",
     noOrders: "沒有訂單。",
@@ -58,8 +63,8 @@ function initMarket() {
     lastUpdated: "最後更新",
     none: "目前沒有。",
     sellerTitle: "賣家儀表板：銷售與帳務",
-    sellerNote: "賣家只能編輯、隱藏或下架自己上傳的商品，也只能處理自己賣出的訂單。",
-    rev: "本月銷售額",
+    sellerNote: "賣家只能編輯、隱藏或下架自己上傳的商品，也只能處理自己賣出的訂單。賣掉一筆訂單平台抽成 NT$4，運費 NT$60。",
+    rev: "本月實收（已扣抽成）",
     completedN: "完成訂單數",
     pendingPay: "待付款",
     waitShip: "待出貨",
@@ -72,7 +77,9 @@ function initMarket() {
     allMonths: "全部月份",
     exportCsv: "匯出 CSV",
     soldThis: "本月售出件數",
-    revThis: "本月營收",
+    revThis: "本月實收",
+    feesThis: "本月抽成",
+    shipThis: "本月運費",
     listingTitle: "上架／編輯商品（僅限自己上傳）",
     inventory: "庫存",
     invNote: "可售庫存＝目前庫存 − 已售數量。只能改自己上架的庫存。",
@@ -117,6 +124,11 @@ function initMarket() {
     qtyCol: "Qty",
     remove: "Remove",
     total: "Total",
+    subtotal: "Subtotal",
+    shipping: "Shipping",
+    fee: "Platform fee",
+    sellerNet: "Seller net",
+    feeNote: "Each order has a NT$4 platform fee. Shipping is NT$60, paid by the buyer.",
     checkout: "Check out",
     emptyCart: "Your cart is empty.",
     noOrders: "No orders.",
@@ -149,8 +161,8 @@ function initMarket() {
     lastUpdated: "Last updated",
     none: "None.",
     sellerTitle: "Seller dashboard: sales and accounting",
-    sellerNote: "Sellers can edit, hide, or remove only listings they uploaded, and can process only their own sales.",
-    rev: "Monthly sales revenue",
+    sellerNote: "Sellers can edit, hide, or remove only listings they uploaded, and can process only their own sales. Each sale takes a NT$4 platform fee; shipping is NT$60.",
+    rev: "Monthly net (after fee)",
     completedN: "Completed orders",
     pendingPay: "Pending payments",
     waitShip: "Waiting for shipment",
@@ -163,7 +175,9 @@ function initMarket() {
     allMonths: "All months",
     exportCsv: "Export CSV",
     soldThis: "items sold this month",
-    revThis: "Revenue this month",
+    revThis: "Net this month",
+    feesThis: "Fees this month",
+    shipThis: "Shipping this month",
     listingTitle: "Create / edit listing (your uploads only)",
     inventory: "Inventory",
     invNote: "Available stock = current inventory − purchased quantity. You can change inventory only on your own listings.",
@@ -319,7 +333,8 @@ function initMarket() {
       const p = S.product(line.productId);
       return p ? { ...line, product: p } : null;
     }).filter(Boolean);
-    const total = lines.reduce((s, l) => s + Number(l.product.price) * Number(l.quantity), 0);
+    const subtotal = lines.reduce((s, l) => s + Number(l.product.price) * Number(l.quantity), 0);
+    const bill = S.totalsFromSubtotal(subtotal);
     return `
       <h2>${L.cartTitle}</h2>
       ${lines.length ? `
@@ -332,7 +347,10 @@ function initMarket() {
             <td><button type="button" class="btn btn-line" data-remove="${l.productId}">${L.remove}</button></td>
           </tr>`).join("")}</tbody>
         </table></div>
-        <p><strong>${L.total} ${money(total)}</strong></p>
+        <p>${L.subtotal} ${money(bill.subtotal)}</p>
+        <p>${L.shipping} ${money(bill.shipping)}</p>
+        <p class="market-note">${L.feeNote}</p>
+        <p><strong>${L.total} ${money(bill.total)}</strong></p>
         <p><button type="button" class="btn btn-navy" id="checkoutBtn">${L.checkout}</button></p>
       ` : `<p>${L.emptyCart}</p>`}
     `;
@@ -354,7 +372,7 @@ function initMarket() {
           <td>${(o.createdAt || "").slice(0, 10)}</td>
           <td>${seller ? o.buyerEmail : o.sellerEmail}</td>
           <td>${(o.items || []).map((i) => `${i.name} × ${i.quantity}`).join("<br>")}</td>
-          <td>${money(o.total)}</td>
+          <td>${money(seller ? S.orderMoney(o).sellerNet : S.orderMoney(o).total)}</td>
           <td>${statusText(o.status)}</td>
           ${seller ? `<td>${next ? `<button type="button" class="btn btn-line" data-advance="${o.id}" data-next="${next}">${nextLabel}</button>` : L.kept}</td>` : ""}
         </tr>`;
@@ -407,7 +425,8 @@ function initMarket() {
     const names = (o.items || []).map((i) => i.name + (i.quantity > 1 ? " × " + i.quantity : "")).join(" · ");
     return `<div class="market-order">
       <p><strong>${names}</strong></p>
-      <p>${o.status === "waiting_payment" ? L.amountDue : L.total}: ${money(o.total)}</p>
+      <p>${L.subtotal} ${money(S.orderMoney(o).subtotal)} · ${L.shipping} ${money(S.orderMoney(o).shipping)} · ${L.fee} ${money(S.orderMoney(o).fee)}</p>
+      <p>${o.status === "waiting_payment" ? L.amountDue : L.total}: ${money(S.orderMoney(o).total)} · ${L.sellerNet} ${money(S.orderMoney(o).sellerNet)}</p>
       <p>${L.orderId} ${o.orderNo} · ${L.buyerCol} ${o.buyerEmail}</p>
       <p>${L.lastUpdated}: ${(o.createdAt || "").replace("T", " ").slice(0, 16)}</p>
       ${next ? `<p><button type="button" class="btn btn-line" data-advance="${o.id}" data-next="${next}">${sellerActionLabel(o.status)}</button></p>` : ""}
@@ -456,7 +475,7 @@ function initMarket() {
           </label>
           <button type="button" class="btn btn-navy" id="exportSeller">${L.exportCsv}</button>
         </div>
-        <p class="market-finance-sum"><strong>${period}</strong> · ${dash.itemsSold} ${L.soldThis} · ${L.revThis}: <strong>${money(dash.monthlyRevenue)}</strong></p>
+        <p class="market-finance-sum"><strong>${period}</strong> · ${dash.itemsSold} ${L.soldThis} · ${L.revThis}: <strong>${money(dash.monthlyRevenue)}</strong> · ${L.feesThis} ${money(dash.monthlyFees)} · ${L.shipThis} ${money(dash.monthlyShipping)}</p>
       </section>
       <h3>${L.listingTitle}</h3>
       ${sellerForm(editing)}
@@ -493,7 +512,7 @@ function initMarket() {
     }
     return `
       <h2>${L.adminTitle}</h2>
-      <div class="alumni-toolbar">
+      <div class="market-admin-toolbar">
         <input id="adminQ" type="search" placeholder="${L.searchPh}" value="${adminQuery}">
         <select id="adminStatus">
           <option value="">${L.allStatus}</option>
