@@ -145,7 +145,7 @@ function initRegister() {
       return;
     }
     if (data && data.session) {
-      authStatus(status, zh ? "已註冊。角色是 pending，可以登入，還不能進後台。" : "Registered as pending. You can sign in, but you cannot open the back office yet.", true);
+      authStatus(status, zh ? "已註冊。" : "Registered.", true);
       location.href = "account.html";
       return;
     }
@@ -207,15 +207,9 @@ function initAccount() {
       <a class="btn btn-line" href="register.html">${zh ? "註冊" : "Register"}</a></p>`;
     return;
   }
-  const labels = {
-    pending: zh ? "pending：一般使用者，可登入，不能進後台、不能管理帳號" : "pending: regular user; can sign in, cannot open the back office or manage accounts",
-    admin: zh ? "admin：管理員，可編輯網站內容" : "admin: can edit site content",
-    super_admin: zh ? "super_admin：超級管理員，可把 pending 核准為 admin" : "super_admin: can approve pending accounts as admin"
-  };
   box.innerHTML = `
     <p><strong>${zh ? "目前身分" : "Who are you?"}</strong> ${u.email || ""}</p>
-    <p>${labels[role] || role}</p>
-    <p class="form-note">${zh ? "學校網站登入只有這三種角色。" : "School-site login has only these three roles."}</p>
+    <p>${role}</p>
     <div class="admin-toolbar">
       ${Auth.canEdit() ? `<a class="btn btn-navy" href="admin-faculty.html">${zh ? "進入後台" : "Open back office"}</a>` : ""}
       ${Auth.isSuper() ? `<a class="btn btn-line" href="admin-users.html">${zh ? "核准管理員" : "Approve administrators"}</a>` : ""}
@@ -228,10 +222,7 @@ function initAccount() {
   });
 }
 
-function applicationStatus(role, zh) {
-  if (role === "pending") return zh ? "pending：待核准" : "pending: awaiting approval";
-  if (role === "admin") return zh ? "admin：已核准" : "admin: approved";
-  if (role === "super_admin") return "super_admin";
+function applicationStatus(role) {
   return role || "";
 }
 
@@ -255,7 +246,7 @@ async function initAdminUsers() {
         <td title="${p.id || ""}"><code>${shortId(p.id)}</code></td>
         <td>${p.email || ""}</td>
         <td><span class="role-badge role-${p.role}">${p.role}</span></td>
-        <td>${applicationStatus(p.role, zh)}</td>
+        <td>${applicationStatus(p.role)}</td>
         <td>${(p.created_at || "").replace("T", " ").slice(0, 19)}</td>
         <td class="admin-row-actions">
           ${p.role === "super_admin" ? "—" : (
@@ -287,7 +278,7 @@ async function initAdminUsers() {
     const pending = e.target.closest("[data-pending]");
     if (approve) {
       const { error } = await window.IMMBAAuth.setRole(approve.getAttribute("data-approve"), "admin");
-      authStatus(status, error ? errText(error) : (zh ? "已核准為 admin，可管理網站內容。" : "Approved as admin. They can now manage website content."), !error);
+      authStatus(status, error ? errText(error) : (zh ? "已核准為 admin。" : "Approved as admin."), !error);
       await render();
     }
     if (pending) {

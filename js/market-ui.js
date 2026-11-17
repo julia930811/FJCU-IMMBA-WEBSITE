@@ -9,7 +9,6 @@ function initMarket() {
     orders: "我的訂單",
     seller: "賣家",
     admin: "平台管理員",
-    roleNote: "只有三種角色：買家、賣家、平台管理員。同一帳號可以切換。未登入只能以買家瀏覽，不能管理帳號。",
     adminOnly: "只有平台管理員可以監看交易。",
     stock: "可售庫存",
     browse: "瀏覽商品",
@@ -128,7 +127,6 @@ function initMarket() {
     orders: "My orders",
     seller: "Seller",
     admin: "Platform admin",
-    roleNote: "There are only three roles: buyer, seller, and platform admin. One account can switch among them. Without signing in you may browse as a buyer, but you cannot manage accounts.",
     adminOnly: "Only the platform admin can monitor transactions.",
     stock: "Available stock",
     browse: "Browse listings",
@@ -320,7 +318,6 @@ function initMarket() {
           return `<button type="button" class="market-role${on ? " is-on" : ""}" data-view="${id}">${label}</button>`;
         }).join("")}
       </div>
-      <p class="market-note">${L.roleNote}</p>
       ${buyerTools}
     `;
   }
