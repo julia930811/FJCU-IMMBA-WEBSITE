@@ -719,29 +719,18 @@ function pages() {
       ${newsSource()}
     `),
     login: pageShell(zh?"登入｜Authentication":"Login | Authentication", "", `
-      <div class="auth-layout">
-        <form class="admin-form auth-form" id="loginForm">
-          <h2>${zh?"登入（驗證身分）":"Login (verify your identity)"}</h2>
-          <p class="form-note">${zh?"用 email 與密碼確認你是誰。":"Enter your email and password to verify your identity."}</p>
-          <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
-          <label>${zh?"密碼":"Password"}<input id="authPassword" type="password" required autocomplete="current-password"></label>
-          <p class="admin-status" id="authStatus" hidden></p>
-          <div class="admin-toolbar">
-            <button class="btn btn-navy" type="submit">${zh?"登入":"Login"}</button>
-            <a class="btn btn-line" href="register.html">${zh?"註冊":"Register"}</a>
-            <a class="btn btn-line" href="reset.html">${zh?"重設密碼":"Reset password"}</a>
-          </div>
-        </form>
-        <aside class="auth-panel">
-          <h2>${zh?"角色":"Roles"}</h2>
-          <ul>
-            <li><strong>pending</strong></li>
-            <li><strong>admin</strong></li>
-            <li><strong>super_admin</strong></li>
-          </ul>
-          <p class="auth-callout">Authentication ≠ Authorization</p>
-        </aside>
-      </div>
+      <form class="admin-form auth-form" id="loginForm">
+        <h2>${zh?"登入（驗證身分）":"Login (verify your identity)"}</h2>
+        <p class="form-note">${zh?"用 email 與密碼確認你是誰。":"Enter your email and password to verify your identity."}</p>
+        <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
+        <label>${zh?"密碼":"Password"}<input id="authPassword" type="password" required autocomplete="current-password"></label>
+        <p class="admin-status" id="authStatus" hidden></p>
+        <div class="admin-toolbar">
+          <button class="btn btn-navy" type="submit">${zh?"登入":"Login"}</button>
+          <a class="btn btn-line" href="register.html">${zh?"註冊":"Register"}</a>
+          <a class="btn btn-line" href="reset.html">${zh?"重設密碼":"Reset password"}</a>
+        </div>
+      </form>
     `),
     register: pageShell(zh?"註冊｜Create your account":"Register | Create your account", "", `
       <form class="admin-form auth-form" id="registerForm">
