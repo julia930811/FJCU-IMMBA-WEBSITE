@@ -1,5 +1,9 @@
 {
   "framework": null,
   "buildCommand": "node scripts/write-env.js",
-  "outputDirectory": "."
+  "functions": {
+    "api/signup.js": {
+      "maxDuration": 10
+    }
+  }
 }
