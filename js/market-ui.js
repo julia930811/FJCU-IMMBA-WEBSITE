@@ -60,7 +60,6 @@ function initMarket() {
     markShip: "確認出貨",
     markDone: "標記完成",
     amountDue: "應付金額",
-    lastUpdated: "最後更新",
     none: "目前沒有。",
     sellerTitle: "賣家儀表板：銷售與帳務",
     sellerNote: "賣家只能編輯、隱藏或下架自己上傳的商品，也只能處理自己賣出的訂單。賣掉一筆訂單平台抽成 NT$4，運費 NT$60。",
@@ -89,11 +88,22 @@ function initMarket() {
     hide: "隱藏",
     unlist: "下架",
     noOwn: "尚未上架自己的商品。",
-    adminTitle: "平台管理員｜交易監看（監看不是代為處理訂單）",
-    searchPh: "搜尋訂單編號／買家／賣家",
+    adminTitle: "平台管理員｜交易管理",
+    adminLead: "平台管理員可查看所有交易金額、抽成與訂單明細。監看不代表代為編輯訂單。",
+    allTx: "全部平台交易",
+    feeSetting: "每筆交易抽成（TWD）",
+    saveFee: "儲存抽成",
+    feeSaved: "已儲存平台抽成。",
+    twd: "元",
+    txCount: "交易筆數",
+    txAmount: "交易總額",
+    txFees: "抽成總額",
+    lastUpdated: "最後更新",
+    totalDue: "應付總額",
+    searchPh: "以訂單編號搜尋",
     allStatus: "全部狀態",
     incomplete: "未完成／異常",
-    adminNote: "管理員可查看所有交易與歷史，不代替賣家確認付款或出貨。",
+    adminNote: "Monitoring does not always mean editing. 管理員監看交易與歷史，不代替賣家確認付款或出貨。",
     signInFirst: "請先登入後再進入此區。",
     signIn: "登入",
     added: "已加入購物車。",
@@ -187,11 +197,22 @@ function initMarket() {
     hide: "Hide",
     unlist: "Remove",
     noOwn: "You have not uploaded a listing yet.",
-    adminTitle: "Platform admin · Monitor transactions (monitor is not processing)",
-    searchPh: "Search order ID / buyer / seller",
+    adminTitle: "Platform admin: transaction management",
+    adminLead: "The super admin can view all transaction amounts, platform fees, and order details. Monitoring does not always mean editing.",
+    allTx: "All platform transactions",
+    feeSetting: "Platform transaction fee setting (per transaction)",
+    saveFee: "Save platform fee",
+    feeSaved: "Platform fee saved.",
+    twd: "TWD",
+    txCount: "Number of transactions",
+    txAmount: "Total transaction amount",
+    txFees: "Total platform transaction fees",
+    lastUpdated: "Last updated",
+    totalDue: "Total due",
+    searchPh: "Search by order ID",
     allStatus: "All statuses",
     incomplete: "Incomplete / abnormal",
-    adminNote: "Admins can view every transaction and its history. They do not confirm payment or shipment for sellers.",
+    adminNote: "Monitoring does not always mean editing. Admins review transactions and history; they do not confirm payment or shipment for sellers.",
     signInFirst: "Please sign in to open this view.",
     signIn: "Sign in",
     added: "Added to cart.",
@@ -349,7 +370,7 @@ function initMarket() {
         </table></div>
         <p>${L.subtotal} ${money(bill.subtotal)}</p>
         <p>${L.shipping} ${money(bill.shipping)}</p>
-        <p class="market-note">${L.feeNote}</p>
+        <p class="market-note">${zh ? `每筆訂單平台抽成 NT$${S.platformFee()}，運費 NT$60（由買家支付）。` : `Each order has a NT$${S.platformFee()} platform fee. Shipping is NT$60, paid by the buyer.`}</p>
         <p><strong>${L.total} ${money(bill.total)}</strong></p>
         <p><button type="button" class="btn btn-navy" id="checkoutBtn">${L.checkout}</button></p>
       ` : `<p>${L.emptyCart}</p>`}
@@ -502,27 +523,63 @@ function initMarket() {
     `;
   }
 
+  function adminTxCard(o) {
+    const m = S.orderMoney(o);
+    const names = (o.items || []).map((i) => i.name + (i.quantity > 1 ? " × " + i.quantity : "")).join(" · ");
+    return `<article class="market-tx">
+      <p><strong>${L.orderId}</strong> ${o.orderNo}</p>
+      <p>${L.lastUpdated}: ${(o.createdAt || "").replace("T", " ").slice(0, 16)}</p>
+      <p>${names}</p>
+      <p>${L.buyerCol}: ${o.buyerEmail} · ${L.sellerCol}: ${o.sellerEmail}</p>
+      <p>${L.status}: ${statusText(o.status)}</p>
+      <p>${L.subtotal}: ${money(m.subtotal)}</p>
+      <p>${L.shipping}: ${money(m.shipping)}</p>
+      <p>${L.fee}: ${money(m.fee)}</p>
+      <p><strong>${L.totalDue}: ${money(m.total)}</strong></p>
+    </article>`;
+  }
+
   function adminView() {
     let rows = S.orders();
     if (adminStatus) rows = rows.filter((o) => o.status === adminStatus);
     if (adminIncomplete) rows = rows.filter((o) => o.status !== "completed");
     if (adminQuery) {
       const q = adminQuery.toLowerCase();
-      rows = rows.filter((o) => (o.orderNo || "").toLowerCase().includes(q) || (o.buyerEmail || "").toLowerCase().includes(q) || (o.sellerEmail || "").toLowerCase().includes(q));
+      rows = rows.filter((o) => (o.orderNo || "").toLowerCase().includes(q) || (o.id || "").toLowerCase().includes(q) || (o.buyerEmail || "").toLowerCase().includes(q) || (o.sellerEmail || "").toLowerCase().includes(q));
     }
+    const amount = rows.reduce((s, o) => s + Number(S.orderMoney(o).total || 0), 0);
+    const fees = rows.reduce((s, o) => s + Number(S.orderMoney(o).fee || 0), 0);
     return `
       <h2>${L.adminTitle}</h2>
-      <div class="market-admin-toolbar">
-        <input id="adminQ" type="search" placeholder="${L.searchPh}" value="${adminQuery}">
-        <select id="adminStatus">
-          <option value="">${L.allStatus}</option>
-          ${S.STATUSES.map((s) => `<option value="${s}"${s === adminStatus ? " selected" : ""}>${statusText(s)}</option>`).join("")}
-        </select>
-        <label class="market-check"><input type="checkbox" id="adminIncomplete"${adminIncomplete ? " checked" : ""}> ${L.incomplete}</label>
-        <button type="button" class="btn btn-navy" id="exportAdmin">CSV</button>
-      </div>
-      ${orderTable(rows, false)}
-      <p class="market-note">${L.adminNote}</p>
+      <p class="market-note">${L.adminLead}</p>
+      <p class="market-callout">${L.adminNote}</p>
+      <section class="market-panel">
+        <h3>${L.allTx}</h3>
+        <form id="feeForm" class="market-fee-form">
+          <label>${L.feeSetting}
+            <span>
+              <input id="platformFeeInput" name="platformFee" type="number" min="0" step="1" value="${S.platformFee()}" required>
+              <span>${L.twd}</span>
+              <button type="submit" class="btn btn-navy">${L.saveFee}</button>
+            </span>
+          </label>
+        </form>
+        <div class="stats market-stats">
+          <div><strong>${rows.length}</strong><span>${L.txCount}</span></div>
+          <div><strong>${money(amount)}</strong><span>${L.txAmount}</span></div>
+          <div><strong>${money(fees)}</strong><span>${L.txFees}</span></div>
+        </div>
+        <div class="market-admin-toolbar">
+          <input id="adminQ" type="search" placeholder="${L.searchPh}" value="${adminQuery}">
+          <select id="adminStatus">
+            <option value="">${L.allStatus}</option>
+            ${S.STATUSES.map((s) => `<option value="${s}"${s === adminStatus ? " selected" : ""}>${statusText(s)}</option>`).join("")}
+          </select>
+          <label class="market-check"><input type="checkbox" id="adminIncomplete"${adminIncomplete ? " checked" : ""}> ${L.incomplete}</label>
+          <button type="button" class="btn btn-navy" id="exportAdmin">CSV</button>
+        </div>
+        ${rows.length ? rows.map(adminTxCard).join("") : `<p class="market-note">${L.noOrders}</p>`}
+      </section>
     `;
   }
 
@@ -664,6 +721,17 @@ function initMarket() {
   });
 
   root.addEventListener("submit", (e) => {
+    if (e.target.id === "feeForm") {
+      e.preventDefault();
+      try {
+        S.setPlatformFee(document.getElementById("platformFeeInput").value);
+        alert(L.feeSaved);
+        render();
+      } catch (err) {
+        alert(err.message || String(err));
+      }
+      return;
+    }
     if (e.target.id !== "listingForm") return;
     e.preventDefault();
     const fd = new FormData(e.target);

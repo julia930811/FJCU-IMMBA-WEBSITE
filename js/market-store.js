@@ -44,16 +44,54 @@
       sellerNet: 676,
       createdAt: "2026-10-12T10:00:00.000Z",
       items: [{ productId: "mp1", name: "International Marketing (Kotler)", price: 680, quantity: 1 }]
+    },
+    {
+      id: "mo-demo-2",
+      orderNo: "ORD-202611-1002",
+      buyerId: "demo-buyer",
+      buyerEmail: "buyer.demo@immba.local",
+      sellerId: "demo-seller",
+      sellerEmail: "demo.seller@immba.local",
+      status: "waiting_payment",
+      subtotal: 220,
+      fee: 4,
+      shipping: 60,
+      total: 280,
+      sellerNet: 216,
+      createdAt: "2026-11-17T02:10:00.000Z",
+      items: [{ productId: "mp2", name: "Corporate Finance notes (2025)", price: 220, quantity: 1 }]
+    },
+    {
+      id: "mo-demo-3",
+      orderNo: "ORD-202611-1003",
+      buyerId: "demo-buyer-2",
+      buyerEmail: "buyer.two@immba.local",
+      sellerId: "demo-seller",
+      sellerEmail: "demo.seller@immba.local",
+      status: "shipped",
+      subtotal: 150,
+      fee: 4,
+      shipping: 60,
+      total: 210,
+      sellerNet: 146,
+      createdAt: "2026-11-16T09:40:00.000Z",
+      items: [{ productId: "mp3", name: "Harvard-style case pack: Global Strategy", price: 150, quantity: 1 }]
     }
   ];
 
-  let state = { products: [], orders: [], carts: {}, notices: [] };
+  let state = { products: [], orders: [], carts: {}, notices: [], platformFee: PLATFORM_FEE };
 
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) {
-        state = { products: seedProducts.map((p) => ({ ...p })), orders: seedOrders.map((o) => ({ ...o, items: o.items.map((i) => ({ ...i })) })), carts: {}, notices: [] };
+        state = {
+          products: seedProducts.map((p) => ({ ...p })),
+          orders: seedOrders.map((o) => ({ ...o, items: o.items.map((i) => ({ ...i })) })),
+          carts: {},
+          notices: [],
+          platformFee: PLATFORM_FEE
+        };
         save();
         return;
       }
@@ -62,8 +100,30 @@
       state.orders = parsed.orders || [];
       state.carts = parsed.carts || {};
       state.notices = parsed.notices || [];
+      const fee = Number(parsed.platformFee);
+      state.platformFee = Number.isFinite(fee) && fee >= 0 ? fee : PLATFORM_FEE;
+      const byId = {};
+      state.orders.forEach((o) => { byId[o.id] = o; });
+      seedOrders.forEach((row) => {
+        const cur = byId[row.id];
+        if (!cur) state.orders.push({ ...row, items: row.items.map((i) => ({ ...i })) });
+        else if (cur.subtotal == null) {
+          cur.subtotal = row.subtotal;
+          cur.fee = row.fee;
+          cur.shipping = row.shipping;
+          cur.total = row.total;
+          cur.sellerNet = row.sellerNet;
+        }
+      });
+      save();
     } catch (e) {
-      state = { products: seedProducts.map((p) => ({ ...p })), orders: seedOrders.map((o) => ({ ...o, items: o.items.map((i) => ({ ...i })) })), carts: {}, notices: [] };
+      state = {
+        products: seedProducts.map((p) => ({ ...p })),
+        orders: seedOrders.map((o) => ({ ...o, items: o.items.map((i) => ({ ...i })) })),
+        carts: {},
+        notices: [],
+        platformFee: PLATFORM_FEE
+      };
     }
   }
 
@@ -92,21 +152,36 @@
     }, 0);
   }
 
+  function platformFee() {
+    const n = Number(state.platformFee);
+    return Number.isFinite(n) && n >= 0 ? n : PLATFORM_FEE;
+  }
+
+  function setPlatformFee(value) {
+    if (!isPlatformAdmin()) throw new Error(t("只有平台管理員可以設定抽成。", "Only the platform admin can set the fee."));
+    const n = Number(value);
+    if (!Number.isFinite(n) || n < 0) throw new Error(t("抽成必須是 0 以上的數字。", "Fee must be a number of 0 or more."));
+    state.platformFee = Math.round(n);
+    save();
+    return state.platformFee;
+  }
+
   function totalsFromSubtotal(subtotal) {
     const n = Number(subtotal || 0);
+    const fee = platformFee();
     return {
       subtotal: n,
-      fee: PLATFORM_FEE,
+      fee,
       shipping: SHIPPING_FEE,
       total: n + SHIPPING_FEE,
-      sellerNet: Math.max(0, n - PLATFORM_FEE)
+      sellerNet: Math.max(0, n - fee)
     };
   }
 
   function orderMoney(order) {
     if (order && order.subtotal != null) {
       const subtotal = Number(order.subtotal || 0);
-      const fee = Number(order.fee != null ? order.fee : PLATFORM_FEE);
+      const fee = Number(order.fee != null ? order.fee : platformFee());
       const shipping = Number(order.shipping != null ? order.shipping : SHIPPING_FEE);
       return {
         subtotal,
@@ -377,6 +452,8 @@
     CATEGORY_LABEL,
     PLATFORM_FEE,
     SHIPPING_FEE,
+    platformFee,
+    setPlatformFee,
     totalsFromSubtotal,
     orderMoney,
     me,

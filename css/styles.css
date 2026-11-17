@@ -1246,6 +1246,38 @@ textarea { min-height: 140px; resize: vertical; }
   white-space: nowrap;
   flex: 0 0 auto;
 }
+.market-callout {
+  background: #ffe082;
+  color: #3d2e00;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  margin: 0 0 18px;
+}
+.market-fee-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  margin: 0 0 16px;
+}
+.market-fee-form span {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.market-fee-form input[type="number"] {
+  width: 88px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.market-tx {
+  border-top: 1px solid var(--line);
+  padding: 14px 0 8px;
+}
+.market-tx p { margin: 4px 0; font-size: 14px; }
 .market-manage, .market-finance, .market-panel {
   background: #fff;
   border: 1px solid var(--line);
