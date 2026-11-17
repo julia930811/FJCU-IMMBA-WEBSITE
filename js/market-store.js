@@ -1,5 +1,5 @@
 (function () {
-  const KEY = "immba-c2c-market-v1";
+  const KEY = "immba-c2c-market-v2";
   const STATUSES = ["waiting_payment", "ready_to_ship", "shipped", "completed"];
   const STATUS_LABEL = {
     waiting_payment: { zh: "待付款", en: "Waiting for Payment" },
@@ -20,10 +20,10 @@
   }
 
   const seedProducts = [
-    { id: "mp1", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "International Marketing (Kotler)", category: "Textbook", description: "imMBA core reading. Highlighted chapters 1–8. Good condition.", price: 680, quantity: 4, imageUrl: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=800&q=80", status: "active" },
-    { id: "mp2", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "Corporate Finance notes (2025)", category: "Notes", description: "Lecture notes and practice sets from Corporate Finance.", price: 220, quantity: 6, imageUrl: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80", status: "active" },
-    { id: "mp3", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "Harvard-style case pack: Global Strategy", category: "Case", description: "Course case pack for Global Strategy (teaching demo listing).", price: 150, quantity: 10, imageUrl: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=800&q=80", status: "active" },
-    { id: "mp4", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "Statistics for Managers workbook", category: "Textbook", description: "Workbook with answered problem sets. Spine intact.", price: 380, quantity: 2, imageUrl: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&w=800&q=80", status: "active" }
+    { id: "mp1", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "International Marketing (Kotler)", category: "Textbook", description: "imMBA core reading. Highlighted chapters 1–8. Good condition.", price: 680, quantity: 4, imageUrl: "img/market/international-marketing.jpg", status: "active" },
+    { id: "mp2", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "Corporate Finance notes (2025)", category: "Notes", description: "Lecture notes and practice sets from Corporate Finance.", price: 220, quantity: 6, imageUrl: "img/market/corporate-finance-notes.jpg", status: "active" },
+    { id: "mp3", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "Harvard-style case pack: Global Strategy", category: "Case", description: "Course case pack for Global Strategy (teaching demo listing).", price: 150, quantity: 10, imageUrl: "img/market/global-strategy-case.jpg", status: "active" },
+    { id: "mp4", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "Statistics for Managers workbook", category: "Textbook", description: "Workbook with answered problem sets. Spine intact.", price: 380, quantity: 2, imageUrl: "img/market/statistics-workbook.jpg", status: "active" }
   ];
 
   const seedOrders = [

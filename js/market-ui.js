@@ -237,11 +237,18 @@ function initMarket() {
     `;
   }
 
+  function productImg(url) {
+    const src = (url || "").trim();
+    if (!src) return "";
+    if (/^(https?:)?\/\//i.test(src) || src.startsWith("/") || src.startsWith("data:")) return src;
+    return (zh ? "" : "../") + src.replace(/^\.\.\//, "");
+  }
+
   function productCard(p, extra) {
     const stock = S.availableStock(p);
     return `
       <article class="card market-card">
-        ${p.imageUrl ? `<img src="${p.imageUrl}" alt="">` : ""}
+        ${p.imageUrl ? `<img src="${productImg(p.imageUrl)}" alt="">` : ""}
         <p class="kicker">${catText(p.category)}</p>
         <h3>${p.name}</h3>
         <p>${p.description}</p>
