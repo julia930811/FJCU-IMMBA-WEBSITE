@@ -20,13 +20,31 @@
     return new URL(file, location.href).href;
   }
 
+  function withTimeout(promise, ms, label) {
+    let timer;
+    return Promise.race([
+      Promise.resolve(promise).finally(() => clearTimeout(timer)),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error(label || "timeout")), ms);
+      })
+    ]);
+  }
+
   async function loadProfile() {
     profile = null;
     const sb = client();
     if (!sb || !user) return;
-    const { data, error: e } = await sb.from("profiles").select("*").eq("id", user.id).maybeSingle();
-    if (e) error = e.message;
-    profile = data || null;
+    try {
+      const { data, error: e } = await withTimeout(
+        sb.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        8000,
+        "profile-timeout"
+      );
+      if (e) error = e.message;
+      profile = data || null;
+    } catch (e) {
+      error = e && e.message === "profile-timeout" ? "讀取帳號逾時" : (e && e.message) || "";
+    }
   }
 
   async function refresh() {
@@ -60,10 +78,22 @@
     error = "";
     const sb = client();
     if (!sb) return fail("Supabase 尚未設定，無法登入。");
-    const { data, error: e } = await sb.auth.signInWithPassword({ email, password });
+    let data = null;
+    let e = null;
+    try {
+      const res = await withTimeout(
+        sb.auth.signInWithPassword({ email, password }),
+        15000,
+        "signin-timeout"
+      );
+      data = res.data;
+      e = res.error;
+    } catch (err) {
+      return fail("登入逾時，請再試一次。");
+    }
     if (e) error = e.message;
     user = data && data.user ? data.user : null;
-    await loadProfile();
+    if (user) await loadProfile();
     notify();
     return { data, error: e };
   }
@@ -154,13 +184,14 @@
   Auth.ready = refresh().then(() => {
     const sb = client();
     if (!sb) return;
-    sb.auth.onAuthStateChange(async (event, session) => {
+    sb.auth.onAuthStateChange((event, session) => {
       user = session && session.user ? session.user : null;
-      await loadProfile();
-      notify();
-      if (event === "PASSWORD_RECOVERY" && document.body.dataset.page !== "reset") {
-        location.href = "reset.html";
-      }
+      Promise.resolve(loadProfile()).finally(() => {
+        notify();
+        if (event === "PASSWORD_RECOVERY" && document.body.dataset.page !== "reset") {
+          location.href = "reset.html";
+        }
+      });
     });
   });
 

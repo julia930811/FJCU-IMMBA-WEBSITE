@@ -31,6 +31,9 @@ function friendlyAuthError(err, zh) {
   if (/invalid login credentials|invalid_credentials/i.test(msg)) {
     return zh ? "信箱或密碼不正確。" : "Email or password is incorrect.";
   }
+  if (/signin-timeout|登入逾時|did not respond|沒有回應/i.test(msg)) {
+    return zh ? "登入沒有回應。請關閉這個網站的其他分頁後再試。" : "Sign-in did not respond. Close other tabs of this site and try again.";
+  }
   if (/not configured|尚未設定/i.test(msg)) {
     return zh ? "登入服務還沒接上。請重新整理；若仍不行，請確認 Vercel 已設定 Supabase 環境變數。" : "Auth is not configured. Refresh, or set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY on Vercel.";
   }
@@ -90,7 +93,14 @@ function initLogin() {
     const email = document.getElementById("authEmail").value.trim();
     const password = document.getElementById("authPassword").value;
     authStatus(status, zh ? "登入中…" : "Signing in…", true);
+    let settled = false;
+    const watchdog = setTimeout(() => {
+      if (settled) return;
+      authStatus(status, zh ? "登入沒有回應。請關閉其他分頁後再試一次。" : "Sign-in did not respond. Close other tabs of this site and try again.", false);
+    }, 12000);
     const { error } = await window.IMMBAAuth.signIn(email, password);
+    settled = true;
+    clearTimeout(watchdog);
     if (error) {
       authStatus(status, zh ? "登入失敗：" + (friendlyAuthError(error, true) || "請確認信箱與密碼。") : "Login failed: " + (friendlyAuthError(error, false) || "Check your email and password."), false);
       return;
