@@ -310,6 +310,146 @@
     return { id: u.id, email: u.email || "" };
   }
 
+  function sb() {
+    return window.IMMBASupabase && window.IMMBASupabase.client;
+  }
+
+  function parseCloudMeta(row) {
+    const raw = String((row && row.description) || "");
+    if (raw.charAt(0) !== "{") return null;
+    try {
+      const meta = JSON.parse(raw);
+      if (meta && (meta.listingId || meta.nameZh || meta.nameEn)) return meta;
+    } catch (err) {}
+    return null;
+  }
+
+  function fromCloudRow(row) {
+    if (!row) return null;
+    const meta = parseCloudMeta(row) || {};
+    const nameZh = meta.nameZh || row.name || "";
+    const nameEn = meta.nameEn || row.name || "";
+    const descriptionZh = meta.descriptionZh || (!meta.listingId ? (row.description || "") : "");
+    const descriptionEn = meta.descriptionEn || descriptionZh;
+    return {
+      id: meta.listingId || ("mpcloud-" + row.id),
+      cloudId: row.id,
+      sellerId: row.seller_id || "",
+      sellerEmail: row.seller_email || "",
+      name: row.name || nameEn || nameZh,
+      nameZh,
+      nameEn,
+      description: descriptionEn || descriptionZh,
+      descriptionZh,
+      descriptionEn,
+      category: row.category || "Textbook",
+      price: Number(row.price) || 0,
+      quantity: Number(row.quantity) || 0,
+      imageUrl: row.image_url || "",
+      status: row.status || "active",
+      updatedAt: meta.updatedAt || row.created_at || ""
+    };
+  }
+
+  function toCloudRow(p) {
+    const u = me();
+    const imageUrl = String(p.imageUrl || "");
+    const safeImage = imageUrl.indexOf("data:") === 0 ? "" : imageUrl;
+    return {
+      seller_id: (u && u.id) || p.sellerId || null,
+      seller_email: (u && u.email) || p.sellerEmail || "",
+      name: p.nameZh || p.nameEn || p.name || "",
+      category: p.category || "Textbook",
+      description: JSON.stringify({
+        listingId: p.id,
+        nameZh: p.nameZh || "",
+        nameEn: p.nameEn || "",
+        descriptionZh: p.descriptionZh || "",
+        descriptionEn: p.descriptionEn || "",
+        updatedAt: p.updatedAt || new Date().toISOString()
+      }),
+      price: Number(p.price) || 0,
+      quantity: Number(p.quantity) || 0,
+      image_url: safeImage,
+      status: p.status || "active"
+    };
+  }
+
+  function mergeRemote(remote) {
+    const byId = {};
+    (state.products || []).forEach((p) => { byId[String(p.id)] = p; });
+    remote.forEach((r) => {
+      if (!r) return;
+      const id = String(r.id);
+      const local = byId[id];
+      if (!local) {
+        byId[id] = r;
+        return;
+      }
+      const lt = local.updatedAt || "";
+      const rt = r.updatedAt || "";
+      byId[id] = (!lt || (rt && rt >= lt)) ? { ...local, ...r, cloudId: r.cloudId || local.cloudId } : { ...r, ...local, cloudId: local.cloudId || r.cloudId };
+    });
+    state.products = Object.keys(byId).map((k) => byId[k]);
+  }
+
+  async function pullCloud() {
+    const client = sb();
+    if (!client) return;
+    try {
+      const query = client.from("market_products").select("*");
+      const result = await Promise.race([
+        query,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 4000))
+      ]);
+      const data = result && result.data;
+      if (!data) return;
+      mergeRemote(data.map(fromCloudRow).filter(Boolean));
+      save();
+      notifyChange();
+    } catch (err) {}
+  }
+
+  async function pushProduct(p) {
+    const client = sb();
+    const u = me();
+    if (!client || !u || !p) return p;
+    const row = toCloudRow(p);
+    try {
+      if (p.cloudId) {
+        const { data, error } = await client.from("market_products").update(row).eq("id", p.cloudId).select("*").single();
+        if (!error && data) p.cloudId = data.id;
+        return p;
+      }
+      const { data: mine } = await client.from("market_products").select("*").eq("seller_id", u.id);
+      const found = (mine || []).map(fromCloudRow).find((r) => r && String(r.id) === String(p.id));
+      if (found && found.cloudId) {
+        const { data, error } = await client.from("market_products").update(row).eq("id", found.cloudId).select("*").single();
+        if (!error && data) p.cloudId = data.id;
+        return p;
+      }
+      const { data, error } = await client.from("market_products").insert(row).select("*").single();
+      if (!error && data) p.cloudId = data.id;
+    } catch (err) {}
+    return p;
+  }
+
+  async function dropCloud(p) {
+    const client = sb();
+    if (!client || !p) return;
+    try {
+      if (p.cloudId) {
+        await client.from("market_products").delete().eq("id", p.cloudId);
+        return;
+      }
+      const u = me();
+      if (!u) return;
+      const { data: mine } = await client.from("market_products").select("*").eq("seller_id", u.id);
+      const found = (mine || []).map(fromCloudRow).find((r) => r && String(r.id) === String(p.id));
+      if (found && found.cloudId) await client.from("market_products").delete().eq("id", found.cloudId);
+    } catch (err) {}
+  }
+
   function isPlatformAdmin() {
     return !!(auth().canEdit && auth().canEdit());
   }
@@ -580,7 +720,11 @@
       }
       save();
       notifyChange();
-      return existing;
+      return pushProduct(existing).then((row) => {
+        save();
+        notifyChange();
+        return row;
+      });
     }
     const product = {
       id: "mp" + Date.now(),
@@ -591,7 +735,11 @@
     state.products.unshift(product);
     save();
     notifyChange();
-    return product;
+    return pushProduct(product).then((row) => {
+      save();
+      notifyChange();
+      return row;
+    });
   }
 
   function removeProduct(id) {
@@ -603,6 +751,7 @@
     state.products = state.products.filter((p) => p.id !== id);
     save();
     notifyChange();
+    dropCloud(product);
   }
 
   function mine(kind) {
@@ -668,9 +817,11 @@
   }
 
   load();
+  const authReady = window.IMMBAAuth && window.IMMBAAuth.ready ? window.IMMBAAuth.ready : Promise.resolve();
+  Promise.resolve(authReady).then(() => pullCloud()).catch(() => {});
 
   window.MarketStore = {
-    ready: window.IMMBAAuth && window.IMMBAAuth.ready ? window.IMMBAAuth.ready : Promise.resolve(),
+    ready: authReady,
     STATUSES,
     STATUS_LABEL,
     CATEGORIES,
@@ -682,7 +833,6 @@
     totalsFromSubtotal,
     orderMoney,
     me,
-    isOwnProduct,
     isPlatformAdmin,
     products: () => state.products,
     catalog() {
@@ -738,6 +888,7 @@
     const owner = migrateSeedOwner();
     const i18n = migrateProductI18n();
     if (owner || i18n) save();
+    pullCloud();
   });
 
   window.addEventListener("storage", (e) => {

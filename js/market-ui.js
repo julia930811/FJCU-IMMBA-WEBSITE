@@ -1,6 +1,45 @@
+function initMarketShelf() {
+  const el = document.getElementById("usedBookShelf");
+  const S = window.MarketStore;
+  if (!el || !S) return;
+  const zh = document.documentElement.lang !== "en";
+  const prefix = zh ? "" : "../";
+  function img(url) {
+    const src = String(url || "").trim();
+    if (!src) return "";
+    if (/^(https?:)?\/\//i.test(src) || src.startsWith("/") || src.startsWith("data:")) return src;
+    return prefix + src.replace(/^\.\.\//, "");
+  }
+  function paint() {
+    const list = S.catalog();
+    const title = zh ? "賣場上架商品" : "Marketplace listings";
+    const open = zh ? "看商品" : "View listing";
+    if (!list.length) {
+      el.innerHTML = `<h2>${title}</h2><p>${zh ? "尚無上架商品。" : "No listings yet."}</p>`;
+      return;
+    }
+    el.innerHTML = `<h2>${title}</h2><div class="cards">${list.map((p) => `
+      <article class="card market-card">
+        ${p.imageUrl ? `<img src="${img(p.imageUrl)}" alt="">` : ""}
+        <p class="kicker">${S.CATEGORY_LABEL[p.category] ? S.CATEGORY_LABEL[p.category][zh ? "zh" : "en"] : p.category}${S.isOwnProduct(p) ? `<span class="market-mine">${zh ? "我的上架" : "Your listing"}</span>` : ""}</p>
+        <h3>${S.productName(p)}</h3>
+        <p>${S.productDesc(p)}</p>
+        <p><strong>NT$${Number(p.price).toLocaleString()}</strong></p>
+        <p><a class="btn btn-navy" href="${prefix}market.html#product-${encodeURIComponent(p.id)}">${open}</a></p>
+      </article>
+    `).join("")}</div>`;
+  }
+  window.addEventListener("immba-market", paint);
+  paint();
+  if (S.ready && S.ready.then) S.ready.then(paint).catch(() => paint());
+}
+
 function initMarket() {
   const root = document.getElementById("marketRoot");
-  if (!root) return;
+  if (!root) {
+    initMarketShelf();
+    return;
+  }
   const zh = document.documentElement.lang !== "en";
   const S = window.MarketStore;
   const L = zh ? {
@@ -1150,7 +1189,7 @@ function initMarket() {
       await fillMissingTranslations();
       const row = readListingForm();
       const editingId = editing && editing.id ? String(editing.id) : "";
-      S.upsertProduct({
+      await S.upsertProduct({
         ...row,
         id: editingId || "",
         name: (row && (row.nameZh || row.nameEn)) || "",
@@ -1161,6 +1200,8 @@ function initMarket() {
       clearListingDraft();
       skipDraftCapture = true;
       go("browse");
+      const first = root.querySelector(".market-card");
+      if (first) first.scrollIntoView({ block: "start" });
     } catch (err) {
       alert(err.message || String(err));
     }

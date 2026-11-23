@@ -1197,7 +1197,8 @@ textarea { min-height: 140px; resize: vertical; }
   color: #1c5c47;
   border-color: #fff;
 }
-.market-note { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+.market-shelf { margin-top: 40px; }
+.market-shelf h2 { margin: 0 0 16px; }
 .market-mine {
   display: inline-block;
   margin-left: 8px;

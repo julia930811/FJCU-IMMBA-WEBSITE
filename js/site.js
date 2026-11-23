@@ -317,7 +317,7 @@ function navLink(href, label) {
 
 function navItem(item) {
   const parentOn = currentFile() === item.href;
-  const blank = href => (href.startsWith("http") || href === "market.html") ? ` target="_blank" rel="noopener"` : "";
+  const blank = href => href.startsWith("http") ? ` target="_blank" rel="noopener"` : "";
   if (!item.children) return navLink(item.href, item.label);
   return `<div class="nav-item has-dropdown">
     <a href="${item.href}" class="nav-parent ${parentOn ? "is-active" : ""}" aria-haspopup="true"${blank(item.href)}>${item.label}</a>
@@ -487,7 +487,7 @@ function pages() {
           <p class="hero-title">${t().heroTitle}</p>
           <div class="hero-actions">
             <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
-            <a class="btn btn-ghost" href="market.html" target="_blank" rel="noopener">${t().ctaBooks}</a>
+            <a class="btn btn-ghost" href="market.html">${t().ctaBooks}</a>
           </div>
         </div>
       </section>
@@ -1013,9 +1013,10 @@ function pages() {
     marketplace: pageShell(zh?"教材與書籍市集":"Books & materials marketplace", zh?"課程讀本、二手書交流與論文範本入口。":"Course readings, used-book exchange, and thesis templates.", `
       <div class="cards">
         <article class="card" id="cases"><h3>${zh?window.IMMBA.marketplace[0].zhTitle:window.IMMBA.marketplace[0].enTitle}</h3><p>${zh?window.IMMBA.marketplace[0].zh:window.IMMBA.marketplace[0].en}</p><p><a class="btn btn-navy" href="${window.IMMBA.marketplace[0].href}">${zh?"前往":"Open"}</a></p></article>
-        <article class="card" id="books"><h3>${zh?window.IMMBA.marketplace[1].zhTitle:window.IMMBA.marketplace[1].enTitle}</h3><p>${zh?window.IMMBA.marketplace[1].zh:window.IMMBA.marketplace[1].en}</p><p><a class="btn btn-navy" href="${window.IMMBA.marketplace[1].href}" target="_blank" rel="noopener">${zh?"前往":"Open"}</a></p></article>
+        <article class="card" id="books"><h3>${zh?window.IMMBA.marketplace[1].zhTitle:window.IMMBA.marketplace[1].enTitle}</h3><p>${zh?window.IMMBA.marketplace[1].zh:window.IMMBA.marketplace[1].en}</p><p><a class="btn btn-navy" href="${window.IMMBA.marketplace[1].href}">${zh?"前往":"Open"}</a></p></article>
         <article class="card" id="templates"><h3>${zh?window.IMMBA.marketplace[2].zhTitle:window.IMMBA.marketplace[2].enTitle}</h3><p>${zh?window.IMMBA.marketplace[2].zh:window.IMMBA.marketplace[2].en}</p><p><a class="btn btn-navy" href="${window.IMMBA.marketplace[2].href}">${zh?"前往":"Open"}</a></p></article>
       </div>
+      <div id="usedBookShelf" class="market-shelf"></div>
     `),
     downloads: pageShell(zh?"下載專區":"Downloads", zh?"簡章、課表、修業規則與論文表單。正式文件以現行官網表格下載為準。":"Brochures, timetables, regulations and thesis forms. Official files remain on the college download page.", `
       <p><a class="btn btn-navy" href="https://www.management.fju.edu.tw/subweb/immba/download.php" target="_blank" rel="noopener">${zh?"官網表格下載":"Official downloads"}</a></p>
@@ -1378,7 +1379,7 @@ async function boot() {
   if (page === "admin-faculty" && typeof initAdminFaculty === "function") initAdminFaculty();
   if (page === "admin-alumni" && typeof initAdminAlumni === "function") initAdminAlumni();
   if (typeof initAuthUI === "function") initAuthUI();
-  if (page === "market" && typeof initMarket === "function") initMarket();
+  if ((page === "market" || page === "marketplace") && typeof initMarket === "function") initMarket();
   if (location.hash) {
     const target = document.querySelector(location.hash);
     if (target) target.scrollIntoView();
