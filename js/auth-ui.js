@@ -3,7 +3,7 @@ function authCopy() {
   return {
     zh,
     next: new URLSearchParams(location.search).get("next") || "",
-    loginTitle: zh ? "登入（Authentication）" : "Login (Authentication)",
+    loginTitle: zh ? "登入" : "Login",
     registerTitle: zh ? "註冊帳號" : "Create your account",
     resetTitle: zh ? "重設密碼" : "Reset password",
     accountTitle: zh ? "帳號狀態" : "Account status"

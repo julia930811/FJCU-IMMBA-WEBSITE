@@ -9,8 +9,8 @@ const I18N = {
     expand: "展開主選單",
     notice: "本站為吳佳頤 Julia 課程教學示範網站（非正式官方網站）",
     official: "正式 imMBA 官網",
-    brand: "Fu Jen Catholic University International MBA (imMBA)",
-    brandShort: "FJCU imMBA",
+    brand: "輔仁大學國際經營管理碩士班（imMBA）",
+    brandShort: "輔大國際經管",
     nav: [
       { href: "about.html", label: "簡介", children: [
         ["about.html#ranking", "特色與排名"],
@@ -32,7 +32,7 @@ const I18N = {
       { href: "alumni.html", label: "校友", children: [
         ["alumni.html#directory", "校友名錄"]
       ]},
-      { href: "guide.html", label: "imMBA全攻略", children: [
+      { href: "guide.html", label: "國際經管全攻略", children: [
         ["guide.html#who", "適合誰"],
         ["guide.html#year-one", "碩一怎麼排課"]
       ]},
@@ -97,7 +97,7 @@ const I18N = {
     phone: "電話：02-2905-2750（張秘書）",
     email: "信箱：imMBA@mail.fju.edu.tw",
     address: "地址：242 新北市新莊區中正路 510 號 LM208-1",
-    legal: "Fu Jen Catholic University College of Management",
+    legal: "輔仁大學管理學院",
     original: "現行官網",
     applyIntl: "外國學生請見英文版招生說明",
     filterAll: "全部師資",
@@ -288,9 +288,9 @@ function adminSwitch() {
     ? `<a href="admin-users.html" class="${page === "admin-users" ? "is-active" : ""}">${zh ? "帳號審核" : "Approve admins"}</a>`
     : "";
   return `<nav class="admin-switch" aria-label="${zh ? "後台分頁" : "Back office"}">
-    <a href="admin-news.html" class="${page === "admin-news" ? "is-active" : ""}">${zh ? "公告後台" : "AdminNews"}</a>
-    <a href="admin-faculty.html" class="${page === "admin-faculty" ? "is-active" : ""}">${zh ? "師資後台" : "AdminFaculty"}</a>
-    <a href="admin-alumni.html" class="${page === "admin-alumni" ? "is-active" : ""}">${zh ? "校友後台" : "AdminAlumni"}</a>
+    <a href="admin-news.html" class="${page === "admin-news" ? "is-active" : ""}">${zh ? "公告後台" : "News admin"}</a>
+    <a href="admin-faculty.html" class="${page === "admin-faculty" ? "is-active" : ""}">${zh ? "師資後台" : "Faculty admin"}</a>
+    <a href="admin-alumni.html" class="${page === "admin-alumni" ? "is-active" : ""}">${zh ? "校友後台" : "Alumni admin"}</a>
     ${superLink}
   </nav>`;
 }
@@ -336,7 +336,7 @@ function headerHTML() {
   const zhHref = locale() === "zh" ? file + qs : "../" + file + qs;
   const enHref = (locale() === "zh" ? `en/${file}` : file) + qs;
   return `
-    <a class="skip" href="#main">Skip to content</a>
+    <a class="skip" href="#main">${locale()==="zh"?"跳至主要內容":"Skip to content"}</a>
     <div class="notice-bar">
       <div class="notice-inner">
         <p>
@@ -371,7 +371,7 @@ function headerHTML() {
             ]
           })}
         </nav>
-        <div class="action-area" aria-label="Action area">
+        <div class="action-area" aria-label="${locale()==="zh"?"操作區":"Action area"}">
           <div class="lang-switch" aria-label="${locale()==="zh"?"語言":"Language"}">
             <a href="${zhHref}" class="${locale()==="zh"?"is-active":""}"${locale()==="zh"?' aria-current="page"':""}>中文</a>
             <a href="${enHref}" class="${locale()!=="zh"?"is-active":""}"${locale()!=="zh"?' aria-current="page"':""}>EN</a>
@@ -497,16 +497,16 @@ function pages() {
       <div class="stats">${t().stats.map(([n,l]) => `<div class="stat"><b>${n}</b><span>${l}</span></div>`).join("")}</div>
       <section class="identity-bar"><div class="identity-inner">${t().identity.map(([a,b]) => `<p><b>${a}</b>${b}</p>`).join("")}</div></section>
       <section class="section section-paper"><div class="wrap">
-        <div class="section-head"><div><div class="eyebrow">News</div><h2>${t().newsTitle}</h2></div><a href="news.html">${t().newsAll} →</a></div>
+        <div class="section-head"><div><div class="eyebrow">${zh?"公告":"News"}</div><h2>${t().newsTitle}</h2></div><a href="news.html">${t().newsAll} →</a></div>
         <div class="news-cards">${newsItems(6)}</div>
         ${newsSource()}
       </div></section>
       <section class="section"><div class="wrap">
-        <div class="section-head"><div><div class="eyebrow">Campus</div><h2>${t().galleryTitle}</h2></div><a href="gallery.html">${t().galleryAll} →</a></div>
+        <div class="section-head"><div><div class="eyebrow">${zh?"校園":"Campus"}</div><h2>${t().galleryTitle}</h2></div><a href="gallery.html">${t().galleryAll} →</a></div>
         <div class="gallery-grid">${(window.IMMBA.gallery || []).slice(0,4).map(g => `<a href="${g.src}" data-lightbox><img src="${g.src}" alt="${zh?g.zh:g.en}"></a>`).join("")}</div>
       </div></section>
       <section class="section section-paper"><div class="wrap">
-        <div class="section-head"><div><div class="eyebrow">Program</div><h2>${t().highlightsTitle}</h2></div></div>
+        <div class="section-head"><div><div class="eyebrow">${zh?"學程":"Program"}</div><h2>${t().highlightsTitle}</h2></div></div>
         <div class="cards">
           <article class="card"><h3>${zh?"國際化教室":"International classroom"}</h3><p>${zh?"來自亞洲、美洲、歐洲與大洋洲三十餘國的學生前來攻讀學位或交換；本地生與國際生合班，在地學習、國際體驗。":"Students from more than 30 countries across Asia, the Americas, Europe and Oceania study or exchange here, sharing the same English-taught classroom."}</p></article>
           <article class="card"><h3>${zh?"MBA × 數位創新":"MBA × digital innovation"}</h3><p>${zh?"課程涵蓋國際企業、行銷、人資、全球供應鏈、財務與服務設計，並納入智慧營運與數位創新。":"Core coverage includes international business, marketing, HR, global supply chain, finance and service design, with digital operations and innovation."}</p></article>
@@ -514,7 +514,7 @@ function pages() {
         </div>
       </div></section>
       <section class="section section-navy"><div class="wrap">
-        <div class="section-head"><div><div class="eyebrow">Recognition</div><h2>${zh?"認證、排名與夥伴":"Accreditation and partners"}</h2></div></div>
+        <div class="section-head"><div><div class="eyebrow">${zh?"認證":"Recognition"}</div><h2>${zh?"認證、排名與夥伴":"Accreditation and partners"}</h2></div></div>
         <div class="partners">
           <div class="partner-mark">AACSB</div>
           <div class="partner-mark">Eduniversal</div>
@@ -619,7 +619,7 @@ function pages() {
     `),
     faculty: pageShell(zh?"師資介紹":"Faculty", zh?"專任、客座與兼任教師，涵蓋策略、行銷、財務、供應鏈、資料科學與跨文化溝通。":"Full-time, visiting and adjunct faculty across strategy, marketing, finance, supply chain, data science and intercultural communication.", `
       <p class="form-note"><a href="https://www.management.fju.edu.tw/subweb/immba/teacher.php" target="_blank" rel="noopener">${zh?"官網師資頁":"Official faculty page"}</a>
-      · <a href="admin-faculty.html">${zh?"師資後台 AdminFaculty":"AdminFaculty back office"}</a></p>
+      · <a href="admin-faculty.html">${zh?"師資後台":"Faculty back office"}</a></p>
       <div class="faculty-toolbar">
         <select id="facultyFilter">
           <option value="all">${t().filterAll}</option>
@@ -631,17 +631,17 @@ function pages() {
       <div class="faculty-list" id="facultyGrid">${liveFaculty().map(f => facultyCard(f, zh)).join("")}</div>
     `),
     alumni: pageShell(zh?"校友名錄":"Alumni directory", zh?"查看校友紀錄，並以姓名、學號、公司與畢業年搜尋篩選。":"View alumni records, then search and filter by name, student ID, company, or graduation year.", `
-      <p class="form-note">${zh?"欄位依講義 Alumni Data Structure：full_name、student_id、department、degree_program、admission_year、graduation_year、email、phone、company、job_title、notes。":"Fields follow the lecture Alumni Data Structure: full_name, student_id, department, degree_program, admission_year, graduation_year, email, phone, company, job_title, notes."} <a href="admin-alumni.html">${zh?"校友後台 AdminAlumni":"AdminAlumni back office"}</a></p>
+      <p class="form-note">${zh?"欄位依講義校友資料結構：姓名、學號、系所、學位、入學年、畢業年、電子郵件、電話、公司、職稱、備註。":"Fields follow the lecture Alumni Data Structure: full_name, student_id, department, degree_program, admission_year, graduation_year, email, phone, company, job_title, notes."} <a href="admin-alumni.html">${zh?"校友後台":"Alumni back office"}</a></p>
       <div class="alumni-toolbar" id="directory">
         <label>${zh?"搜尋":"Search"}<input id="alumniQ" type="search" placeholder="${zh?"姓名、學號、公司、職稱":"Name, student ID, company, title"}"></label>
-        <label>${zh?"系所 department":"department"}<select id="alumniDept"><option value="">${zh?"全部":"All"}</option></select></label>
-        <label>${zh?"學位 degree_program":"degree_program"}<select id="alumniProgram"><option value="">${zh?"全部":"All"}</option></select></label>
-        <label>${zh?"畢業年 graduation_year":"graduation_year"}<select id="alumniYear"><option value="">${zh?"全部":"All"}</option></select></label>
+        <label>${zh?"系所":"Department"}<select id="alumniDept"><option value="">${zh?"全部":"All"}</option></select></label>
+        <label>${zh?"學位":"Degree program"}<select id="alumniProgram"><option value="">${zh?"全部":"All"}</option></select></label>
+        <label>${zh?"畢業年":"Graduation year"}<select id="alumniYear"><option value="">${zh?"全部":"All"}</option></select></label>
       </div>
       <p class="admin-count" id="alumniPublicCount"></p>
       <div class="alumni-cards" id="alumniGrid"></div>
     `),
-    guide: pageShell(zh?"imMBA 全攻略":"Student guide", zh?"從適不適合、如何入學，到碩一選課與論文節奏。":"Who it is for, how admission works, and how to plan year one.", `
+    guide: pageShell(zh?"國際經管全攻略":"Student guide", zh?"從適不適合、如何入學，到碩一選課與論文節奏。":"Who it is for, how admission works, and how to plan year one.", `
       <div class="prose">
         <p>${zh?"國際經管imMBA獲AACSB認證是全英授課的碩士班，學生組成除本地生外，尚有亞洲、美洲、歐洲、大洋洲等超過30個不同國家的學生前來攻讀學位或交換學習，本地生與國際學生1:1合班上課，授予MBA學位。":"imMBA is an AACSB-accredited, English-taught MBA. Local and international students share classes in roughly equal numbers, with classmates from more than 30 countries."}</p>
         <section id="who" class="anchor-section">
@@ -718,7 +718,7 @@ function pages() {
       <div id="latest" class="news-cards anchor-section">${newsItems()}</div>
       ${newsSource()}
     `),
-    login: pageShell(zh?"登入｜Authentication":"Login | Authentication", "", `
+    login: pageShell(zh?"登入":"Login", "", `
       <form class="admin-form auth-form" id="loginForm">
         <h2>${zh?"登入（驗證身分）":"Login (verify your identity)"}</h2>
         <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
@@ -731,7 +731,7 @@ function pages() {
         </div>
       </form>
     `),
-    register: pageShell(zh?"註冊｜Create your account":"Register | Create your account", "", `
+    register: pageShell(zh?"註冊":"Register", "", `
       <form class="admin-form auth-form" id="registerForm">
         <h2>${zh?"註冊帳號":"Register"}</h2>
         <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
@@ -761,13 +761,13 @@ function pages() {
     account: pageShell(zh?"帳號與授權":"Account and authorization", "", `
       <div class="admin-form" id="accountBox"></div>
     `),
-    "admin-users": pageShell(zh?"帳號審核 Dashboard":"Administrator Approval Dashboard", "", `
+    "admin-users": pageShell(zh?"帳號審核":"Administrator approval", "", `
       <div class="admin-toolbar">
         <button type="button" class="btn btn-navy is-active" data-role-filter="pending">pending</button>
         <button type="button" class="btn btn-line" data-role-filter="admin">admin</button>
         <button type="button" class="btn btn-line" data-role-filter="super_admin">super_admin</button>
         <button type="button" class="btn btn-line" data-role-filter="all">${zh?"全部帳號":"All accounts"}</button>
-        <a class="btn btn-line" href="https://supabase.com/dashboard/project/wrkpwyddocjokdtleqme/editor" target="_blank" rel="noopener">${zh?"在 Supabase 查看 profiles":"Check the record in Supabase"}</a>
+        <a class="btn btn-line" href="https://supabase.com/dashboard/project/wrkpwyddocjokdtleqme/editor" target="_blank" rel="noopener">${zh?"在資料庫查看帳號":"Check the record in Supabase"}</a>
       </div>
       <p class="admin-count" id="pendingCount"></p>
       <p class="admin-status" id="authStatus" hidden></p>
@@ -803,7 +803,7 @@ function pages() {
         </table>
       </div>
     `),
-    "admin-news": pageShell(zh?"公告後台 AdminNews":"AdminNews back office", zh?"與師資後台同一組後台；管理員在同一頁維護中英公告，並同步到前台網站。":"Same back office as faculty. Administrators manage Chinese and English announcements in one record and sync them to the website.", `
+    "admin-news": pageShell(zh?"公告後台":"Announcements back office", zh?"與師資後台同一組後台；管理員在同一頁維護中英公告，並同步到前台網站。":"Same back office as faculty. Administrators manage Chinese and English announcements in one record and sync them to the website.", `
       <div class="admin-toolbar">
         <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增公告":"Add a new announcement"}</button>
         <button type="button" class="btn btn-line" id="btnRestore">${zh?"還原預設清單":"Restore the default list"}</button>
@@ -816,7 +816,7 @@ function pages() {
         <input type="hidden" id="newsId">
         <div class="admin-shared">
           <label>${zh?"日期":"Date"}<input id="newsDate" type="date" required></label>
-          <label>${zh?"連結 URL":"Link URL"}<input id="newsHref" type="text" placeholder="https://"></label>
+          <label>${zh?"連結":"Link URL"}<input id="newsHref" type="text" placeholder="https://"></label>
           <label>${zh?"顯示排序":"Display order"}<input id="newsOrder" type="number" min="1" step="1"></label>
           <label>${zh?"狀態":"Status"}
             <select id="newsStatus">
@@ -826,7 +826,7 @@ function pages() {
           </label>
           <label class="admin-check"><input id="newsPinned" type="checkbox"> TOP</label>
         </div>
-        <label>${zh?"照片網址 image URL":"Announcement photo URL"}<input id="newsImage" type="text" placeholder="https://.../photo.jpg"></label>
+        <label>${zh?"照片網址":"Announcement photo URL"}<input id="newsImage" type="text" placeholder="https://.../photo.jpg"></label>
         <div class="admin-photo-row">
           <div id="newsPhotoPreview" class="admin-photo-preview news-photo-preview"></div>
           <p class="form-note">${zh?"可貼上網址，或直接把複製的影像貼上（Ctrl/Cmd+V）／拖放到預覽區。":"Paste a photo URL, or paste a copied image (Ctrl/Cmd+V) / drop it on the preview."}</p>
@@ -883,7 +883,7 @@ function pages() {
         </table>
       </div>
     `),
-    "admin-faculty": pageShell(zh?"師資後台 AdminFaculty":"AdminFaculty back office", "", `
+    "admin-faculty": pageShell(zh?"師資後台":"Faculty back office", "", `
       <div class="admin-toolbar">
         <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增師資":"Add faculty"}</button>
         <button type="button" class="btn btn-line" id="btnSync">${zh?"同步到前台網站":"Synchronize with the website"}</button>
@@ -902,7 +902,7 @@ function pages() {
             </select>
           </label>
           <label>${zh?"顯示排序":"Display order"}<input id="facOrder" type="number" min="1" step="1"></label>
-          <label>${zh?"照片網址 image URL":"Faculty photo image URL"}<input id="facImage" type="text" placeholder="https://.../yining.jpg"></label>
+          <label>${zh?"照片網址":"Faculty photo URL"}<input id="facImage" type="text" placeholder="https://.../yining.jpg"></label>
           <label>${zh?"電話 / 研究室":"Phone / office"}<input id="facPhone" type="text"></label>
           <label>Email<input id="facEmail" type="text"></label>
           <label>${zh?"個人網站":"Personal website"}<input id="facSite" type="text" placeholder="https://"></label>
@@ -935,15 +935,15 @@ function pages() {
       <p class="admin-count" id="facultyCount"></p>
       <section class="admin-faculty-panel">
         <header>
-          <h2>${zh?"師資清單（與前台同步）":"Current Faculty List (Synchronize with Front-end Page)"}</h2>
+          <h2>${zh?"師資清單（與前台同步）":"Faculty list (synced with the public page)"}</h2>
           <p>${zh?"可拖曳左側把手調整順序。變更會儲存並同步到前台師資頁。":"Drag the handle to reorder. Changes are saved and synchronized with the faculty page."}</p>
         </header>
         <ul class="admin-faculty-board" id="facultyBoard"></ul>
       </section>
     `),
-    "admin-alumni": pageShell(zh?"校友後台 AdminAlumni":"AdminAlumni back office", "", `
+    "admin-alumni": pageShell(zh?"校友後台":"Alumni back office", "", `
       <div class="admin-toolbar">
-        <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增校友 Add alumni":"Add alumni"}</button>
+        <button type="button" class="btn btn-navy" id="btnNew">${zh?"新增校友":"Add alumni"}</button>
         <label class="btn btn-line alumni-import-btn">${zh?"批次匯入 CSV":"Import alumni in batches"}
           <input id="alImport" type="file" accept=".csv,text/csv" hidden>
         </label>
@@ -956,25 +956,25 @@ function pages() {
         <h2 id="formMode">${zh?"新增校友":"Add alumni"}</h2>
         <input type="hidden" id="alId">
         <div class="admin-shared admin-alumni-shared">
-          <label>full_name ${zh?"校友姓名":"Alumni name"}<input id="alFullName" required></label>
-          <label>student_id ${zh?"學號":"Student ID"}<input id="alStudentId"></label>
-          <label>department ${zh?"系所 / 學程":"Department / Program"}<select id="alDepartment"></select></label>
-          <label>degree_program ${zh?"學位層級":"Degree level"}<select id="alDegree"></select></label>
-          <label>admission_year ${zh?"入學年":"Admission year"}<input id="alAdmit" type="number" min="1980" max="2100"></label>
-          <label>graduation_year ${zh?"畢業年":"Graduation year"}<input id="alGrad" type="number" min="1980" max="2100"></label>
-          <label>email Email<input id="alEmail" type="email"></label>
-          <label>phone ${zh?"電話":"Phone"}<input id="alPhone"></label>
-          <label>company ${zh?"任職公司":"Current company"}<input id="alCompany"></label>
-          <label>job_title ${zh?"職稱":"Current position"}<input id="alJob"></label>
+          <label>${zh?"校友姓名":"Alumni name"}<input id="alFullName" required></label>
+          <label>${zh?"學號":"Student ID"}<input id="alStudentId"></label>
+          <label>${zh?"系所 / 學程":"Department / Program"}<select id="alDepartment"></select></label>
+          <label>${zh?"學位層級":"Degree level"}<select id="alDegree"></select></label>
+          <label>${zh?"入學年":"Admission year"}<input id="alAdmit" type="number" min="1980" max="2100"></label>
+          <label>${zh?"畢業年":"Graduation year"}<input id="alGrad" type="number" min="1980" max="2100"></label>
+          <label>${zh?"電子郵件":"Email"}<input id="alEmail" type="email"></label>
+          <label>${zh?"電話":"Phone"}<input id="alPhone"></label>
+          <label>${zh?"任職公司":"Current company"}<input id="alCompany"></label>
+          <label>${zh?"職稱":"Current position"}<input id="alJob"></label>
         </div>
-        <label>notes ${zh?"補充資訊":"Additional information"}<textarea id="alNotes" rows="3"></textarea></label>
+        <label>${zh?"補充資訊":"Additional information"}<textarea id="alNotes" rows="3"></textarea></label>
         <div class="admin-toolbar">
           <button class="btn btn-navy" type="submit">${zh?"儲存（新增 / 編輯）":"Save (add / edit)"}</button>
-          <button class="btn btn-line" type="button" id="btnDeleteOne">${zh?"刪除 Delete alumni":"Delete alumni"}</button>
+          <button class="btn btn-line" type="button" id="btnDeleteOne">${zh?"刪除":"Delete alumni"}</button>
         </div>
       </form>
       <div class="alumni-toolbar">
-        <label>${zh?"搜尋 Search and filter":"Search and filter"}<input id="alSearch" type="search" placeholder="${zh?"姓名、學號、公司、職稱":"Name, student ID, company, title"}"></label>
+        <label>${zh?"搜尋":"Search and filter"}<input id="alSearch" type="search" placeholder="${zh?"姓名、學號、公司、職稱":"Name, student ID, company, title"}"></label>
         <label>department<select id="alFilterDept"></select></label>
         <label>degree_program<select id="alFilterProgram"></select></label>
         <label>graduation_year<select id="alFilterYear"></select></label>
@@ -1000,7 +1000,7 @@ function pages() {
         </table>
       </div>
       <section class="alumni-activity">
-        <h2>${zh?"管理員異動紀錄 Track administrator activities":"Track administrator activities"}</h2>
+        <h2>${zh?"管理員異動紀錄":"Administrator activity"}</h2>
         <ul id="alumniActivity"></ul>
       </section>
     `),
@@ -1037,7 +1037,7 @@ function pages() {
     contact: pageShell(zh?"聯絡我們":"Contact", zh?"歡迎來信或留言，我們會盡快回覆。":"Write to the office and we will respond as soon as we can.", `
       <div class="contact-grid">
         <aside class="info-card">
-          <h3>imMBA Office</h3>
+          <h3>${zh?"國際經管辦公室":"imMBA Office"}</h3>
           <p>${t().phone}<br>${t().email}<br>${t().address}</p>
         </aside>
         <form class="form-card" id="contactForm">
@@ -1059,6 +1059,13 @@ function pages() {
     `),
     search: ""
   };
+}
+
+function siteTitle(pageName) {
+  const zh = locale() === "zh";
+  const name = String(pageName || "").replace(/\s+/g, " ").trim();
+  if (!name) return zh ? "輔仁大學國際經營管理碩士班（imMBA）" : "imMBA | Fu Jen Catholic University";
+  return zh ? `${name}｜國際經管碩士班` : `${name} | imMBA`;
 }
 
 function pageShell(title, lead, inner) {
@@ -1363,6 +1370,10 @@ async function boot() {
     document.body.appendChild(main);
   }
   document.body.insertAdjacentHTML("beforeend", footerHTML());
+  if (page !== "index") {
+    const heading = document.querySelector(".page-hero h1");
+    if (heading) document.title = siteTitle(heading.textContent);
+  }
   bind();
   if (page === "admin-news" && typeof initAdminNews === "function") initAdminNews();
   if (page === "admin-faculty" && typeof initAdminFaculty === "function") initAdminFaculty();

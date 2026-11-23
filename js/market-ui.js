@@ -54,7 +54,9 @@ function initMarket() {
     listPrice: "價格",
     listQty: "庫存數量",
     image: "商品圖片",
-    dropHint: "把圖片拖到這裡，或複製後貼上；也可以點這裡選檔。",
+    chooseFile: "選擇檔案",
+    dropHint: "把照片拖到這裡，或先點這框再貼上（Ctrl/Cmd+V，也可右鍵貼上）。",
+    pasteHint: "點照片框後可貼上複製的圖片；也可拖曳檔案。",
     listStatus: "上架狀態",
     active: "上架中",
     hidden: "隱藏",
@@ -99,7 +101,7 @@ function initMarket() {
     hide: "隱藏",
     unlist: "下架",
     noOwn: "尚未上架自己的商品。",
-    adminTitle: "平台管理員｜交易管理",
+    adminTitle: "平台管理員：交易管理",
     adminLead: "平台管理員可查看所有交易金額、抽成與訂單明細。監看不代表代為編輯訂單。",
     allTx: "全部平台交易",
     feeSetting: "每筆交易抽成（TWD）",
@@ -114,7 +116,7 @@ function initMarket() {
     searchPh: "以訂單編號搜尋",
     allStatus: "全部狀態",
     incomplete: "未完成／異常",
-    adminNote: "Monitoring does not always mean editing. 管理員監看交易與歷史，不代替賣家確認付款或出貨。",
+    adminNote: "管理員監看交易與歷史，不代替賣家確認付款或出貨。",
     signInFirst: "請先登入後再進入此區。",
     signIn: "登入",
     added: "已加入購物車。",
@@ -173,7 +175,9 @@ function initMarket() {
     listPrice: "Price",
     listQty: "Quantity",
     image: "Product photo",
-    dropHint: "Drag a photo here, paste a copied image, or tap to choose a file.",
+    chooseFile: "Choose file",
+    dropHint: "Drag a photo here, or click this box and paste (Ctrl/Cmd+V or right-click Paste).",
+    pasteHint: "Click the photo box, then paste a copied image. You can also drop a file.",
     listStatus: "Listing status",
     active: "Active",
     hidden: "Hidden",
@@ -484,14 +488,11 @@ function initMarket() {
     if (listingImageUrl) row.imageUrl = listingImageUrl;
     listingMemory = row;
     const key = draftKey();
-    const slim = (row.imageUrl && row.imageUrl.indexOf("data:") === 0)
-      ? { ...row, imageUrl: "" }
-      : row;
     try {
-      localStorage.setItem(key, JSON.stringify(slim));
+      localStorage.setItem(key, JSON.stringify(row));
     } catch (err) {
       try {
-        localStorage.setItem(key, JSON.stringify({ ...slim, imageUrl: "" }));
+        localStorage.setItem(key, JSON.stringify({ ...row, imageUrl: "" }));
       } catch (e2) {}
     }
   }
@@ -523,13 +524,20 @@ function initMarket() {
     return row;
   }
 
+  function listingDropInner(src) {
+    return src
+      ? `<img src="${attr(src)}" alt="" draggable="false">`
+      : `<strong>${L.image}</strong><span>${L.dropHint}</span>`;
+  }
+
   function sellerForm(p) {
     p = p || emptyListing();
     const src = productImg(p.imageUrl);
+    const storedUrl = (p.imageUrl || "").indexOf("data:") === 0 ? "" : attr(p.imageUrl);
     return `
       <form id="listingForm" class="market-form">
         <input type="hidden" name="id" value="${attr(p.id)}">
-        <input type="hidden" name="imageUrl" value="${(p.imageUrl || "").indexOf("data:") === 0 ? "" : attr(p.imageUrl)}">
+        <input type="hidden" name="imageUrl" value="${storedUrl}">
         <label>${L.name}<input name="productName" required value="${attr(p.name)}"></label>
         <label class="market-span">${L.category}
           <select name="category">${S.CATEGORIES.map((c) => `<option value="${c}"${c === p.category ? " selected" : ""}>${catText(c)}</option>`).join("")}</select>
@@ -537,10 +545,15 @@ function initMarket() {
         <label class="market-span">${L.desc}<textarea name="description" required>${String(p.description || "").replace(/&/g, "&amp;").replace(/</g, "&lt;")}</textarea></label>
         <label>${L.listPrice}<input name="price" type="number" min="0" step="1" required value="${attr(p.price)}"></label>
         <label>${L.listQty}<input name="quantity" type="number" min="0" step="1" required value="${attr(p.quantity)}"></label>
-        <div class="market-drop${src ? " has-photo" : ""}" id="listingDrop" tabindex="0">
-          ${src ? `<img src="${attr(src)}" alt="">` : `<strong>${L.image}</strong><span>${L.dropHint}</span>`}
+        <div class="market-photo">
+          <div class="market-drop${src ? " has-photo" : ""}" id="listingDrop" tabindex="0" contenteditable="true" spellcheck="false" aria-label="${attr(L.image)}">
+            ${listingDropInner(src)}
+          </div>
+          <div class="market-photo-tools">
+            <label class="btn btn-navy market-file-btn">${L.chooseFile}<input id="listingFile" type="file" accept="image/*"></label>
+            <span>${L.pasteHint}</span>
+          </div>
         </div>
-        <input id="listingFile" type="file" accept="image/*" hidden>
         <label>${L.listStatus}
           <select name="status">
             <option value="active"${p.status !== "hidden" ? " selected" : ""}>${L.active}</option>
@@ -738,7 +751,7 @@ function initMarket() {
     const url = listingImageUrl || form.querySelector("[name=imageUrl]").value;
     const src = productImg(url);
     drop.classList.toggle("has-photo", !!src);
-    drop.innerHTML = src ? `<img src="${attr(src)}" alt="">` : `<span>${L.dropHint}</span>`;
+    drop.innerHTML = listingDropInner(src);
   }
 
   async function applyListingFile(file) {
@@ -757,18 +770,34 @@ function initMarket() {
     }
   }
 
+  async function applyListingPaste(e) {
+    if (!document.getElementById("listingForm") || !window.IMMBAImage) return false;
+    const drop = document.getElementById("listingDrop");
+    const inField = e.target && e.target.closest && e.target.closest("input:not([type=file]), textarea, select");
+    const onDrop = !!(drop && (e.target === drop || drop.contains(e.target) || document.activeElement === drop));
+    let picked = window.IMMBAImage.fileFromClipboard(e);
+    if (picked || onDrop) e.preventDefault();
+    if (!picked && !inField && window.IMMBAImage.fromClipboard) {
+      picked = await window.IMMBAImage.fromClipboard();
+    }
+    if (!picked) return false;
+    applyListingFile(picked);
+    return true;
+  }
+
   function bindListingMedia() {
     const form = document.getElementById("listingForm");
     const drop = document.getElementById("listingDrop");
     const file = document.getElementById("listingFile");
     if (!form || !drop || !file) return;
-    drop.addEventListener("click", () => file.click());
+    drop.addEventListener("click", () => drop.focus());
     drop.addEventListener("keydown", (e) => {
-      if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        file.click();
-      }
+      const meta = e.metaKey || e.ctrlKey;
+      if (meta && /^[vacVAC]$/.test(e.key)) return;
+      if (e.key === "Tab" || e.key === "Escape" || e.key === "Shift") return;
+      e.preventDefault();
     });
+    drop.addEventListener("beforeinput", (e) => e.preventDefault());
     drop.addEventListener("dragover", (e) => {
       e.preventDefault();
       drop.classList.add("is-over");
@@ -777,23 +806,28 @@ function initMarket() {
     drop.addEventListener("drop", (e) => {
       e.preventDefault();
       drop.classList.remove("is-over");
-      const picked = [...(e.dataTransfer.files || [])].find((f) => String(f.type || "").indexOf("image/") === 0);
+      const picked = window.IMMBAImage && window.IMMBAImage.fileFromDrop
+        ? window.IMMBAImage.fileFromDrop(e)
+        : [...(e.dataTransfer.files || [])].find((f) => String(f.type || "").indexOf("image/") === 0);
       applyListingFile(picked);
+    });
+    drop.addEventListener("paste", (e) => {
+      e.stopPropagation();
+      applyListingPaste(e);
     });
     file.addEventListener("change", () => {
       applyListingFile(file.files && file.files[0]);
       file.value = "";
     });
-    form.addEventListener("input", () => saveListingDraft());
+    form.addEventListener("input", (e) => {
+      if (e.target === drop || (e.target && drop.contains(e.target))) return;
+      saveListingDraft();
+    });
     form.addEventListener("change", () => saveListingDraft());
     if (listingPasteBound) return;
     listingPasteBound = true;
     document.addEventListener("paste", (e) => {
-      if (!document.getElementById("listingForm") || !window.IMMBAImage) return;
-      const picked = window.IMMBAImage.fileFromClipboard(e);
-      if (!picked) return;
-      e.preventDefault();
-      applyListingFile(picked);
+      applyListingPaste(e);
     });
   }
 

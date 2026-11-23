@@ -1218,9 +1218,14 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .market-form textarea { min-height: 90px; }
 .market-form .market-span,
+.market-form .market-photo,
 .market-form .market-drop,
 .market-form p { grid-column: 1 / -1; }
 .market-listing { margin: 0 0 28px; }
+.market-photo {
+  display: grid;
+  gap: 10px;
+}
 .market-drop {
   border: 2px dashed var(--navy);
   border-radius: 12px;
@@ -1234,8 +1239,18 @@ textarea { min-height: 140px; resize: vertical; }
   padding: 20px;
   background: #fff;
   color: var(--muted);
-  cursor: pointer;
+  cursor: text;
   font-size: 14px;
+  caret-color: transparent;
+  outline: none;
+  white-space: normal;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.market-drop:focus,
+.market-drop:focus-visible {
+  box-shadow: 0 0 0 3px rgba(15, 42, 82, 0.18);
+  background: var(--paper);
 }
 .market-drop strong {
   color: var(--navy);
@@ -1250,6 +1265,38 @@ textarea { min-height: 140px; resize: vertical; }
   max-height: 180px;
   max-width: 100%;
   object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+.market-photo-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 16px;
+}
+.market-form .market-file-btn {
+  position: relative;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  overflow: hidden;
+  cursor: pointer;
+  margin: 0;
+}
+.market-file-btn input[type="file"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-size: 0;
+}
+.market-photo-tools span {
+  color: var(--muted);
+  font-size: 13px;
 }
 .market-stats {
   margin: 12px 0 20px;
