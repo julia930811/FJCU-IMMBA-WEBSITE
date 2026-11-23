@@ -82,7 +82,7 @@ function initMarket() {
     visitorModeHint: "未登入是訪客，只能瀏覽公開商品。市集請用「市集登入」，與學校後台登入分開。",
     threeRoles: "市集角色與學校後台角色分開。登入市集後可切換買家／賣家；平台管理員只有 jiayi。",
     buyerFns: "瀏覽商品 · 商品詳情 · 加入購物車 · 下單 · 訂單紀錄",
-    sellerFns: "新增商品 · 編輯商品 · 管理庫存 · 確認付款 · 出貨 · 銷售紀錄",
+    sellerFns: "",
     adminFns: "監看交易 · 管理使用者 · 審視市集活動",
     confirmPay: "確認付款",
     shipOrders: "出貨",
@@ -103,8 +103,6 @@ function initMarket() {
     buyerNoInv: "買家不能管理庫存。",
     buyerSees: "買家看商品，賣家管商品。",
     buyerBrowseHint: "買家可瀏覽上架商品、看詳情、核對價格與庫存、選擇數量並加入購物車。",
-    cartFn: "買家功能：購物車與結帳",
-    cartSteps: "加入購物車 → 核對商品 → 確認數量 → 送出訂單",
     cartAdded: "已成功加入購物車。請到「我的訂單」查看付款與出貨狀態。",
     orderFlow: "訂單建立 → 通知賣家",
     crossUser: "一方操作會帶動另一方流程（買家下單後，賣家會收到待確認付款）。",
@@ -154,8 +152,7 @@ function initMarket() {
     nameEn: "英文商品名稱",
     autoFromEn: "由英文自動翻譯（可再改）",
     autoFromZh: "由中文自動翻譯（可再改）",
-    translateNote: "填寫中文或英文即可；另一語會自動翻譯，仍可再改。",
-    cloudOk: "商品與照片會寫進雲端，和師資一樣刷新後仍會顯示。",
+    cloudOk: "",
     cloudFail: "雲端尚未就緒：",
     category: "類別",
     desc: "商品說明",
@@ -171,7 +168,7 @@ function initMarket() {
     listed: "上架中",
     active: "上架中",
     hidden: "隱藏／下架",
-    fn1: "賣家功能 1：上架商品",
+    fn1: "",
     fn2: "賣家功能 2：管理庫存",
     invManage: "庫存管理",
     totalAvail: "可售庫存合計",
@@ -231,7 +228,7 @@ function initMarket() {
     revThis: "本月營收",
     feesThis: "本月抽成",
     shipThis: "本月運費",
-    listingTitle: "上架商品（名稱、類別、說明、價格、數量、圖片、上架狀態）",
+    listingTitle: "上架商品",
     inventory: "庫存",
     invNote: "可售庫存＝目前庫存 − 已售數量。只能改自己上架的庫存。",
     purchased: "已售",
@@ -286,7 +283,7 @@ function initMarket() {
     visitorModeHint: "If you are not signed in, you are a visitor and can only browse public listings. Use Market login, separate from the school website login.",
     threeRoles: "Marketplace roles are separate from school website roles. After market login you can switch Buyer/Seller. Platform Admin is jiayi only.",
     buyerFns: "Browse products · View details · Add to cart · Place orders · View order history",
-    sellerFns: "Add products · Edit products · Manage inventory · Confirm payment · Ship orders · View sales records",
+    sellerFns: "",
     adminFns: "Monitor transactions · Manage users · Review marketplace activities",
     confirmPay: "Confirm payment",
     shipOrders: "Ship orders",
@@ -307,8 +304,6 @@ function initMarket() {
     buyerNoInv: "Buyers cannot manage inventory.",
     buyerSees: "The buyer sees products. The seller manages products.",
     buyerBrowseHint: "Buyers can browse listings, view details, check price and availability, select quantity, and add items to the cart.",
-    cartFn: "Buyer Function: Cart and Checkout",
-    cartSteps: "Add to cart → Review items → Confirm quantity → Submit the order",
     cartAdded: "You have successfully added items to your cart. Please open My orders to view payment details and shipment status.",
     orderFlow: "Order created → Seller notified",
     crossUser: "One user action can trigger changes in another user’s workflow.",
@@ -358,8 +353,7 @@ function initMarket() {
     nameEn: "English product name",
     autoFromEn: "Auto-translate from English (editable)",
     autoFromZh: "Auto-translate from Chinese (editable)",
-    translateNote: "Fill in Chinese or English; the other language is auto-translated and stays editable.",
-    cloudOk: "Listings and photos save to the cloud, like faculty, and stay after refresh.",
+    cloudOk: "",
     cloudFail: "Cloud is not ready: ",
     category: "Category",
     desc: "Description",
@@ -375,7 +369,7 @@ function initMarket() {
     listed: "Listed",
     active: "Listed",
     hidden: "Hidden / remove",
-    fn1: "Seller Function 1: List a Product",
+    fn1: "",
     fn2: "Seller Function 2: Manage Inventory",
     invManage: "Inventory Management",
     totalAvail: "Total Available Stock",
@@ -436,7 +430,7 @@ function initMarket() {
     revThis: "Revenue This Month",
     feesThis: "Fees this month",
     shipThis: "Shipping this month",
-    listingTitle: "List a product (name, category, description, price, quantity, image, listing status)",
+    listingTitle: "List a product",
     inventory: "Inventory",
     invNote: "Available stock = current inventory − purchased quantity. You can change inventory only on your own listings.",
     purchased: "Purchased",
@@ -559,8 +553,8 @@ function initMarket() {
           <label class="market-mode-opt"><input type="radio" name="marketMode" ${loggedIn ? `data-view="seller"${sellerOn ? " checked" : ""}` : `data-market-login="#seller"`}> <span>${L.sellerMode}</span></label>
           ${showAdmin ? `<label class="market-mode-opt"><input type="radio" name="marketMode" data-view="admin"${adminOn ? " checked" : ""}> <span>${L.adminMode}</span></label>` : ""}
         </div>
-        ${buyerOn ? "" : `<p class="market-note">${hint}</p>
-        <p class="market-note"><strong>${fns}</strong></p>`}
+        ${buyerOn || sellerOn ? "" : (visitorOn ? `<p class="market-note">${fns}</p>` : `<p class="market-note">${hint}</p>
+        <p class="market-note"><strong>${fns}</strong></p>`)}
         <p class="market-card-actions">
           ${loggedIn
             ? `<span class="market-note">${mail}${showAdmin ? " · " + L.admin : ""}</span><button type="button" class="btn btn-line" id="marketLogoutBtn">${L.marketLogout}</button>`
@@ -672,7 +666,6 @@ function initMarket() {
       <section class="market-cart-box">
         ${cartJustAdded ? `<p class="market-ok">${L.cartAdded}</p>` : ""}
         <h3>${L.cartTitle}</h3>
-        <p class="market-note">${L.cartFn} · ${L.cartSteps}</p>
         ${lines.length ? `
         <ul class="market-cart-list">${lines.map((l) => {
           const img = productImg(l.product.imageUrl);
@@ -896,9 +889,7 @@ function initMarket() {
       <form id="listingForm" class="market-form">
         <input type="hidden" name="id" value="${attr(p.id)}">
         <input type="hidden" name="imageUrl" value="${storedUrl}">
-        <p class="market-note"><strong>${L.fn1}</strong> · ${L.name} · ${L.category} · ${L.desc} · ${L.listPrice} · ${L.listQty} · ${L.image} · ${L.listStatus}</p>
-        <p class="market-note">${S.lastError && S.lastError() ? L.cloudFail + S.lastError() : L.cloudOk}</p>
-        <p class="market-note">${L.translateNote}</p>
+        ${S.lastError && S.lastError() ? `<p class="market-note">${L.cloudFail}${S.lastError()}</p>` : ""}
         <div class="market-bilingual">
           <div>
             <label>${L.nameZh}<input id="listingNameZh" name="nameZh" value="${attr(p.nameZh)}" data-auto="${auto(p.nameZhAuto)}"></label>
@@ -1082,7 +1073,6 @@ function initMarket() {
     return `
       <h2>${L.sellerTitle}</h2>
       ${pendingPay.length ? `<p class="market-ok">${L.orderFlow} · ${L.crossUser}</p>` : ""}
-      <p class="market-note">${L.sellerFns}</p>
       ${listingBlocks()}
       ${inventoryPanel()}
       <div class="stats market-stats">
