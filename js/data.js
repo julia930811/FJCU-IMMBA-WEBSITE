@@ -168,7 +168,6 @@ window.IMMBA = {
   ],
   marketplace: [
     { zhTitle: "個案與指定讀本", enTitle: "Cases and required readings", zh: "各科指定個案與教科書清單，開學前三週以 Email 公告。", en: "Course cases and textbooks are emailed about three weeks before term starts.", href: "curriculum.html" },
-    { zhTitle: "二手書交流", enTitle: "Used-book exchange", zh: "開啟二手書市集（買家、賣家、平台管理員）。賣掉一筆抽成 NT$4，運費 NT$60。", en: "Opens the used-book marketplace (buyer, seller, platform admin). NT$4 platform fee and NT$60 shipping per order.", href: "market.html" },
     { zhTitle: "論文格式範本", enTitle: "Thesis templates", zh: "口試與離校所需格式檔，請至下載區取得最新版本。", en: "Defense and leaving-school templates live in Downloads.", href: "downloads.html" }
   ],
   downloads: [

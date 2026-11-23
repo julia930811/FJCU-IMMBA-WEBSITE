@@ -49,7 +49,7 @@ function safeNext() {
   const raw = (authCopy().next || "").replace(/^\//, "");
   const file = raw.split("#")[0];
   const hash = raw.includes("#") ? raw.slice(raw.indexOf("#")) : "";
-  if (/^(admin-news|admin-faculty|admin-alumni|admin-users|admin-audit|account|market)\.html$/.test(file)) {
+  if (/^(admin-news|admin-faculty|admin-alumni|admin-users|admin-audit|account)\.html$/.test(file)) {
     return file + hash;
   }
   return "";
