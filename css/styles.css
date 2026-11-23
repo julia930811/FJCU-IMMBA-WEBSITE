@@ -1168,20 +1168,11 @@ textarea { min-height: 140px; resize: vertical; }
 .page-hero .market-role-bar {
   margin-top: 20px;
 }
-.page-hero .market-roles,
-.page-hero .market-buyer-tools {
+.page-hero .market-roles {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin: 0 0 10px;
-}
-.page-hero .market-buyer-tools {
-  margin: 0;
-}
-.page-hero .market-buyer-tools .market-role {
-  padding: 6px 12px;
-  font-size: 14px;
-  font-weight: 500;
 }
 .page-hero .market-role {
   border: 1px solid rgba(255, 255, 255, 0.7);
@@ -1202,6 +1193,62 @@ textarea { min-height: 140px; resize: vertical; }
   color: #faf6ee;
   font-size: 22px;
   font-weight: 800;
+}
+.market-mode-box {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 0 0 22px;
+}
+.market-mode-label {
+  margin: 0 0 10px;
+  font-weight: 700;
+  color: #1c5c47;
+}
+.market-mode-opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 18px 8px 0;
+  cursor: pointer;
+  font-weight: 600;
+}
+.market-mode-box .market-note { margin: 4px 0 0; }
+.market-page-titles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  margin: 0 0 24px;
+  border-bottom: 1px solid var(--line);
+}
+.market-page-title {
+  margin: 0;
+  padding: 0 0 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  font-family: inherit;
+}
+.market-page-title.is-on {
+  color: #1c5c47;
+  border-bottom-color: #1c5c47;
+}
+.market-ship {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin: 0 0 16px;
+}
+.market-ship legend { font-weight: 700; }
+.market-ship label {
+  display: block;
+  margin: 8px 0;
+  cursor: pointer;
 }
 .market-shelf { margin-top: 40px; }
 .market-shelf h2 { margin: 0 0 16px; }

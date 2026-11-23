@@ -188,7 +188,16 @@ function initMarket() {
     created: "已建立訂單",
     sellerNotified: "，賣家已收到通知。",
     confirmDel: "確定下架此商品？",
-    needCheckout: "結帳"
+    needCheckout: "結帳",
+    currentRole: "目前模式",
+    buyerMode: "買家模式",
+    sellerModeHint: "建立新商品、編輯上架，並把商品標為已售。",
+    buyerModeHint: "瀏覽商品、加入購物車，並選擇面交或寄出後結帳。",
+    shipMethod: "取貨方式",
+    pickup: "面交（免運）",
+    shipOut: "寄出（運費 NT$60）",
+    pickupShort: "面交",
+    shipShort: "寄出"
   } : {
     buyer: "Buyer",
     cart: "Cart",
@@ -326,10 +335,20 @@ function initMarket() {
     created: "Order created",
     sellerNotified: ". The seller has been notified.",
     confirmDel: "Remove this listing?",
-    needCheckout: "check out"
+    needCheckout: "check out",
+    currentRole: "Current Role",
+    buyerMode: "Buyer Mode",
+    sellerModeHint: "Create new product listings, edit your listings, and mark items as sold.",
+    buyerModeHint: "Browse listings, add items to cart, then check out with pickup or shipping.",
+    shipMethod: "Shipping Method",
+    pickup: "In-person pickup (free)",
+    shipOut: "Home delivery (NT$60)",
+    pickupShort: "Pickup",
+    shipShort: "Ship"
   };
 
   let view = (location.hash || "#browse").replace("#", "") || "browse";
+  let shipMethod = "pickup";
   let editing = null;
   let listingMemory = null;
   let listingImageUrl = "";
@@ -396,12 +415,6 @@ function initMarket() {
       ["admin", L.admin]
     ];
     const buyerOn = isBuyerView();
-    const buyerTools = buyerOn ? `
-      <div class="market-buyer-tools">
-        <button type="button" class="market-role${view === "browse" || String(view).startsWith("product-") ? " is-on" : ""}" data-view="browse">${L.browse}</button>
-        <button type="button" class="market-role${view === "cart" ? " is-on" : ""}" data-view="cart">${L.cart}</button>
-        <button type="button" class="market-role${view === "orders" ? " is-on" : ""}" data-view="orders">${L.orders}</button>
-      </div>` : "";
     return `
       <div class="market-roles">
         ${tabs.map(([id, label]) => {
@@ -409,8 +422,36 @@ function initMarket() {
           return `<button type="button" class="market-role${on ? " is-on" : ""}" data-view="${id}">${label}</button>`;
         }).join("")}
       </div>
-      ${buyerTools}
     `;
+  }
+
+  function modeBox() {
+    if (view === "admin") return "";
+    const sellerOn = view === "seller";
+    return `
+      <div class="market-mode-box">
+        <p class="market-mode-label">${L.currentRole}</p>
+        <label class="market-mode-opt"><input type="radio" name="marketMode" data-view="browse"${sellerOn ? "" : " checked"}> ${L.buyerMode}</label>
+        <label class="market-mode-opt"><input type="radio" name="marketMode" data-view="seller"${sellerOn ? " checked" : ""}> ${L.sellerMode}</label>
+        <p class="market-note">${sellerOn ? L.sellerModeHint : L.buyerModeHint}</p>
+      </div>
+    `;
+  }
+
+  function buyerTitles() {
+    if (!isBuyerView()) return "";
+    const onBrowse = view === "browse" || String(view).startsWith("product-");
+    return `
+      <nav class="market-page-titles">
+        <h2 class="market-page-title${onBrowse ? " is-on" : ""}" data-view="browse">${L.browse}</h2>
+        <h2 class="market-page-title${view === "cart" ? " is-on" : ""}" data-view="cart">${L.cart}</h2>
+        <h2 class="market-page-title${view === "orders" ? " is-on" : ""}" data-view="orders">${L.orders}</h2>
+      </nav>
+    `;
+  }
+
+  function shipLabel(method) {
+    return method === "pickup" ? L.pickupShort : L.shipShort;
   }
 
   function productImg(url) {
@@ -459,7 +500,6 @@ function initMarket() {
     }
     return `
       ${justListedId ? `<p class="market-listed-done-kicker">${L.listedDone}</p>` : ""}
-      <h2>${L.browse}</h2>
       <div class="cards">${list.map((p) => productCard(p, `
         <p class="market-card-actions">
           <button type="button" class="btn btn-line" data-open="${p.id}">${L.details}</button>
@@ -488,9 +528,8 @@ function initMarket() {
       return p ? { ...line, product: p } : null;
     }).filter(Boolean);
     const subtotal = lines.reduce((s, l) => s + Number(l.product.price) * Number(l.quantity), 0);
-    const bill = S.totalsFromSubtotal(subtotal);
+    const bill = S.totalsFromSubtotal(subtotal, shipMethod);
     return `
-      <h2>${L.cartTitle}</h2>
       ${lines.length ? `
         <div class="admin-table-wrap"><table class="admin-table">
           <thead><tr><th>${L.product}</th><th>${L.price}</th><th>${L.qtyCol}</th><th></th></tr></thead>
@@ -501,9 +540,14 @@ function initMarket() {
             <td><button type="button" class="btn btn-line" data-remove="${l.productId}">${L.remove}</button></td>
           </tr>`).join("")}</tbody>
         </table></div>
+        <fieldset class="market-ship">
+          <legend>${L.shipMethod}</legend>
+          <label><input type="radio" name="shipMethod" value="pickup"${shipMethod === "pickup" ? " checked" : ""}> ${L.pickup}</label>
+          <label><input type="radio" name="shipMethod" value="ship"${shipMethod === "ship" ? " checked" : ""}> ${L.shipOut}</label>
+        </fieldset>
         <p>${L.subtotal} ${money(bill.subtotal)}</p>
         <p>${L.shipping} ${money(bill.shipping)}</p>
-        <p class="market-note">${zh ? `每筆訂單平台抽成 NT$${S.platformFee()}，運費 NT$60（由買家支付）。` : `Each order has a NT$${S.platformFee()} platform fee. Shipping is NT$60, paid by the buyer.`}</p>
+        <p class="market-note">${zh ? `每筆訂單平台抽成 NT$${S.platformFee()}。面交免運；寄出運費 NT$60（由買家支付）。` : `Each order has a NT$${S.platformFee()} platform fee. Pickup is free; shipping is NT$60, paid by the buyer.`}</p>
         <p><strong>${L.total} ${money(bill.total)}</strong></p>
         <p><button type="button" class="btn btn-navy" id="checkoutBtn">${L.checkout}</button></p>
       ` : `<p>${L.emptyCart}</p>`}
@@ -516,7 +560,7 @@ function initMarket() {
       <thead><tr>
         <th>${L.orderId}</th><th>${L.date}</th>
         <th>${seller ? L.buyerCol : L.sellerCol}</th>
-        <th>${L.items}</th><th>${L.amount}</th><th>${L.status}</th>${seller ? "<th></th>" : ""}
+        <th>${L.items}</th><th>${L.shipMethod}</th><th>${L.amount}</th><th>${L.status}</th>${seller ? "<th></th>" : ""}
       </tr></thead>
       <tbody>${rows.map((o) => {
         const next = S.STATUSES[S.STATUSES.indexOf(o.status) + 1];
@@ -526,6 +570,7 @@ function initMarket() {
           <td>${(o.createdAt || "").slice(0, 10)}</td>
           <td>${seller ? o.buyerEmail : o.sellerEmail}</td>
           <td>${(o.items || []).map((i) => `${S.itemName(i)} × ${i.quantity}`).join("<br>")}</td>
+          <td>${shipLabel(o.shipMethod)}</td>
           <td>${money(seller ? S.orderMoney(o).sellerNet : S.orderMoney(o).total)}</td>
           <td>${statusText(o.status)}</td>
           ${seller ? `<td>${next ? `<button type="button" class="btn btn-line" data-advance="${o.id}" data-next="${next}">${nextLabel}</button>` : L.kept}</td>` : ""}
@@ -784,6 +829,7 @@ function initMarket() {
       <p>${L.orderDate}: ${(o.createdAt || "").replace("T", " ").slice(0, 16)}</p>
       <p>${L.lastUpdated}: ${stamp(o)}</p>
       <p>${L.payStatus}: ${statusText(o.status)}</p>
+      <p>${L.shipMethod}: ${shipLabel(o.shipMethod)}</p>
       <p>${L.total}: ${money(m.total)}</p>
       ${next ? `<p><button type="button" class="btn btn-navy market-action" data-advance="${o.id}" data-next="${next}">${sellerActionLabel(o.status)}</button></p>` : `<p class="market-note">${L.kept}</p>`}
     </article>`;
@@ -813,7 +859,6 @@ function initMarket() {
     const period = sellerMonth ? sellerMonth.replace("-", "/") : L.allMonths;
     return `
       <h2>${L.sellerTitle}</h2>
-      <p class="market-note">${L.sellerNote}</p>
       <section class="market-listing">
         <h3>${justListedId ? L.listedDone : L.listingTitle}</h3>
         ${justListedId ? listedDonePanel() : sellerForm(listingFormState())}
@@ -938,10 +983,10 @@ function initMarket() {
       return;
     }
     if ((view === "seller" || view === "orders") && !S.me()) {
-      root.innerHTML = bar + `<p class="market-note">${L.signInFirst} <a href="${loginHref()}">${L.signIn}</a></p>`;
+      root.innerHTML = bar + modeBox() + buyerTitles() + `<p class="market-note">${L.signInFirst} <a href="${loginHref()}">${L.signIn}</a></p>`;
       return;
     }
-    root.innerHTML = bar + body();
+    root.innerHTML = bar + modeBox() + buyerTitles() + body();
     bindListingMedia();
     bindListingTranslate();
   }
@@ -1117,7 +1162,7 @@ function initMarket() {
     try {
       if (t.id === "checkoutBtn") {
         if (!needUser(L.needCheckout)) return;
-        const orders = S.checkout();
+        const orders = S.checkout(shipMethod);
         alert(L.created + " " + orders.map((o) => o.orderNo).join(", ") + L.sellerNotified);
         go("orders");
         return;
@@ -1218,6 +1263,15 @@ function initMarket() {
   root.addEventListener("change", (e) => {
     const t = e.target;
     try {
+      if (t.name === "marketMode" && t.dataset.view) {
+        go(t.dataset.view);
+        return;
+      }
+      if (t.name === "shipMethod") {
+        shipMethod = t.value === "pickup" ? "pickup" : "ship";
+        render();
+        return;
+      }
       if (t.dataset.qty) {
         S.updateCartQty(t.dataset.qty, t.value);
         render();

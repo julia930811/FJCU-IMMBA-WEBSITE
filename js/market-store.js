@@ -475,14 +475,16 @@
     return state.platformFee;
   }
 
-  function totalsFromSubtotal(subtotal) {
+  function totalsFromSubtotal(subtotal, shipMethod) {
     const n = Number(subtotal || 0);
     const fee = platformFee();
+    const shipping = shipMethod === "pickup" ? 0 : SHIPPING_FEE;
     return {
       subtotal: n,
       fee,
-      shipping: SHIPPING_FEE,
-      total: n + SHIPPING_FEE,
+      shipping,
+      shipMethod: shipMethod === "pickup" ? "pickup" : "ship",
+      total: n + shipping,
       sellerNet: Math.max(0, n - fee)
     };
   }
@@ -561,7 +563,7 @@
     setCart(items);
   }
 
-  function checkout() {
+  function checkout(shipMethod) {
     const u = me();
     if (!u) throw new Error(t("請先登入再結帳。", "Please sign in to check out."));
     const items = cart();
@@ -589,7 +591,7 @@
         quantity: line.quantity
       }));
       const subtotal = orderItems.reduce((s, i) => s + i.price * i.quantity, 0);
-      const money = totalsFromSubtotal(subtotal);
+      const money = totalsFromSubtotal(subtotal, shipMethod);
       const order = {
         id: "mo" + Date.now() + Math.floor(Math.random() * 99),
         orderNo: "ORD-" + new Date().toISOString().slice(0, 7).replace("-", "") + "-" + String(Date.now()).slice(-4),
@@ -598,6 +600,7 @@
         sellerId: g.sellerId,
         sellerEmail: g.sellerEmail,
         status: "waiting_payment",
+        shipMethod: money.shipMethod,
         subtotal: money.subtotal,
         fee: money.fee,
         shipping: money.shipping,
