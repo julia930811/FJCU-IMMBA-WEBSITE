@@ -1217,9 +1217,33 @@ textarea { min-height: 140px; resize: vertical; }
   padding: 8px 10px;
 }
 .market-form textarea { min-height: 90px; }
-.market-form label:nth-child(2),
-.market-form label:nth-child(3),
+.market-form .market-span,
+.market-form .market-drop,
 .market-form p { grid-column: 1 / -1; }
+.market-drop {
+  border: 1.5px dashed var(--line);
+  border-radius: 12px;
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 16px;
+  background: #fff;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+}
+.market-drop.is-over {
+  border-color: var(--navy);
+  background: var(--paper);
+  color: var(--navy);
+}
+.market-drop img {
+  max-height: 180px;
+  max-width: 100%;
+  object-fit: contain;
+}
 .market-stats {
   margin: 12px 0 20px;
   gap: 12px;

@@ -53,7 +53,8 @@ function initMarket() {
     desc: "商品說明",
     listPrice: "價格",
     listQty: "庫存數量",
-    image: "商品圖片網址",
+    image: "商品圖片",
+    dropHint: "把圖片拖到這裡，或複製後貼上；也可以點這裡選檔。",
     listStatus: "上架狀態",
     active: "上架中",
     hidden: "隱藏",
@@ -171,7 +172,8 @@ function initMarket() {
     desc: "Description",
     listPrice: "Price",
     listQty: "Quantity",
-    image: "Product image URL",
+    image: "Product photo",
+    dropHint: "Drag a photo here, paste a copied image, or tap to choose a file.",
     listStatus: "Listing status",
     active: "Active",
     hidden: "Hidden",
@@ -244,6 +246,9 @@ function initMarket() {
 
   let view = (location.hash || "#browse").replace("#", "") || "browse";
   let editing = null;
+  let listingMemory = null;
+  let listingPasteBound = false;
+  let skipDraftCapture = false;
   let adminQuery = "";
   let adminStatus = "";
   let adminIncomplete = false;
@@ -443,19 +448,89 @@ function initMarket() {
     `;
   }
 
+  function attr(s) {
+    return String(s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+  }
+
+  function draftKey() {
+    const u = S.me();
+    return "immba-listing-draft:" + ((u && u.email) || "guest");
+  }
+
+  function emptyListing() {
+    return { id: "", name: "", category: "Textbook", description: "", price: "", quantity: "", imageUrl: "", status: "active" };
+  }
+
+  function readListingForm() {
+    const form = document.getElementById("listingForm");
+    if (!form) return null;
+    const fd = new FormData(form);
+    return {
+      id: fd.get("id") || "",
+      name: fd.get("productName") || "",
+      category: fd.get("category") || "Textbook",
+      description: fd.get("description") || "",
+      price: fd.get("price") || "",
+      quantity: fd.get("quantity") || "",
+      imageUrl: fd.get("imageUrl") || "",
+      status: fd.get("status") || "active"
+    };
+  }
+
+  function saveListingDraft(data) {
+    const row = data || readListingForm();
+    if (!row) return;
+    listingMemory = row;
+    const key = draftKey();
+    try {
+      localStorage.setItem(key, JSON.stringify(row));
+    } catch (err) {
+      try {
+        localStorage.setItem(key, JSON.stringify({ ...row, imageUrl: row.imageUrl && row.imageUrl.indexOf("data:") === 0 ? "" : row.imageUrl }));
+      } catch (e2) {}
+    }
+  }
+
+  function loadListingDraft() {
+    try {
+      const raw = localStorage.getItem(draftKey());
+      if (raw) return JSON.parse(raw);
+    } catch (err) {}
+    return listingMemory;
+  }
+
+  function clearListingDraft() {
+    listingMemory = null;
+    try { localStorage.removeItem(draftKey()); } catch (err) {}
+  }
+
+  function listingFormState() {
+    const draft = loadListingDraft();
+    if (editing && editing.id) {
+      if (draft && String(draft.id) === String(editing.id)) return { ...editing, ...draft };
+      return editing;
+    }
+    return draft || emptyListing();
+  }
+
   function sellerForm(p) {
-    p = p || { name: "", category: "Textbook", description: "", price: "", quantity: "", imageUrl: "", status: "active" };
+    p = p || emptyListing();
+    const src = productImg(p.imageUrl);
     return `
       <form id="listingForm" class="market-form">
-        <input type="hidden" name="id" value="${p.id || ""}">
-        <label>${L.name}<input name="productName" required value="${p.name || ""}"></label>
-        <label>${L.category}
+        <input type="hidden" name="id" value="${attr(p.id)}">
+        <input type="hidden" name="imageUrl" value="${attr(p.imageUrl)}">
+        <label>${L.name}<input name="productName" required value="${attr(p.name)}"></label>
+        <label class="market-span">${L.category}
           <select name="category">${S.CATEGORIES.map((c) => `<option value="${c}"${c === p.category ? " selected" : ""}>${catText(c)}</option>`).join("")}</select>
         </label>
-        <label>${L.desc}<textarea name="description" required>${p.description || ""}</textarea></label>
-        <label>${L.listPrice}<input name="price" type="number" min="0" step="1" required value="${p.price || ""}"></label>
-        <label>${L.listQty}<input name="quantity" type="number" min="0" step="1" required value="${p.quantity || ""}"></label>
-        <label>${L.image}<input name="imageUrl" value="${p.imageUrl || ""}" placeholder="https://"></label>
+        <label class="market-span">${L.desc}<textarea name="description" required>${String(p.description || "").replace(/&/g, "&amp;").replace(/</g, "&lt;")}</textarea></label>
+        <label>${L.listPrice}<input name="price" type="number" min="0" step="1" required value="${attr(p.price)}"></label>
+        <label>${L.listQty}<input name="quantity" type="number" min="0" step="1" required value="${attr(p.quantity)}"></label>
+        <div class="market-drop${src ? " has-photo" : ""}" id="listingDrop" tabindex="0">
+          ${src ? `<img src="${attr(src)}" alt="">` : `<span>${L.dropHint}</span>`}
+        </div>
+        <input id="listingFile" type="file" accept="image/*" hidden>
         <label>${L.listStatus}
           <select name="status">
             <option value="active"${p.status !== "hidden" ? " selected" : ""}>${L.active}</option>
@@ -536,7 +611,7 @@ function initMarket() {
         <p class="market-finance-sum"><strong>${period}</strong> · ${dash.itemsSold} ${L.soldThis} · ${L.revThis}: <strong>${money(dash.monthlyRevenue)}</strong> · ${L.feesThis} ${money(dash.monthlyFees)} · ${L.shipThis} ${money(dash.monthlyShipping)}</p>
       </section>
       <h3>${L.listingTitle}</h3>
-      ${sellerForm(editing)}
+      ${sellerForm(listingFormState())}
       <h3>${L.inventory}</h3>
       <p>${L.invNote}</p>
       <div class="admin-table-wrap"><table class="admin-table">
@@ -630,6 +705,8 @@ function initMarket() {
   }
 
   function render() {
+    if (!skipDraftCapture) saveListingDraft();
+    skipDraftCapture = false;
     if (view === "admin" && !S.isPlatformAdmin()) {
       root.innerHTML = roleBar() + `<p class="market-note">${L.adminOnly} ${S.me() ? "" : `<a href="${loginHref()}">${L.signIn}</a>`}</p>`;
       return;
@@ -639,6 +716,67 @@ function initMarket() {
       return;
     }
     root.innerHTML = roleBar() + body();
+    bindListingMedia();
+  }
+
+  function refreshListingPreview() {
+    const form = document.getElementById("listingForm");
+    const drop = document.getElementById("listingDrop");
+    if (!form || !drop) return;
+    const url = form.querySelector("[name=imageUrl]").value;
+    const src = productImg(url);
+    drop.classList.toggle("has-photo", !!src);
+    drop.innerHTML = src ? `<img src="${attr(src)}" alt="">` : `<span>${L.dropHint}</span>`;
+  }
+
+  async function applyListingFile(file) {
+    if (!file || !window.IMMBAImage) return;
+    const form = document.getElementById("listingForm");
+    if (!form) return;
+    const data = await window.IMMBAImage.fromFile(file);
+    form.querySelector("[name=imageUrl]").value = data;
+    refreshListingPreview();
+    saveListingDraft();
+  }
+
+  function bindListingMedia() {
+    const form = document.getElementById("listingForm");
+    const drop = document.getElementById("listingDrop");
+    const file = document.getElementById("listingFile");
+    if (!form || !drop || !file) return;
+    drop.addEventListener("click", () => file.click());
+    drop.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        file.click();
+      }
+    });
+    drop.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      drop.classList.add("is-over");
+    });
+    drop.addEventListener("dragleave", () => drop.classList.remove("is-over"));
+    drop.addEventListener("drop", (e) => {
+      e.preventDefault();
+      drop.classList.remove("is-over");
+      const picked = [...(e.dataTransfer.files || [])].find((f) => String(f.type || "").indexOf("image/") === 0);
+      applyListingFile(picked);
+    });
+    file.addEventListener("change", () => {
+      applyListingFile(file.files && file.files[0]);
+      file.value = "";
+    });
+    form.addEventListener("input", () => saveListingDraft());
+    form.addEventListener("change", () => saveListingDraft());
+    if (listingPasteBound) return;
+    listingPasteBound = true;
+    document.addEventListener("paste", (e) => {
+      if (!document.getElementById("listingForm") || !window.IMMBAImage) return;
+      const picked = window.IMMBAImage.fileFromClipboard(e);
+      if (!picked) return;
+      e.preventDefault();
+      applyListingFile(picked);
+    });
   }
 
   function downloadCsv(text, name) {
@@ -671,11 +809,12 @@ function initMarket() {
       }
       if (t.id === "cancelEdit") {
         editing = null;
+        clearListingDraft();
+        skipDraftCapture = true;
         render();
         return;
       }
       if (t.dataset.view) {
-        editing = null;
         go(t.dataset.view);
         return;
       }
@@ -702,6 +841,19 @@ function initMarket() {
       }
       if (t.dataset.edit) {
         editing = S.product(t.dataset.edit);
+        if (editing) {
+          saveListingDraft({
+            id: editing.id || "",
+            name: editing.name || "",
+            category: editing.category || "Textbook",
+            description: editing.description || "",
+            price: editing.price,
+            quantity: editing.quantity,
+            imageUrl: editing.imageUrl || "",
+            status: editing.status || "active"
+          });
+        }
+        skipDraftCapture = true;
         render();
         return;
       }
@@ -784,6 +936,8 @@ function initMarket() {
         status: fd.get("status")
       });
       editing = null;
+      clearListingDraft();
+      skipDraftCapture = true;
       render();
     } catch (err) {
       alert(err.message || String(err));
@@ -794,6 +948,7 @@ function initMarket() {
     view = (location.hash || "#browse").replace("#", "") || "browse";
     render();
   });
+  window.addEventListener("pagehide", () => saveListingDraft());
   window.addEventListener("immba-auth", render);
   if (window.IMMBAAuth && window.IMMBAAuth.ready) {
     window.IMMBAAuth.ready.then(render).catch(() => {});
