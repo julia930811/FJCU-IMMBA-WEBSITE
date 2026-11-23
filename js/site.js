@@ -975,9 +975,9 @@ function pages() {
       </form>
       <div class="alumni-toolbar">
         <label>${zh?"搜尋":"Search and filter"}<input id="alSearch" type="search" placeholder="${zh?"姓名、學號、公司、職稱":"Name, student ID, company, title"}"></label>
-        <label>department<select id="alFilterDept"></select></label>
-        <label>degree_program<select id="alFilterProgram"></select></label>
-        <label>graduation_year<select id="alFilterYear"></select></label>
+        <label>${zh?"系所":"Department"}<select id="alFilterDept"></select></label>
+        <label>${zh?"學位":"Degree program"}<select id="alFilterProgram"></select></label>
+        <label>${zh?"畢業年":"Graduation year"}<select id="alFilterYear"></select></label>
       </div>
       <p class="admin-count" id="alumniCount"></p>
       <div class="admin-table-wrap">
