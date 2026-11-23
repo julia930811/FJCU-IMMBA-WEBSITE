@@ -103,6 +103,8 @@ function initMarket() {
     autoFromEn: "由英文自動翻譯（可再改）",
     autoFromZh: "由中文自動翻譯（可再改）",
     translateNote: "填寫中文或英文即可；另一語會自動翻譯，仍可再改。",
+    cloudOk: "商品與照片會寫進雲端，和師資一樣刷新後仍會顯示。",
+    cloudFail: "雲端尚未就緒：",
     category: "類別",
     desc: "商品說明",
     descZh: "中文商品說明",
@@ -251,6 +253,8 @@ function initMarket() {
     autoFromEn: "Auto-translate from English (editable)",
     autoFromZh: "Auto-translate from Chinese (editable)",
     translateNote: "Fill in Chinese or English; the other language is auto-translated and stays editable.",
+    cloudOk: "Listings and photos save to the cloud, like faculty, and stay after refresh.",
+    cloudFail: "Cloud is not ready: ",
     category: "Category",
     desc: "Description",
     descZh: "Chinese description",
@@ -724,6 +728,7 @@ function initMarket() {
       <form id="listingForm" class="market-form">
         <input type="hidden" name="id" value="${attr(p.id)}">
         <input type="hidden" name="imageUrl" value="${storedUrl}">
+        <p class="market-note">${S.lastError && S.lastError() ? L.cloudFail + S.lastError() : L.cloudOk}</p>
         <p class="market-note">${L.translateNote}</p>
         <div class="market-bilingual">
           <div>
@@ -1060,14 +1065,17 @@ function initMarket() {
     const form = document.getElementById("listingForm");
     if (!form) return;
     try {
-      const data = await window.IMMBAImage.fromFile(file, 960, 0.72);
-      listingImageUrl = data;
+      const url = await window.IMMBAImage.upload(file, "market-photos");
+      if (!url || String(url).indexOf("data:") === 0) {
+        throw new Error(zh ? "照片無法上傳到雲端。請先在 Supabase 執行 supabase/schema.sql。" : "Photo could not be uploaded. Run supabase/schema.sql in Supabase first.");
+      }
+      listingImageUrl = url;
       const field = form.querySelector("[name=imageUrl]");
-      if (field) field.value = "";
+      if (field) field.value = url;
       refreshListingPreview();
       saveListingDraft();
     } catch (err) {
-      alert(zh ? "圖片無法使用，請改選另一張。" : "That image could not be used. Please choose another.");
+      alert((err && err.message) || (zh ? "圖片無法使用，請改選另一張。" : "That image could not be used. Please choose another."));
     }
   }
 
@@ -1150,7 +1158,7 @@ function initMarket() {
     });
   }
 
-  root.addEventListener("click", (e) => {
+  root.addEventListener("click", async (e) => {
     const t = e.target.closest("[data-view], [data-open], [data-add], [data-remove], [data-advance], [data-edit], [data-hide], [data-del], #checkoutBtn, #exportSeller, #exportAdmin, #cancelEdit, #listAnother");
     if (!t) return;
     try {
@@ -1241,13 +1249,13 @@ function initMarket() {
       if (t.dataset.hide) {
         const p = S.product(t.dataset.hide);
         if (!S.canManageProduct(p)) throw new Error(zh ? "只能下架自己上傳的商品。" : "You can only hide listings you uploaded.");
-        S.upsertProduct({ ...p, status: p.status === "hidden" ? "active" : "hidden" });
+        await S.upsertProduct({ ...p, status: p.status === "hidden" ? "active" : "hidden" });
         render();
         return;
       }
       if (t.dataset.del) {
         if (confirm(L.confirmDel)) {
-          S.removeProduct(t.dataset.del);
+          await S.removeProduct(t.dataset.del);
           editing = null;
           render();
         }
@@ -1324,7 +1332,7 @@ function initMarket() {
       const row = readListingForm();
       const editingId = editing && editing.id ? String(editing.id) : "";
       setJustListed(editingId || "pending");
-      const saved = S.upsertProduct({
+      const saved = await S.upsertProduct({
         ...row,
         id: editingId || "",
         name: (row && (row.nameZh || row.nameEn)) || "",
@@ -1362,6 +1370,7 @@ function initMarket() {
   if (window.IMMBAAuth && window.IMMBAAuth.ready) {
     window.IMMBAAuth.ready.then(render).catch(() => {});
   }
+  if (S.ready && S.ready.then) S.ready.then(render).catch(() => render());
 
   render();
 }

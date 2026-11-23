@@ -1209,11 +1209,13 @@ textarea { min-height: 140px; resize: vertical; }
 .market-mode-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px 28px;
+  gap: 10px 28px;
   align-items: center;
 }
 .market-mode-opt {
   display: inline-flex;
+  flex: 0 0 auto;
+  width: auto;
   flex-direction: row;
   flex-wrap: nowrap;
   align-items: center;
@@ -1222,7 +1224,17 @@ textarea { min-height: 140px; resize: vertical; }
   cursor: pointer;
   font-weight: 600;
   white-space: nowrap;
-  writing-mode: horizontal-tb;
+}
+.market-mode-opt input[type="radio"],
+.market-ship input[type="radio"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  flex: 0 0 16px;
+  accent-color: #1d7ab8;
 }
 .market-mode-opt span { white-space: nowrap; }
 .market-mode-box .market-note { margin: 10px 0 0; }
@@ -1257,7 +1269,10 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .market-ship legend { font-weight: 700; }
 .market-ship label {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
   margin: 8px 0;
   cursor: pointer;
 }
