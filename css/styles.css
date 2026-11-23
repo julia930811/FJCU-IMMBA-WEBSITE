@@ -1536,8 +1536,6 @@ textarea { min-height: 140px; resize: vertical; }
   padding: 16px 18px;
 }
 .market-finance-sum { margin: 8px 0 0; }
-.market-notices { color: var(--muted); }
-.market-notices time { color: var(--navy); }
 .market-admin-toolbar {
   display: flex;
   flex-wrap: wrap;

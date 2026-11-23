@@ -83,13 +83,13 @@ function initMarket() {
     threeRoles: "市集角色與學校後台角色分開。登入市集後可切換買家／賣家；平台管理員只有 jiayi。",
     buyerFns: "瀏覽商品 · 商品詳情 · 加入購物車 · 下單 · 訂單紀錄",
     sellerFns: "",
-    adminFns: "監看交易 · 管理使用者 · 審視市集活動",
+    adminFns: "",
     confirmPay: "確認付款",
     shipOrders: "出貨",
     salesRecords: "銷售紀錄",
     saveStock: "更新庫存",
     stockSaved: "已更新庫存。",
-    reviewActivity: "市集活動",
+    reviewActivity: "",
     admin: "平台管理員",
     adminOnly: "只有平台管理員可以監看交易。",
     manageUsers: "管理使用者",
@@ -238,7 +238,7 @@ function initMarket() {
     unlist: "下架",
     noOwn: "尚未上架自己的商品。",
     adminTitle: "平台管理員：交易管理",
-    adminLead: "平台管理員可查看所有交易金額、平台抽成與訂單明細。",
+    adminLead: "",
     allTx: "全部平台交易",
     feeSetting: "每筆交易平台抽成設定",
     saveFee: "儲存抽成",
@@ -252,7 +252,7 @@ function initMarket() {
     searchPh: "以訂單編號搜尋",
     allStatus: "全部狀態",
     incomplete: "未完成／異常交易",
-    adminNote: "監看不代表一定會編輯。",
+    adminNote: "",
     signInFirst: "請先用市集登入口登入後再進入此區。",
     signIn: "市集登入",
     marketLogout: "市集登出",
@@ -267,7 +267,7 @@ function initMarket() {
     adminMode: "平台管理員模式",
     sellerModeHint: "新增／編輯商品、管理庫存、確認付款、出貨，並查看銷售紀錄。",
     buyerModeHint: "瀏覽商品與詳情、加入購物車、下單，並查看訂單紀錄。",
-    adminModeHint: "監看交易、管理使用者、審視市集活動。不代替買家下單或賣家出貨。",
+    adminModeHint: "",
     shipMethod: "取貨方式",
     pickup: "面交（免運）",
     shipOut: "寄出（運費 NT$60）",
@@ -284,13 +284,13 @@ function initMarket() {
     threeRoles: "Marketplace roles are separate from school website roles. After market login you can switch Buyer/Seller. Platform Admin is jiayi only.",
     buyerFns: "Browse products · View details · Add to cart · Place orders · View order history",
     sellerFns: "",
-    adminFns: "Monitor transactions · Manage users · Review marketplace activities",
+    adminFns: "",
     confirmPay: "Confirm payment",
     shipOrders: "Ship orders",
     salesRecords: "Sales records",
     saveStock: "Update Stock",
     stockSaved: "Inventory updated.",
-    reviewActivity: "Marketplace activity",
+    reviewActivity: "",
     admin: "Platform admin",
     adminOnly: "Only the platform admin can monitor transactions.",
     manageUsers: "Manage users",
@@ -440,7 +440,7 @@ function initMarket() {
     unlist: "Remove",
     noOwn: "You have not uploaded a listing yet.",
     adminTitle: "Platform Admin: Transaction Management",
-    adminLead: "Super admin can view all transaction amounts, platform transaction fees, and order details.",
+    adminLead: "",
     allTx: "All Platform Transactions",
     feeSetting: "Platform Transaction Fee Setting (Per Transaction)",
     saveFee: "Save Platform Fee",
@@ -454,7 +454,7 @@ function initMarket() {
     searchPh: "Search by order ID",
     allStatus: "All statuses",
     incomplete: "Incomplete / abnormal",
-    adminNote: "Monitoring does not always mean editing.",
+    adminNote: "",
     signInFirst: "Please use Market login before opening this view.",
     signIn: "Market login",
     marketLogout: "Market logout",
@@ -469,7 +469,7 @@ function initMarket() {
     adminMode: "Platform Admin Mode",
     sellerModeHint: "Add/edit products, manage inventory, confirm payment, ship orders, and view sales records.",
     buyerModeHint: "Browse products, view details, add to cart, place orders, and view order history.",
-    adminModeHint: "Monitor transactions, manage users, and review marketplace activities. Do not buy or ship as admin.",
+    adminModeHint: "",
     shipMethod: "Shipping Method",
     pickup: "In-Person Pickup (Free)",
     shipOut: "Home Delivery (Shipping Fee NT$ 60)",
@@ -553,7 +553,7 @@ function initMarket() {
           <label class="market-mode-opt"><input type="radio" name="marketMode" ${loggedIn ? `data-view="seller"${sellerOn ? " checked" : ""}` : `data-market-login="#seller"`}> <span>${L.sellerMode}</span></label>
           ${showAdmin ? `<label class="market-mode-opt"><input type="radio" name="marketMode" data-view="admin"${adminOn ? " checked" : ""}> <span>${L.adminMode}</span></label>` : ""}
         </div>
-        ${buyerOn || sellerOn ? "" : (visitorOn ? `<p class="market-note">${fns}</p>` : `<p class="market-note">${hint}</p>
+        ${buyerOn || sellerOn || adminOn ? "" : (visitorOn ? `<p class="market-note">${fns}</p>` : `<p class="market-note">${hint}</p>
         <p class="market-note"><strong>${fns}</strong></p>`)}
         <p class="market-card-actions">
           ${loggedIn
@@ -1103,29 +1103,6 @@ function initMarket() {
     `;
   }
 
-  function adminActivityPanel() {
-    const listings = (S.products() || []).slice().sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""))).slice(0, 8);
-    const orders = (S.orders() || []).slice().sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || ""))).slice(0, 8);
-    const notices = (S.notices() || []).slice(0, 8);
-    const rows = [];
-    listings.forEach((p) => {
-      rows.push({ at: p.updatedAt || "", text: (zh ? "商品：" : "Listing: ") + S.productName(p) + " · " + (p.sellerEmail || "") + " · " + (p.status === "hidden" ? L.hidden : L.active) });
-    });
-    orders.forEach((o) => {
-      rows.push({ at: o.updatedAt || o.createdAt || "", text: (zh ? "訂單：" : "Order: ") + o.orderNo + " · " + o.buyerEmail + " → " + o.sellerEmail + " · " + statusText(o.status) });
-    });
-    notices.forEach((n) => {
-      rows.push({ at: n.at || "", text: n.message || "" });
-    });
-    rows.sort((a, b) => String(b.at).localeCompare(String(a.at)));
-    return `
-      <section class="market-panel">
-        <h3>${L.reviewActivity}</h3>
-        ${rows.length ? `<ul class="market-notices">${rows.slice(0, 12).map((r) => `<li><time>${(r.at || "").replace("T", " ").slice(0, 16)}</time> ${r.text}</li>`).join("")}</ul>` : `<p class="market-note">${L.none}</p>`}
-      </section>
-    `;
-  }
-
   function adminTxCard(o) {
     const m = S.orderMoney(o);
     const names = (o.items || []).map((i) => S.itemName(i) + (i.quantity > 1 ? " × " + i.quantity : "")).join(" · ");
@@ -1160,11 +1137,7 @@ function initMarket() {
     return `
       <h2>${L.adminTitle}</h2>
       ${threeViewsNote()}
-      <p class="market-note">${L.adminFns}</p>
-      <p class="market-note">${L.adminLead}</p>
-      <p class="market-note">${L.adminNote}</p>
       <p><a class="btn btn-navy" href="${zh ? "" : "../"}admin-users.html">${L.manageUsers}</a></p>
-      ${adminActivityPanel()}
       <section class="market-panel">
         <h3>${L.allTx}</h3>
         <form id="feeForm" class="market-fee-form">
