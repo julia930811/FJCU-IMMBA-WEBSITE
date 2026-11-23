@@ -304,7 +304,7 @@ button, input, select, textarea { font-family: inherit; }
   overflow: hidden;
   min-height: min(560px, 78vh);
   display: grid;
-  grid-template-columns: minmax(300px, 1.1fr) minmax(280px, 520px);
+  grid-template-columns: minmax(300px, 1.1fr) minmax(280px, 580px);
   align-items: center;
   gap: 16px 28px;
   background: #0b2d6b;
@@ -334,18 +334,25 @@ button, input, select, textarea { font-family: inherit; }
   padding: 32px 36px;
   box-shadow: 0 16px 40px rgba(28, 92, 71, 0.12);
 }
-.hero-inner h1 {
+.hero-inner h1,
+.hero-brand {
   font-family: var(--serif);
-  font-size: clamp(28px, 4.2vw, 46px);
-  line-height: 1.15;
-  margin: 8px 0 14px;
+  font-size: clamp(42px, 6.2vw, 72px);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  word-break: keep-all;
+  margin: 0 0 12px;
   color: var(--navy);
 }
-.hero-lead {
+.hero-title {
   margin: 0 0 24px;
   color: var(--navy-soft);
-  font-size: 16px;
-  max-width: 46ch;
+  font-size: clamp(16px, 2.1vw, 22px);
+  font-weight: 500;
+  line-height: 1.45;
+  max-width: 28ch;
 }
 .hero-actions {
   position: static;
@@ -845,7 +852,7 @@ textarea { min-height: 140px; resize: vertical; }
     margin: 0 0 8px;
     text-align: center;
   }
-  .hero-lead { margin-left: auto; margin-right: auto; }
+  .hero-title { margin-left: auto; margin-right: auto; }
   .hero-actions { justify-content: center; }
 }
 
@@ -1218,9 +1225,16 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .market-form textarea { min-height: 90px; }
 .market-form .market-span,
+.market-form .market-bilingual,
 .market-form .market-photo,
 .market-form .market-drop,
 .market-form p { grid-column: 1 / -1; }
+.market-bilingual {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+.market-bilingual .btn { margin: 4px 0 10px; width: fit-content; }
 .market-listing { margin: 0 0 28px; }
 .market-photo {
   display: grid;
@@ -1415,7 +1429,7 @@ textarea { min-height: 140px; resize: vertical; }
 .market-finance-bar label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 .market-finance-bar select { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
 @media (max-width: 700px) {
-  .market-form { grid-template-columns: 1fr; }
+  .market-form, .market-bilingual { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 960px) {

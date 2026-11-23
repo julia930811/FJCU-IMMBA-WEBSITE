@@ -70,12 +70,11 @@ const I18N = {
     mottoZh: "真善美聖｜在真理與愛德之中",
     identity: [
       ["天主教大學", "隸屬天主教大學聯盟與耶穌會大學網絡"],
-      ["真善美聖", "輔仁大學校訓 In Veritate et Caritate"],
+      ["真善美聖", "輔仁大學校訓：在真理與愛德之中"],
       ["全球連結", "姊妹校與校友網絡遍布世界"]
     ],
-    heroKicker: "WITH imMBA",
-    heroTitle: "Cultivating global managers with AACSB-accredited excellence",
-    heroLead: "輔仁大學國際經營管理碩士班——以 AACSB 認證的全英語 MBA，培養具備國際移動力的管理人才。",
+    heroKicker: "輔大國際經管",
+    heroTitle: "以 AACSB 認證卓越，培育全球經理人",
     ctaApply: "立即申請",
     ctaBooks: "二手書",
     ctaMarket: "教材與書籍市集",
@@ -202,9 +201,8 @@ const I18N = {
       ["Truth and Charity", "Fu Jen’s motto: In Veritate et Caritate"],
       ["Global connection", "Sister schools and alumni across the world"]
     ],
-    heroKicker: "WITH imMBA",
+    heroKicker: "FJCU imMBA",
     heroTitle: "Cultivating global managers with AACSB-accredited excellence",
-    heroLead: "Fu Jen Catholic University International MBA — an AACSB-accredited, English-taught program for international mobility.",
     ctaApply: "Apply Now",
     ctaBooks: "Used books",
     ctaMarket: "Books & materials marketplace",
@@ -485,9 +483,8 @@ function pages() {
       <section class="hero">
         <img class="hero-earth" src="${locale()==="zh"?"img/hero-earth.gif?v=3":"../img/hero-earth.gif?v=3"}" alt="">
         <div class="hero-inner">
-          <p class="kicker">${t().heroKicker}</p>
-          <h1>${t().heroTitle}</h1>
-          <p class="hero-lead">${t().heroLead}</p>
+          <h1 class="hero-brand">${t().heroKicker}</h1>
+          <p class="hero-title">${t().heroTitle}</p>
           <div class="hero-actions">
             <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
             <a class="btn btn-ghost" href="market.html" target="_blank" rel="noopener">${t().ctaBooks}</a>

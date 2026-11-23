@@ -4,7 +4,7 @@ function initMarket() {
   const zh = document.documentElement.lang !== "en";
   const S = window.MarketStore;
   const L = zh ? {
-    buyer: "買家",
+    buyer: "賣場",
     cart: "購物車",
     orders: "我的訂單",
     seller: "賣家",
@@ -49,8 +49,15 @@ function initMarket() {
     payConfirmed: "付款確認",
     keepRecords: "已完成的交易必須保留，作為商業紀錄。",
     name: "商品名稱",
+    nameZh: "中文商品名稱",
+    nameEn: "英文商品名稱",
+    autoFromEn: "由英文自動翻譯（可再改）",
+    autoFromZh: "由中文自動翻譯（可再改）",
+    translateNote: "填寫中文或英文即可；另一語會自動翻譯，仍可再改。",
     category: "類別",
     desc: "商品說明",
+    descZh: "中文商品說明",
+    descEn: "英文商品說明",
     listPrice: "價格",
     listQty: "庫存數量",
     image: "商品圖片",
@@ -125,7 +132,7 @@ function initMarket() {
     confirmDel: "確定下架此商品？",
     needCheckout: "結帳"
   } : {
-    buyer: "Buyer",
+    buyer: "Store",
     cart: "Cart",
     orders: "My orders",
     seller: "Seller",
@@ -170,8 +177,15 @@ function initMarket() {
     payConfirmed: "Payment Confirmed",
     keepRecords: "Do not delete completed transactions. Keep them as business records.",
     name: "Product name",
+    nameZh: "Chinese product name",
+    nameEn: "English product name",
+    autoFromEn: "Auto-translate from English (editable)",
+    autoFromZh: "Auto-translate from Chinese (editable)",
+    translateNote: "Fill in Chinese or English; the other language is auto-translated and stays editable.",
     category: "Category",
     desc: "Description",
+    descZh: "Chinese description",
+    descEn: "English description",
     listPrice: "Price",
     listQty: "Quantity",
     image: "Product photo",
@@ -345,8 +359,8 @@ function initMarket() {
       <article class="card market-card">
         ${p.imageUrl ? `<img src="${productImg(p.imageUrl)}" alt="">` : ""}
         <p class="kicker">${catText(p.category)}</p>
-        <h3>${p.name}</h3>
-        <p>${p.description}</p>
+        <h3>${S.productName(p)}</h3>
+        <p>${S.productDesc(p)}</p>
         <p><strong>${money(p.price)}</strong> · ${L.stock}: ${stock}</p>
         ${extra || ""}
       </article>
@@ -404,7 +418,7 @@ function initMarket() {
         <div class="admin-table-wrap"><table class="admin-table">
           <thead><tr><th>${L.product}</th><th>${L.price}</th><th>${L.qtyCol}</th><th></th></tr></thead>
           <tbody>${lines.map((l) => `<tr>
-            <td>${l.product.name}<br><small>${L.stock} ${S.availableStock(l.product)}</small></td>
+            <td>${S.productName(l.product)}<br><small>${L.stock} ${S.availableStock(l.product)}</small></td>
             <td>${money(l.product.price)}</td>
             <td><input type="number" min="1" value="${l.quantity}" data-qty="${l.productId}"></td>
             <td><button type="button" class="btn btn-line" data-remove="${l.productId}">${L.remove}</button></td>
@@ -434,7 +448,7 @@ function initMarket() {
           <td>${o.orderNo}</td>
           <td>${(o.createdAt || "").slice(0, 10)}</td>
           <td>${seller ? o.buyerEmail : o.sellerEmail}</td>
-          <td>${(o.items || []).map((i) => `${i.name} × ${i.quantity}`).join("<br>")}</td>
+          <td>${(o.items || []).map((i) => `${S.itemName(i)} × ${i.quantity}`).join("<br>")}</td>
           <td>${money(seller ? S.orderMoney(o).sellerNet : S.orderMoney(o).total)}</td>
           <td>${statusText(o.status)}</td>
           ${seller ? `<td>${next ? `<button type="button" class="btn btn-line" data-advance="${o.id}" data-next="${next}">${nextLabel}</button>` : L.kept}</td>` : ""}
@@ -463,7 +477,56 @@ function initMarket() {
   }
 
   function emptyListing() {
-    return { id: "", name: "", category: "Textbook", description: "", price: "", quantity: "", imageUrl: "", status: "active" };
+    return {
+      id: "",
+      name: "",
+      nameZh: "",
+      nameEn: "",
+      category: "Textbook",
+      description: "",
+      descriptionZh: "",
+      descriptionEn: "",
+      nameZhAuto: false,
+      nameEnAuto: false,
+      descriptionZhAuto: false,
+      descriptionEnAuto: false,
+      price: "",
+      quantity: "",
+      imageUrl: "",
+      status: "active"
+    };
+  }
+
+  function coerceListingRow(row) {
+    const base = emptyListing();
+    if (!row) return base;
+    const name = String(row.name || "").trim();
+    const desc = String(row.description || "").trim();
+    let nameZh = String(row.nameZh || "").trim();
+    let nameEn = String(row.nameEn || "").trim();
+    let descriptionZh = String(row.descriptionZh || "").trim();
+    let descriptionEn = String(row.descriptionEn || "").trim();
+    if (name && !nameZh && !nameEn) {
+      if (/[\u3400-\u9fff]/.test(name)) nameZh = name;
+      else nameEn = name;
+    }
+    if (desc && !descriptionZh && !descriptionEn) {
+      if (/[\u3400-\u9fff]/.test(desc)) descriptionZh = desc;
+      else descriptionEn = desc;
+    }
+    return {
+      ...base,
+      ...row,
+      nameZh,
+      nameEn,
+      descriptionZh,
+      descriptionEn
+    };
+  }
+
+  function fieldAuto(id) {
+    const el = document.getElementById(id);
+    return !!(el && el.dataset.auto === "1");
   }
 
   function readListingForm() {
@@ -472,9 +535,15 @@ function initMarket() {
     const fd = new FormData(form);
     return {
       id: fd.get("id") || "",
-      name: fd.get("productName") || "",
+      nameZh: fd.get("nameZh") || "",
+      nameEn: fd.get("nameEn") || "",
       category: fd.get("category") || "Textbook",
-      description: fd.get("description") || "",
+      descriptionZh: fd.get("descriptionZh") || "",
+      descriptionEn: fd.get("descriptionEn") || "",
+      nameZhAuto: fieldAuto("listingNameZh"),
+      nameEnAuto: fieldAuto("listingNameEn"),
+      descriptionZhAuto: fieldAuto("listingDescZh"),
+      descriptionEnAuto: fieldAuto("listingDescEn"),
       price: fd.get("price") || "",
       quantity: fd.get("quantity") || "",
       imageUrl: fd.get("imageUrl") || "",
@@ -519,6 +588,7 @@ function initMarket() {
     } else {
       row = draft ? { ...draft } : emptyListing();
     }
+    row = coerceListingRow(row);
     if (listingImageUrl) row.imageUrl = listingImageUrl;
     else if (row.imageUrl) listingImageUrl = row.imageUrl;
     return row;
@@ -531,18 +601,33 @@ function initMarket() {
   }
 
   function sellerForm(p) {
-    p = p || emptyListing();
+    p = coerceListingRow(p || emptyListing());
     const src = productImg(p.imageUrl);
     const storedUrl = (p.imageUrl || "").indexOf("data:") === 0 ? "" : attr(p.imageUrl);
+    const auto = (on) => (on ? "1" : "0");
+    const text = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;");
     return `
       <form id="listingForm" class="market-form">
         <input type="hidden" name="id" value="${attr(p.id)}">
         <input type="hidden" name="imageUrl" value="${storedUrl}">
-        <label>${L.name}<input name="productName" required value="${attr(p.name)}"></label>
+        <p class="market-note">${L.translateNote}</p>
+        <div class="market-bilingual">
+          <div>
+            <label>${L.nameZh}<input id="listingNameZh" name="nameZh" value="${attr(p.nameZh)}" data-auto="${auto(p.nameZhAuto)}"></label>
+            <button type="button" class="btn btn-line" id="btnAutoZhName">${L.autoFromEn}</button>
+            <label>${L.descZh}<textarea id="listingDescZh" name="descriptionZh" data-auto="${auto(p.descriptionZhAuto)}">${text(p.descriptionZh)}</textarea></label>
+            <button type="button" class="btn btn-line" id="btnAutoZhDesc">${L.autoFromEn}</button>
+          </div>
+          <div>
+            <label>${L.nameEn}<input id="listingNameEn" name="nameEn" value="${attr(p.nameEn)}" data-auto="${auto(p.nameEnAuto)}"></label>
+            <button type="button" class="btn btn-line" id="btnAutoEnName">${L.autoFromZh}</button>
+            <label>${L.descEn}<textarea id="listingDescEn" name="descriptionEn" data-auto="${auto(p.descriptionEnAuto)}">${text(p.descriptionEn)}</textarea></label>
+            <button type="button" class="btn btn-line" id="btnAutoEnDesc">${L.autoFromZh}</button>
+          </div>
+        </div>
         <label class="market-span">${L.category}
           <select name="category">${S.CATEGORIES.map((c) => `<option value="${c}"${c === p.category ? " selected" : ""}>${catText(c)}</option>`).join("")}</select>
         </label>
-        <label class="market-span">${L.desc}<textarea name="description" required>${String(p.description || "").replace(/&/g, "&amp;").replace(/</g, "&lt;")}</textarea></label>
         <label>${L.listPrice}<input name="price" type="number" min="0" step="1" required value="${attr(p.price)}"></label>
         <label>${L.listQty}<input name="quantity" type="number" min="0" step="1" required value="${attr(p.quantity)}"></label>
         <div class="market-photo">
@@ -575,7 +660,7 @@ function initMarket() {
 
   function sellerOrderCard(o) {
     const next = S.STATUSES[S.STATUSES.indexOf(o.status) + 1];
-    const names = (o.items || []).map((i) => i.name + (i.quantity > 1 ? " × " + i.quantity : "")).join(" · ");
+    const names = (o.items || []).map((i) => S.itemName(i) + (i.quantity > 1 ? " × " + i.quantity : "")).join(" · ");
     const m = S.orderMoney(o);
     return `<article class="market-order">
       <p><strong>${names}</strong></p>
@@ -644,7 +729,7 @@ function initMarket() {
         <tbody>${products.map((p) => {
           const purchased = Number(p.quantity) - S.availableStock(p);
           return `<tr>
-            <td>${p.name}<br><small>${catText(p.category)} · ${money(p.price)}</small></td>
+            <td>${S.productName(p)}<br><small>${catText(p.category)} · ${money(p.price)}</small></td>
             <td>${p.status === "hidden" ? L.hidden : L.active}</td>
             <td>${p.quantity}</td>
             <td>${purchased}</td>
@@ -662,7 +747,7 @@ function initMarket() {
 
   function adminTxCard(o) {
     const m = S.orderMoney(o);
-    const names = (o.items || []).map((i) => i.name + (i.quantity > 1 ? " × " + i.quantity : "")).join(" · ");
+    const names = (o.items || []).map((i) => S.itemName(i) + (i.quantity > 1 ? " × " + i.quantity : "")).join(" · ");
     return `<article class="market-tx">
       <p><strong>${L.orderId}</strong> ${o.orderNo}</p>
       <p>${L.lastUpdated}: ${stamp(o)}</p>
@@ -742,6 +827,67 @@ function initMarket() {
     }
     root.innerHTML = roleBar() + body();
     bindListingMedia();
+    bindListingTranslate();
+  }
+
+  async function autoFill(sourceId, targetId, to) {
+    const source = document.getElementById(sourceId);
+    const target = document.getElementById(targetId);
+    if (!source || !target || !window.IMMBATranslate) return "";
+    const text = source.value.trim();
+    if (!text) return "";
+    if (target.value.trim() && target.dataset.auto !== "1") return target.value.trim();
+    target.dataset.pending = "1";
+    const out = await window.IMMBATranslate.translate(text, to);
+    if (target.dataset.pending !== "1") return target.value.trim();
+    if (out) {
+      target.value = out;
+      target.dataset.auto = "1";
+      saveListingDraft();
+    }
+    target.dataset.pending = "0";
+    return out || "";
+  }
+
+  async function fillMissingTranslations() {
+    const pairs = [
+      ["listingNameZh", "listingNameEn", "en"],
+      ["listingNameEn", "listingNameZh", "zh"],
+      ["listingDescZh", "listingDescEn", "en"],
+      ["listingDescEn", "listingDescZh", "zh"]
+    ];
+    for (const [sourceId, targetId, to] of pairs) {
+      const source = document.getElementById(sourceId);
+      const target = document.getElementById(targetId);
+      if (!source || !target || !source.value.trim()) continue;
+      if (!target.value.trim() || target.dataset.auto === "1") {
+        const out = await autoFill(sourceId, targetId, to);
+        if (!out && (!target.value.trim() || target.dataset.auto === "1")) {
+          target.value = source.value.trim();
+          target.dataset.auto = "1";
+        }
+      }
+    }
+  }
+
+  function bindListingTranslate() {
+    const nameZh = document.getElementById("listingNameZh");
+    const nameEn = document.getElementById("listingNameEn");
+    const descZh = document.getElementById("listingDescZh");
+    const descEn = document.getElementById("listingDescEn");
+    if (!nameZh || !nameEn || !descZh || !descEn) return;
+    nameZh.addEventListener("blur", () => autoFill("listingNameZh", "listingNameEn", "en"));
+    nameEn.addEventListener("blur", () => autoFill("listingNameEn", "listingNameZh", "zh"));
+    descZh.addEventListener("blur", () => autoFill("listingDescZh", "listingDescEn", "en"));
+    descEn.addEventListener("blur", () => autoFill("listingDescEn", "listingDescZh", "zh"));
+    const btnZhName = document.getElementById("btnAutoZhName");
+    const btnEnName = document.getElementById("btnAutoEnName");
+    const btnZhDesc = document.getElementById("btnAutoZhDesc");
+    const btnEnDesc = document.getElementById("btnAutoEnDesc");
+    if (btnZhName) btnZhName.addEventListener("click", () => autoFill("listingNameEn", "listingNameZh", "zh"));
+    if (btnEnName) btnEnName.addEventListener("click", () => autoFill("listingNameZh", "listingNameEn", "en"));
+    if (btnZhDesc) btnZhDesc.addEventListener("click", () => autoFill("listingDescEn", "listingDescZh", "zh"));
+    if (btnEnDesc) btnEnDesc.addEventListener("click", () => autoFill("listingDescZh", "listingDescEn", "en"));
   }
 
   function refreshListingPreview() {
@@ -821,6 +967,7 @@ function initMarket() {
     });
     form.addEventListener("input", (e) => {
       if (e.target === drop || (e.target && drop.contains(e.target))) return;
+      if (e.target && e.target.dataset.auto !== undefined) e.target.dataset.auto = "0";
       saveListingDraft();
     });
     form.addEventListener("change", () => saveListingDraft());
@@ -894,16 +1041,24 @@ function initMarket() {
       if (t.dataset.edit) {
         editing = S.product(t.dataset.edit);
         if (editing) {
-          saveListingDraft({
+          saveListingDraft(coerceListingRow({
             id: editing.id || "",
             name: editing.name || "",
+            nameZh: editing.nameZh || "",
+            nameEn: editing.nameEn || "",
             category: editing.category || "Textbook",
             description: editing.description || "",
+            descriptionZh: editing.descriptionZh || "",
+            descriptionEn: editing.descriptionEn || "",
+            nameZhAuto: !!editing.nameZhAuto,
+            nameEnAuto: !!editing.nameEnAuto,
+            descriptionZhAuto: !!editing.descriptionZhAuto,
+            descriptionEnAuto: !!editing.descriptionEnAuto,
             price: editing.price,
             quantity: editing.quantity,
             imageUrl: editing.imageUrl || "",
             status: editing.status || "active"
-          });
+          }));
         }
         skipDraftCapture = true;
         render();
@@ -961,7 +1116,7 @@ function initMarket() {
     if (e.target.id === "adminQ") adminQuery = e.target.value.trim();
   });
 
-  root.addEventListener("submit", (e) => {
+  root.addEventListener("submit", async (e) => {
     if (e.target.id === "feeForm") {
       e.preventDefault();
       try {
@@ -975,22 +1130,19 @@ function initMarket() {
     }
     if (e.target.id !== "listingForm") return;
     e.preventDefault();
-    const fd = new FormData(e.target);
     try {
+      await fillMissingTranslations();
+      const row = readListingForm();
       S.upsertProduct({
-        id: fd.get("id") || "",
-        name: fd.get("productName"),
-        category: fd.get("category"),
-        description: fd.get("description"),
-        price: fd.get("price"),
-        quantity: fd.get("quantity"),
-        imageUrl: listingImageUrl || fd.get("imageUrl") || "",
-        status: fd.get("status")
+        ...row,
+        name: (row && (row.nameZh || row.nameEn)) || "",
+        description: (row && (row.descriptionZh || row.descriptionEn)) || "",
+        imageUrl: listingImageUrl || (row && row.imageUrl) || ""
       });
       editing = null;
       clearListingDraft();
       skipDraftCapture = true;
-      render();
+      go("browse");
     } catch (err) {
       alert(err.message || String(err));
     }
@@ -1002,6 +1154,10 @@ function initMarket() {
   });
   window.addEventListener("pagehide", () => saveListingDraft());
   window.addEventListener("immba-auth", render);
+  window.addEventListener("immba-market", () => {
+    skipDraftCapture = true;
+    render();
+  });
   if (window.IMMBAAuth && window.IMMBAAuth.ready) {
     window.IMMBAAuth.ready.then(render).catch(() => {});
   }
