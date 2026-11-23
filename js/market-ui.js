@@ -191,8 +191,10 @@ function initMarket() {
     needCheckout: "結帳",
     currentRole: "目前模式",
     buyerMode: "買家模式",
+    adminMode: "平台管理員模式",
     sellerModeHint: "建立新商品、編輯上架，並把商品標為已售。",
     buyerModeHint: "瀏覽商品、加入購物車，並選擇面交或寄出後結帳。",
+    adminModeHint: "監看全部交易金額、抽成與訂單明細。監看不代表代賣家出貨。",
     shipMethod: "取貨方式",
     pickup: "面交（免運）",
     shipOut: "寄出（運費 NT$60）",
@@ -338,8 +340,10 @@ function initMarket() {
     needCheckout: "check out",
     currentRole: "Current Role",
     buyerMode: "Buyer Mode",
+    adminMode: "Platform Admin Mode",
     sellerModeHint: "Create new product listings, edit your listings, and mark items as sold.",
     buyerModeHint: "Browse listings, add items to cart, then check out with pickup or shipping.",
+    adminModeHint: "Monitor all transaction amounts, fees, and order details. Monitoring does not mean shipping for sellers.",
     shipMethod: "Shipping Method",
     pickup: "In-person pickup (free)",
     shipOut: "Home delivery (NT$60)",
@@ -408,32 +412,20 @@ function initMarket() {
     return view === "browse" || view === "cart" || view === "orders" || String(view).startsWith("product-");
   }
 
-  function roleBar() {
-    const tabs = [
-      ["browse", L.buyer],
-      ["seller", L.seller],
-      ["admin", L.admin]
-    ];
-    const buyerOn = isBuyerView();
-    return `
-      <div class="market-roles">
-        ${tabs.map(([id, label]) => {
-          const on = id === "browse" ? buyerOn : view === id;
-          return `<button type="button" class="market-role${on ? " is-on" : ""}" data-view="${id}">${label}</button>`;
-        }).join("")}
-      </div>
-    `;
-  }
-
   function modeBox() {
-    if (view === "admin") return "";
     const sellerOn = view === "seller";
+    const adminOn = view === "admin";
+    const showAdmin = !!(S.isMarketAdmin && S.isMarketAdmin());
+    const hint = adminOn ? L.adminModeHint : (sellerOn ? L.sellerModeHint : L.buyerModeHint);
     return `
       <div class="market-mode-box">
         <p class="market-mode-label">${L.currentRole}</p>
-        <label class="market-mode-opt"><input type="radio" name="marketMode" data-view="browse"${sellerOn ? "" : " checked"}> ${L.buyerMode}</label>
-        <label class="market-mode-opt"><input type="radio" name="marketMode" data-view="seller"${sellerOn ? " checked" : ""}> ${L.sellerMode}</label>
-        <p class="market-note">${sellerOn ? L.sellerModeHint : L.buyerModeHint}</p>
+        <div class="market-mode-row">
+          <label class="market-mode-opt"><input type="radio" name="marketMode" data-view="browse"${!sellerOn && !adminOn ? " checked" : ""}> <span>${L.buyerMode}</span></label>
+          <label class="market-mode-opt"><input type="radio" name="marketMode" data-view="seller"${sellerOn ? " checked" : ""}> <span>${L.sellerMode}</span></label>
+          ${showAdmin ? `<label class="market-mode-opt"><input type="radio" name="marketMode" data-view="admin"${adminOn ? " checked" : ""}> <span>${L.adminMode}</span></label>` : ""}
+        </div>
+        <p class="market-note">${hint}</p>
       </div>
     `;
   }
@@ -804,8 +796,11 @@ function initMarket() {
         <p><strong>${money(p.price)}</strong></p>
         <p>${L.qtyLeft}: ${stock}</p>
         <p class="market-card-actions">
+          ${S.canManageProduct(p) ? `
           <button type="button" class="btn btn-line" data-edit="${p.id}">${L.editItem}</button>
           <button type="button" class="btn btn-line" data-hide="${p.id}">${sold ? L.show : L.markSold}</button>
+          <button type="button" class="btn btn-line" data-del="${p.id}">${L.unlist}</button>
+          ` : ""}
         </p>
       </article>
     `;
@@ -970,23 +965,22 @@ function initMarket() {
   function paintRoles() {
     const host = document.getElementById("marketRoleBar");
     if (!host) return;
-    host.innerHTML = roleBar() + (justListedId ? `<p class="market-listed-hero">${L.listedDone}</p>` : "");
+    host.innerHTML = justListedId ? `<p class="market-listed-hero">${L.listedDone}</p>` : "";
   }
 
   function render() {
     if (!skipDraftCapture) saveListingDraft();
     skipDraftCapture = false;
     paintRoles();
-    const bar = document.getElementById("marketRoleBar") ? "" : roleBar();
-    if (view === "admin" && !S.isPlatformAdmin()) {
-      root.innerHTML = bar + `<p class="market-note">${L.adminOnly} ${S.me() ? "" : `<a href="${loginHref()}">${L.signIn}</a>`}</p>`;
+    if (view === "admin" && !(S.isMarketAdmin && S.isMarketAdmin())) {
+      go("browse");
       return;
     }
     if ((view === "seller" || view === "orders") && !S.me()) {
-      root.innerHTML = bar + modeBox() + buyerTitles() + `<p class="market-note">${L.signInFirst} <a href="${loginHref()}">${L.signIn}</a></p>`;
+      root.innerHTML = modeBox() + buyerTitles() + `<p class="market-note">${L.signInFirst} <a href="${loginHref()}">${L.signIn}</a></p>`;
       return;
     }
-    root.innerHTML = bar + modeBox() + buyerTitles() + body();
+    root.innerHTML = modeBox() + buyerTitles() + body();
     bindListingMedia();
     bindListingTranslate();
   }
@@ -1216,8 +1210,10 @@ function initMarket() {
         return;
       }
       if (t.dataset.edit) {
+        const p = S.product(t.dataset.edit);
+        if (!S.canManageProduct(p)) throw new Error(L.ownOnly || (zh ? "只能編輯自己上傳的商品。" : "You can only update listings you uploaded."));
         setJustListed("");
-        editing = S.product(t.dataset.edit);
+        editing = p;
         if (editing) {
           saveListingDraft(coerceListingRow({
             id: editing.id || "",
@@ -1244,6 +1240,7 @@ function initMarket() {
       }
       if (t.dataset.hide) {
         const p = S.product(t.dataset.hide);
+        if (!S.canManageProduct(p)) throw new Error(zh ? "只能下架自己上傳的商品。" : "You can only hide listings you uploaded.");
         S.upsertProduct({ ...p, status: p.status === "hidden" ? "active" : "hidden" });
         render();
         return;

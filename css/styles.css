@@ -1206,15 +1206,26 @@ textarea { min-height: 140px; resize: vertical; }
   font-weight: 700;
   color: #1c5c47;
 }
+.market-mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  align-items: center;
+}
 .market-mode-opt {
   display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 6px;
-  margin: 0 18px 8px 0;
+  gap: 8px;
+  margin: 0;
   cursor: pointer;
   font-weight: 600;
+  white-space: nowrap;
+  writing-mode: horizontal-tb;
 }
-.market-mode-box .market-note { margin: 4px 0 0; }
+.market-mode-opt span { white-space: nowrap; }
+.market-mode-box .market-note { margin: 10px 0 0; }
 .market-page-titles {
   display: flex;
   flex-wrap: wrap;

@@ -355,9 +355,13 @@
     const u = me();
     const imageUrl = String(p.imageUrl || "");
     const safeImage = imageUrl.indexOf("data:") === 0 ? "" : imageUrl;
+    const keepSeller = p && p.sellerId && u && !isOwnProduct(p) && canManageProduct(p);
+    const rawSeller = keepSeller ? p.sellerId : ((u && u.id) || p.sellerId || null);
+    const sellerId = /^[0-9a-f-]{36}$/i.test(String(rawSeller || "")) ? rawSeller : (keepSeller ? null : ((u && u.id) || null));
+    const sellerEmail = keepSeller ? (p.sellerEmail || "") : ((u && u.email) || p.sellerEmail || "");
     return {
-      seller_id: (u && u.id) || p.sellerId || null,
-      seller_email: (u && u.email) || p.sellerEmail || "",
+      seller_id: sellerId,
+      seller_email: sellerEmail,
       name: p.nameZh || p.nameEn || p.name || "",
       category: p.category || "Textbook",
       description: JSON.stringify({
@@ -429,8 +433,12 @@
         return p;
       }
       const { data, error } = await client.from("market_products").insert(row).select("*").single();
-      if (!error && data) p.cloudId = data.id;
-    } catch (err) {}
+      if (error) throw error;
+      if (data) p.cloudId = data.id;
+    } catch (err) {
+      const msg = (err && err.message) || String(err);
+      throw new Error(t("雲端上架失敗：" + msg, "Cloud listing failed: " + msg));
+    }
     return p;
   }
 
@@ -625,6 +633,15 @@
     return u.id === product.sellerId || sameEmail(u.email, product.sellerEmail);
   }
 
+  function isMarketAdmin() {
+    const u = me();
+    return !!(u && sameEmail(u.email, JIAYI_EMAIL));
+  }
+
+  function canManageProduct(product) {
+    return isOwnProduct(product) || isMarketAdmin();
+  }
+
   function isOwnOrder(order) {
     const u = me();
     if (!u || !order) return false;
@@ -662,7 +679,7 @@
     let descriptionZh = splitD.zh;
     let descriptionEn = splitD.en;
     let existing = input.id ? state.products.find((p) => String(p.id) === String(input.id)) : null;
-    if (existing && !isOwnProduct(existing)) existing = null;
+    if (existing && !canManageProduct(existing)) existing = null;
     if (existing) {
       const oldZh = String(existing.nameZh || "").trim();
       const oldEn = String(existing.nameEn || "").trim();
@@ -723,7 +740,9 @@
       }
       save();
       notifyChange();
-      pushProduct(existing).then(() => { save(); notifyChange(); }).catch(() => {});
+      pushProduct(existing).then(() => { save(); notifyChange(); }).catch((err) => {
+        try { window.alert(err.message || String(err)); } catch (e) {}
+      });
       return existing;
     }
     const product = {
@@ -735,7 +754,9 @@
     state.products.unshift(product);
     save();
     notifyChange();
-    pushProduct(product).then(() => { save(); notifyChange(); }).catch(() => {});
+    pushProduct(product).then(() => { save(); notifyChange(); }).catch((err) => {
+      try { window.alert(err.message || String(err)); } catch (e) {}
+    });
     return product;
   }
 
@@ -744,7 +765,7 @@
     if (!u) throw new Error(t("請先登入。", "Please sign in."));
     const product = state.products.find((p) => p.id === id);
     if (!product) return;
-    if (!isOwnProduct(product)) throw new Error(t("只能下架自己上傳的商品。", "You can only remove listings you uploaded."));
+    if (!canManageProduct(product)) throw new Error(t("只能下架自己上傳的商品。", "You can only remove listings you uploaded."));
     state.products = state.products.filter((p) => p.id !== id);
     save();
     notifyChange();
@@ -761,6 +782,7 @@
   function sellerProducts() {
     const u = me();
     if (!u) return [];
+    if (isMarketAdmin()) return state.products.slice();
     return state.products.filter((p) => isOwnProduct(p));
   }
 
@@ -870,6 +892,8 @@
       return state.notices.filter((n) => !n.toEmail || n.toEmail === u.email);
     },
     isOwnProduct,
+    canManageProduct,
+    isMarketAdmin,
     isOwnOrder,
     setStatus,
     upsertProduct,

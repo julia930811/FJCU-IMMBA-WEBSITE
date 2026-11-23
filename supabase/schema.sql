@@ -1,5 +1,7 @@
--- imMBA lecture schema: faculty, auth profiles, storage
+-- imMBA lecture schema: faculty, auth profiles, storage, C2C market
 -- Run this in the Supabase SQL Editor (can re-run).
+-- Market: any signed-in classmate can insert/update/delete THEIR listings
+-- (seller_id = auth.uid()). Only admin/super_admin (jiayi) can change others.
 -- Dashboard also needed for the lecture:
 --   Authentication → Providers → Email ON
 --   Authentication → Confirm email can stay ON; class signup uses /api/signup
@@ -285,8 +287,18 @@ alter table public.market_products enable row level security;
 alter table public.market_orders enable row level security;
 alter table public.market_order_items enable row level security;
 
+grant select on table public.market_products to anon, authenticated;
+grant insert, update, delete on table public.market_products to authenticated;
+grant usage, select on sequence public.market_products_id_seq to authenticated;
+grant select, insert, update on table public.market_orders to authenticated;
+grant select, insert on table public.market_order_items to authenticated;
+
 drop policy if exists market_products_select on public.market_products;
 drop policy if exists market_products_write on public.market_products;
+drop policy if exists market_products_insert_own on public.market_products;
+drop policy if exists market_products_update_own on public.market_products;
+drop policy if exists market_products_delete_own on public.market_products;
+drop policy if exists market_products_admin on public.market_products;
 drop policy if exists market_orders_select on public.market_orders;
 drop policy if exists market_orders_insert on public.market_orders;
 drop policy if exists market_orders_update on public.market_orders;
@@ -296,11 +308,20 @@ drop policy if exists market_items_insert on public.market_order_items;
 create policy market_products_select on public.market_products for select using (
   status = 'active' or seller_id = auth.uid() or public.is_admin()
 );
-create policy market_products_write on public.market_products for all using (
-  seller_id = auth.uid() or public.is_admin()
-) with check (
-  seller_id = auth.uid() or public.is_admin()
-);
+create policy market_products_insert_own on public.market_products
+  for insert to authenticated
+  with check (seller_id = auth.uid());
+create policy market_products_update_own on public.market_products
+  for update to authenticated
+  using (seller_id = auth.uid())
+  with check (seller_id = auth.uid());
+create policy market_products_delete_own on public.market_products
+  for delete to authenticated
+  using (seller_id = auth.uid());
+create policy market_products_admin on public.market_products
+  for all to authenticated
+  using (public.is_admin())
+  with check (public.is_admin());
 create policy market_orders_select on public.market_orders for select using (
   buyer_id = auth.uid() or seller_id = auth.uid() or public.is_admin()
 );
