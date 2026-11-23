@@ -109,6 +109,9 @@ function initMarket() {
     hidden: "隱藏",
     update: "更新商品",
     create: "上架",
+    listedDone: "上架完成",
+    listAnother: "再上一件",
+    viewListing: "去瀏覽商品",
     cancel: "取消",
     markPaid: "已收到付款（待出貨）",
     markShip: "確認出貨",
@@ -237,6 +240,9 @@ function initMarket() {
     hidden: "Hidden",
     update: "Update listing",
     create: "Create listing",
+    listedDone: "Listing complete",
+    listAnother: "List another",
+    viewListing: "View in browse",
     cancel: "Cancel",
     markPaid: "Payment Received (Awaiting Shipment)",
     markShip: "Confirm shipment",
@@ -698,6 +704,21 @@ function initMarket() {
     `;
   }
 
+  function listedDonePanel() {
+    const p = justListedId ? S.product(justListedId) : null;
+    return `
+      <div class="market-listed-done">
+        <p class="market-listed-done-kicker">${L.listedDone}</p>
+        <h3>${L.listedDone}</h3>
+        ${p ? `<p><strong>${S.productName(p)}</strong></p>` : ""}
+        <p>
+          <button type="button" class="btn btn-navy" data-view="browse">${L.viewListing}</button>
+          <button type="button" class="btn btn-line" id="listAnother">${L.listAnother}</button>
+        </p>
+      </div>
+    `;
+  }
+
   function sellerActionLabel(status) {
     if (status === "waiting_payment") return L.markPaid;
     if (status === "ready_to_ship") return L.markShip;
@@ -741,8 +762,8 @@ function initMarket() {
       <h2>${L.sellerTitle}</h2>
       <p class="market-note">${L.sellerNote}</p>
       <section class="market-listing">
-        <h3>${L.listingTitle}</h3>
-        ${sellerForm(listingFormState())}
+        <h3>${justListedId ? L.listedDone : L.listingTitle}</h3>
+        ${justListedId ? listedDonePanel() : sellerForm(listingFormState())}
       </section>
       ${lifecycleHtml()}
       <div class="stats market-stats">
@@ -777,7 +798,7 @@ function initMarket() {
           const purchased = Number(p.quantity) - S.availableStock(p);
           return `<tr>
             <td>${S.productName(p)}<br><small>${catText(p.category)} · ${money(p.price)}</small></td>
-            <td>${p.status === "hidden" ? L.hidden : L.active}</td>
+            <td>${p.status === "hidden" ? L.hidden : (justListedId && String(p.id) === String(justListedId) ? L.listedDone : L.active)}</td>
             <td>${p.quantity}</td>
             <td>${purchased}</td>
             <td>${S.availableStock(p)}</td>
@@ -1050,7 +1071,7 @@ function initMarket() {
   }
 
   root.addEventListener("click", (e) => {
-    const t = e.target.closest("[data-view], [data-open], [data-add], [data-remove], [data-advance], [data-edit], [data-hide], [data-del], #checkoutBtn, #exportSeller, #exportAdmin, #cancelEdit");
+    const t = e.target.closest("[data-view], [data-open], [data-add], [data-remove], [data-advance], [data-edit], [data-hide], [data-del], #checkoutBtn, #exportSeller, #exportAdmin, #cancelEdit, #listAnother");
     if (!t) return;
     try {
       if (t.id === "checkoutBtn") {
@@ -1066,6 +1087,14 @@ function initMarket() {
       }
       if (t.id === "exportAdmin") {
         downloadCsv(S.exportAdminCsv(), "platform-transactions.csv");
+        return;
+      }
+      if (t.id === "listAnother") {
+        justListedId = "";
+        editing = null;
+        clearListingDraft();
+        skipDraftCapture = true;
+        render();
         return;
       }
       if (t.id === "cancelEdit") {
@@ -1207,9 +1236,11 @@ function initMarket() {
       editing = null;
       clearListingDraft();
       skipDraftCapture = true;
-      go("browse");
-      const first = root.querySelector(".market-card");
-      if (first) first.scrollIntoView({ block: "start" });
+      view = "seller";
+      location.hash = "seller";
+      render();
+      const done = root.querySelector(".market-listed-done");
+      if (done) done.scrollIntoView({ block: "start" });
     } catch (err) {
       alert(err.message || String(err));
     }

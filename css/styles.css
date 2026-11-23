@@ -1256,6 +1256,27 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .market-bilingual .btn { margin: 4px 0 10px; width: fit-content; }
 .market-listing { margin: 0 0 28px; }
+.market-listed-done {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 28px 24px;
+  text-align: center;
+}
+.market-listed-done-kicker {
+  margin: 0 0 8px;
+  color: #1c5c47;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.market-listed-done h3 {
+  margin: 0 0 12px;
+  font-size: 32px;
+  color: #1c5c47;
+}
+.market-listed-done p { margin: 0 0 16px; }
+.market-listed-done .btn { margin: 0 6px 8px; }
 .market-photo {
   display: grid;
   gap: 10px;
