@@ -50,7 +50,7 @@ const I18N = {
       ]},
       { href: "marketplace.html", label: "教材市集", children: [
         ["marketplace.html#cases", "個案與讀本"],
-        ["marketplace.html#templates", "論文格式範本"]
+        ["market.html", "二手書交流"]
       ]},
       { href: "events.html", label: "活動集錦", children: [
         ["events.html#list", "活動紀實"],
@@ -76,6 +76,7 @@ const I18N = {
     heroKicker: "輔大國際經管",
     heroTitle: "以 AACSB 認證卓越，培育全球經理人",
     ctaApply: "立即申請",
+    ctaBooks: "二手書",
     stats: [
       ["30+", "國家與地區的學生交流"],
       ["1 : 1", "本地生與國際生合班"],
@@ -176,7 +177,7 @@ const I18N = {
       ]},
       { href: "marketplace.html", label: "Marketplace", children: [
         ["marketplace.html#cases", "Cases and readings"],
-        ["marketplace.html#templates", "Thesis templates"]
+        ["market.html", "Used-book exchange"]
       ]},
       { href: "events.html", label: "Events", children: [
         ["events.html#list", "Event highlights"],
@@ -202,6 +203,7 @@ const I18N = {
     heroKicker: "FJCU imMBA",
     heroTitle: "Cultivating global managers with AACSB-accredited excellence",
     ctaApply: "Apply Now",
+    ctaBooks: "Used books",
     stats: [
       ["30+", "countries represented"],
       ["1 : 1", "local and international cohort"],
@@ -294,7 +296,8 @@ function authActionHTML() {
   const Auth = window.IMMBAAuth;
   if (!Auth || !Auth.user || !Auth.user()) {
     const page = document.body.dataset.page;
-    return `<a class="btn btn-line" href="login.html">${L.authLogin}</a>`;
+    const next = page === "market" ? "?next=" + encodeURIComponent("market.html" + (location.hash || "")) : "";
+    return `<a class="btn btn-line" href="login.html${next}">${L.authLogin}</a>`;
   }
   const mail = (Auth.user().email || L.authAccount).split("@")[0];
   return `<div class="account-menu">
@@ -482,6 +485,7 @@ function pages() {
           <p class="hero-title">${t().heroTitle}</p>
           <div class="hero-actions">
             <a class="btn btn-apply" href="admissions.html">${t().ctaApply}</a>
+            <a class="btn btn-ghost" href="market.html">${t().ctaBooks}</a>
           </div>
         </div>
       </section>
@@ -1003,10 +1007,15 @@ function pages() {
       <p style="margin-top:24px"><a class="btn btn-line" href="gallery.html">${zh?"相片集錦":"Photo gallery"}</a>
       ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=241")}</p>
     `),
-    marketplace: pageShell(zh?"教材與書籍市集":"Books & materials marketplace", zh?"課程讀本與論文範本入口。":"Course readings and thesis templates.", `
+    market: pageShell(zh?"二手書市集":"Used-book marketplace", zh?"一個平台，不同角色，不同權限。":"One platform. Different users. Different permissions.", `<div id="marketRoot"></div>`),
+    marketplace: pageShell(zh?"教材與書籍市集":"Books & materials marketplace", zh?"課程讀本、二手書交流與論文範本入口。":"Course readings, used-book exchange, and thesis templates.", `
       <div class="cards">
-        ${(window.IMMBA.marketplace || []).map((item, i) => `<article class="card" id="${i === 0 ? "cases" : "templates"}"><h3>${zh?item.zhTitle:item.enTitle}</h3><p>${zh?item.zh:item.en}</p><p><a class="btn btn-navy" href="${item.href}">${zh?"前往":"Open"}</a></p></article>`).join("")}
+        ${(window.IMMBA.marketplace || []).map((item) => {
+          const id = item.href === "curriculum.html" ? "cases" : (item.href === "market.html" ? "books" : "templates");
+          return `<article class="card" id="${id}"><h3>${zh?item.zhTitle:item.enTitle}</h3><p>${zh?item.zh:item.en}</p><p><a class="btn btn-navy" href="${item.href}">${zh?"前往":"Open"}</a></p></article>`;
+        }).join("")}
       </div>
+      <div id="usedBookShelf" class="market-shelf"></div>
     `),
     downloads: pageShell(zh?"下載專區":"Downloads", zh?"簡章、課表、修業規則與論文表單。正式文件以現行官網表格下載為準。":"Brochures, timetables, regulations and thesis forms. Official files remain on the college download page.", `
       <p><a class="btn btn-navy" href="https://www.management.fju.edu.tw/subweb/immba/download.php" target="_blank" rel="noopener">${zh?"官網表格下載":"Official downloads"}</a></p>
@@ -1060,10 +1069,12 @@ function pageShell(title, lead, inner) {
   const home = locale()==="zh"?"首頁":"Home";
   const page = document.body.dataset.page;
   const tabs = (page === "admin-news" || page === "admin-faculty" || page === "admin-alumni" || page === "admin-users" || page === "admin-audit") ? adminSwitch() : "";
+  const marketRoles = page === "market" ? `<div id="marketRoleBar" class="market-role-bar"></div>` : "";
   return `<section class="page-hero"><div class="wrap">
     <div class="crumbs"><a href="index.html">${home}</a> / ${title}</div>
     <h1>${title}</h1>${lead ? `<p>${lead}</p>` : ""}
     ${tabs}
+    ${marketRoles}
   </div></section>
   <section class="section"><div class="wrap">${inner}</div></section>`;
 }
@@ -1367,6 +1378,7 @@ async function boot() {
   if (page === "admin-faculty" && typeof initAdminFaculty === "function") initAdminFaculty();
   if (page === "admin-alumni" && typeof initAdminAlumni === "function") initAdminAlumni();
   if (typeof initAuthUI === "function") initAuthUI();
+  if ((page === "market" || page === "marketplace") && typeof initMarket === "function") initMarket();
   if (location.hash) {
     const target = document.querySelector(location.hash);
     if (target) target.scrollIntoView();
