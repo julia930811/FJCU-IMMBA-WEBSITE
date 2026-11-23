@@ -40,6 +40,7 @@ function initMarket() {
     initMarketShelf();
     return;
   }
+  let justListedId = "";
   const zh = document.documentElement.lang !== "en";
   const S = window.MarketStore;
   const L = zh ? {
@@ -420,7 +421,13 @@ function initMarket() {
   }
 
   function browse() {
-    const list = S.catalog();
+    let list = S.catalog();
+    if (justListedId) {
+      const hit = S.product(justListedId);
+      if (hit && String(hit.status || "active") !== "hidden") {
+        list = [hit].concat(list.filter((p) => String(p.id) !== String(hit.id)));
+      }
+    }
     return `
       <h2>${L.browse}</h2>
       <div class="cards">${list.map((p) => productCard(p, `
@@ -1189,13 +1196,14 @@ function initMarket() {
       await fillMissingTranslations();
       const row = readListingForm();
       const editingId = editing && editing.id ? String(editing.id) : "";
-      await S.upsertProduct({
+      const saved = S.upsertProduct({
         ...row,
         id: editingId || "",
         name: (row && (row.nameZh || row.nameEn)) || "",
         description: (row && (row.descriptionZh || row.descriptionEn)) || "",
         imageUrl: listingImageUrl || (row && row.imageUrl) || ""
       });
+      justListedId = saved && saved.id ? String(saved.id) : "";
       editing = null;
       clearListingDraft();
       skipDraftCapture = true;

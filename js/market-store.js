@@ -720,11 +720,8 @@
       }
       save();
       notifyChange();
-      return pushProduct(existing).then((row) => {
-        save();
-        notifyChange();
-        return row;
-      });
+      pushProduct(existing).then(() => { save(); notifyChange(); }).catch(() => {});
+      return existing;
     }
     const product = {
       id: "mp" + Date.now(),
@@ -735,11 +732,8 @@
     state.products.unshift(product);
     save();
     notifyChange();
-    return pushProduct(product).then((row) => {
-      save();
-      notifyChange();
-      return row;
-    });
+    pushProduct(product).then(() => { save(); notifyChange(); }).catch(() => {});
+    return product;
   }
 
   function removeProduct(id) {
@@ -838,7 +832,7 @@
     catalog() {
       return state.products
         .map((p, i) => ({ p, i }))
-        .filter((row) => (row.p.status || "active") === "active")
+        .filter((row) => String(row.p.status || "active") !== "hidden")
         .sort((a, b) => {
           const ownA = isOwnProduct(a.p) ? 1 : 0;
           const ownB = isOwnProduct(b.p) ? 1 : 0;
