@@ -1,5 +1,6 @@
 {
   "framework": null,
+  "outputDirectory": ".",
   "buildCommand": "node scripts/write-env.js",
   "functions": {
     "api/signup.js": {
