@@ -142,7 +142,7 @@ function initMarket() {
     amountDue: "應付金額",
     none: "目前沒有。",
     sellerTitle: "賣家儀表板：銷售與帳務",
-    sellerNote: "賣家只能編輯、隱藏或下架自己上傳的商品，也只能處理自己賣出的訂單。賣掉一筆訂單平台抽成 NT$4，運費 NT$60。",
+    sellerNote: "任何已登入同學都可以上架自己的二手書。只能編輯、隱藏或下架自己上傳的商品，也只能處理自己賣出的訂單。賣掉一筆訂單平台抽成 NT$4，運費 NT$60。",
     rev: "本月實收（已扣抽成）",
     completedN: "完成訂單數",
     pendingPay: "待付款",
@@ -159,7 +159,7 @@ function initMarket() {
     revThis: "本月實收",
     feesThis: "本月抽成",
     shipThis: "本月運費",
-    listingTitle: "上架／編輯商品（僅限自己上傳）",
+    listingTitle: "上架／編輯商品（登入後即可上架自己的商品）",
     inventory: "庫存",
     invNote: "可售庫存＝目前庫存 − 已售數量。只能改自己上架的庫存。",
     purchased: "已售",
@@ -196,7 +196,7 @@ function initMarket() {
     adminMode: "平台管理員模式",
     sellerModeHint: "建立新商品、編輯上架，並把商品標為已售。",
     buyerModeHint: "瀏覽商品、加入購物車，並選擇面交或寄出後結帳。",
-    adminModeHint: "監看全部交易金額、抽成與訂單明細。監看不代表代賣家出貨。",
+    adminModeHint: "可上架商品，並監看全部交易金額、抽成與訂單明細。",
     shipMethod: "取貨方式",
     pickup: "面交（免運）",
     shipOut: "寄出（運費 NT$60）",
@@ -293,7 +293,7 @@ function initMarket() {
     lastUpdated: "Last updated",
     none: "None.",
     sellerTitle: "Seller dashboard: sales and accounting",
-    sellerNote: "Sellers can edit, hide, or remove only listings they uploaded, and can process only their own sales. Each sale takes a NT$4 platform fee; shipping is NT$60.",
+    sellerNote: "Any signed-in classmate can list their own used books. You can edit, hide, or remove only listings you uploaded, and can process only your own sales. Each sale takes a NT$4 platform fee; shipping is NT$60.",
     rev: "Monthly net (after fee)",
     completedN: "Completed orders",
     pendingPay: "Pending payments",
@@ -310,7 +310,7 @@ function initMarket() {
     revThis: "Net this month",
     feesThis: "Fees this month",
     shipThis: "Shipping this month",
-    listingTitle: "Create / edit listing (your uploads only)",
+    listingTitle: "Create / edit listing (any signed-in classmate can list their own items)",
     inventory: "Inventory",
     invNote: "Available stock = current inventory − purchased quantity. You can change inventory only on your own listings.",
     purchased: "Purchased",
@@ -347,7 +347,7 @@ function initMarket() {
     adminMode: "Platform Admin Mode",
     sellerModeHint: "Create new product listings, edit your listings, and mark items as sold.",
     buyerModeHint: "Browse listings, add items to cart, then check out with pickup or shipping.",
-    adminModeHint: "Monitor all transaction amounts, fees, and order details. Monitoring does not mean shipping for sellers.",
+    adminModeHint: "You can list products and monitor all transaction amounts, fees, and order details.",
     shipMethod: "Shipping Method",
     pickup: "In-person pickup (free)",
     shipOut: "Home delivery (NT$60)",
@@ -842,8 +842,7 @@ function initMarket() {
     </article>`;
   }
 
-  function sellerView() {
-    const dash = S.dashboard(sellerMonth);
+  function listingBlocks() {
     const products = S.sellerProducts();
     const activeCards = products.slice().sort((a, b) => {
       const aNew = justListedId && String(a.id) === String(justListedId) ? 1 : 0;
@@ -851,14 +850,7 @@ function initMarket() {
       if (aNew !== bNew) return bNew - aNew;
       return String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
     });
-    const mine = S.mine("seller");
-    const pendingPay = mine.filter((o) => o.status === "waiting_payment");
-    const pendingShip = mine.filter((o) => o.status === "ready_to_ship" || o.status === "shipped");
-    const completed = mine.filter((o) => o.status === "completed");
-    const months = S.sellerMonths();
-    const period = sellerMonth ? sellerMonth.replace("-", "/") : L.allMonths;
     return `
-      <h2>${L.sellerTitle}</h2>
       <section class="market-listing">
         <h3>${justListedId ? L.listedDone : L.listingTitle}</h3>
         ${justListedId ? listedDonePanel() : sellerForm(listingFormState())}
@@ -870,6 +862,20 @@ function initMarket() {
         </div>
         <div class="cards">${activeCards.map(sellerListingCard).join("") || `<p class="market-note">${L.noOwn}</p>`}</div>
       </section>
+    `;
+  }
+
+  function sellerView() {
+    const dash = S.dashboard(sellerMonth);
+    const mine = S.mine("seller");
+    const pendingPay = mine.filter((o) => o.status === "waiting_payment");
+    const pendingShip = mine.filter((o) => o.status === "ready_to_ship" || o.status === "shipped");
+    const completed = mine.filter((o) => o.status === "completed");
+    const months = S.sellerMonths();
+    const period = sellerMonth ? sellerMonth.replace("-", "/") : L.allMonths;
+    return `
+      <h2>${L.sellerTitle}</h2>
+      ${listingBlocks()}
       ${lifecycleHtml()}
       <div class="stats market-stats">
         <div><strong>${dash.listedCount}</strong><span>${L.listedN}</span></div>
@@ -926,6 +932,7 @@ function initMarket() {
     const fees = rows.reduce((s, o) => s + Number(S.orderMoney(o).fee || 0), 0);
     return `
       <h2>${L.adminTitle}</h2>
+      ${listingBlocks()}
       <p class="market-note">${L.adminLead}</p>
       <p class="market-callout">${L.adminNote} ${L.keepRecords}</p>
       <section class="market-panel">
@@ -1343,8 +1350,9 @@ function initMarket() {
       editing = null;
       clearListingDraft();
       skipDraftCapture = true;
-      view = "seller";
-      location.hash = "seller";
+      const stayAdmin = view === "admin" && S.isMarketAdmin && S.isMarketAdmin();
+      view = stayAdmin ? "admin" : "seller";
+      location.hash = view;
       render();
       const first = root.querySelector(".market-active .market-card") || root.querySelector(".market-listed-done");
       if (first) first.scrollIntoView({ block: "start" });

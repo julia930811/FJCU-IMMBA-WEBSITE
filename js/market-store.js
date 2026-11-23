@@ -572,7 +572,9 @@
 
   function isMarketAdmin() {
     const u = me();
-    return !!(u && sameEmail(u.email, JIAYI_EMAIL));
+    if (!u) return false;
+    if (sameEmail(u.email, JIAYI_EMAIL)) return true;
+    return !!(auth().isSuper && auth().isSuper());
   }
 
   function canManageProduct(product) {
