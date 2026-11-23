@@ -1306,6 +1306,85 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .market-qty { display: flex; flex-direction: column; gap: 6px; max-width: 160px; }
 .market-qty input { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+.market-ok {
+  background: #e7f6ee;
+  color: #145c38;
+  border: 1px solid #b7e0c8;
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin: 0 0 16px;
+  font-weight: 600;
+}
+.market-cart-box {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 0 0 20px;
+}
+.market-cart-box h3 { margin: 0 0 8px; }
+.market-cart-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+}
+.market-cart-line {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.market-cart-line img,
+.market-cart-ph {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  background: #faf6ee;
+}
+.market-cart-line p { margin: 0; }
+.market-cart-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: flex-end;
+}
+.market-cart-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 4px 8px;
+}
+.market-cart-step button {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+.market-cart-totals {
+  margin: 0 0 16px;
+}
+.market-cart-totals div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 6px 0;
+}
+.market-cart-totals .is-total {
+  font-weight: 700;
+  font-size: 18px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+.market-cart-totals dt, .market-cart-totals dd { margin: 0; }
 #marketRoot .btn-ghost {
   color: var(--navy);
   border: 1px solid var(--line);
@@ -1534,8 +1613,16 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .market-order p { margin: 4px 0; }
 .market-action {
-  font-size: 14px;
+  font-size: 13px;
   padding: 8px 14px;
+  border-radius: 999px;
+  margin-top: 8px;
+}
+.market-seller-block { margin: 0 0 18px; }
+.market-seller-block h4 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #1d7ab8;
 }
 .market-life {
   background: #fff;
@@ -1546,10 +1633,23 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .market-life h3 { margin: 0 0 10px; font-size: 16px; }
 .market-lifecycle {
-  margin: 0;
-  padding-left: 18px;
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
 }
-.market-lifecycle li { margin: 4px 0; }
+.market-lifecycle li {
+  font-weight: 700;
+  margin: 0;
+  padding: 4px 0 18px;
+  position: relative;
+}
+.market-lifecycle li:not(:last-child)::after {
+  content: "↓";
+  display: block;
+  color: #1d7ab8;
+  font-weight: 700;
+  padding-top: 4px;
+}
 .market-finance-bar {
   display: flex;
   flex-wrap: wrap;
@@ -1560,6 +1660,49 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .market-finance-bar label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; }
 .market-finance-bar select { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.market-low {
+  color: #c45c00;
+  font-weight: 700;
+  margin: 6px 0;
+}
+.market-inv {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px 18px;
+  margin: 0 0 20px;
+}
+.market-inv-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px 16px;
+  align-items: baseline;
+}
+.market-inv-head h3 { margin: 0; }
+.market-inv-head p { margin: 0; color: #1c5c47; }
+.market-inv-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px 16px;
+  align-items: center;
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.market-inv-row p { margin: 2px 0; }
+.market-inv-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.market-inv-tools input[type="number"] {
+  width: 72px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+}
 @media (max-width: 700px) {
   .market-form, .market-bilingual { grid-template-columns: 1fr; }
 }

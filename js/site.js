@@ -291,13 +291,31 @@ function adminSwitch() {
   </nav>`;
 }
 
+function isMarketSitePage() {
+  const page = document.body.dataset.page;
+  return page === "market" || page === "marketplace" || page === "market-login";
+}
+
 function authActionHTML() {
   const L = t();
+  const zh = locale() === "zh";
+  if (isMarketSitePage() && window.IMMBAMarketAuth) {
+    const M = window.IMMBAMarketAuth;
+    if (!M.user || !M.user()) {
+      return `<a class="btn btn-line" href="market-login.html">${zh ? "市集登入" : "Market login"}</a>`;
+    }
+    const mail = (M.user().email || "").split("@")[0] || (zh ? "市集帳號" : "Market account");
+    return `<div class="account-menu">
+      <button type="button" class="auth-chip" id="accountMenuBtn" aria-haspopup="true" aria-expanded="false">${mail}</button>
+      <div class="dropdown account-dropdown" role="menu">
+        <a href="market.html" role="menuitem">${zh ? "二手書市集" : "Marketplace"}</a>
+        <button type="button" class="dropdown-action" id="marketSignOut" role="menuitem">${zh ? "市集登出" : "Market logout"}</button>
+      </div>
+    </div>`;
+  }
   const Auth = window.IMMBAAuth;
   if (!Auth || !Auth.user || !Auth.user()) {
-    const page = document.body.dataset.page;
-    const next = page === "market" ? "?next=" + encodeURIComponent("market.html" + (location.hash || "")) : "";
-    return `<a class="btn btn-line" href="login.html${next}">${L.authLogin}</a>`;
+    return `<a class="btn btn-line" href="login.html">${L.authLogin}</a>`;
   }
   const mail = (Auth.user().email || L.authAccount).split("@")[0];
   return `<div class="account-menu">
@@ -712,6 +730,20 @@ function pages() {
     news: pageShell(zh?"公告":"Announcements", zh?"招生、課程與國際合作最新消息。":"Admissions, courses and partnership updates.", `
       <div id="latest" class="news-cards anchor-section">${newsItems()}</div>
       ${newsSource()}
+    `),
+    "market-login": pageShell(zh?"市集登入":"Marketplace login", zh?"二手市集專用登入口，與學校後台登入分開。未登入是訪客。":"Separate login for the used-book marketplace. School website login is not used here. Visitors browse without signing in.", `
+      <form class="admin-form auth-form" id="marketLoginForm">
+        <h2>${zh?"市集登入":"Marketplace login"}</h2>
+        <p class="form-note">${zh?"這是二手市集自己的登入口。學校網站管理員登入不會自動變成市集角色。沒有市集登入就是訪客。平台管理員只有 jiayi。":"This login is only for the C2C marketplace. School website admin login does not become a marketplace role. Without this login you are a visitor. Platform Admin is jiayi only."}</p>
+        <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
+        <label>${zh?"密碼":"Password"}<input id="authPassword" type="password" required autocomplete="current-password"></label>
+        <p class="admin-status" id="authStatus" hidden></p>
+        <div class="admin-toolbar">
+          <button class="btn btn-navy" type="submit">${zh?"進入市集":"Enter marketplace"}</button>
+          <a class="btn btn-line" href="register.html">${zh?"還沒有同學帳號？先註冊":"No classmate account yet? Register"}</a>
+          <a class="btn btn-line" href="market.html">${zh?"以訪客瀏覽":"Browse as visitor"}</a>
+        </div>
+      </form>
     `),
     login: pageShell(zh?"登入":"Login", "", `
       <form class="admin-form auth-form" id="loginForm">
@@ -1276,6 +1308,13 @@ function bindAuthMenu() {
       location.href = "login.html";
     };
   }
+  const marketOut = document.getElementById("marketSignOut");
+  if (marketOut) {
+    marketOut.onclick = () => {
+      if (window.IMMBAMarketAuth && window.IMMBAMarketAuth.signOut) window.IMMBAMarketAuth.signOut();
+      location.href = "market.html";
+    };
+  }
   if (authMenuDocBound) return;
   authMenuDocBound = true;
   document.addEventListener("click", (e) => {
@@ -1378,7 +1417,9 @@ async function boot() {
   if (page === "admin-faculty" && typeof initAdminFaculty === "function") initAdminFaculty();
   if (page === "admin-alumni" && typeof initAdminAlumni === "function") initAdminAlumni();
   if (typeof initAuthUI === "function") initAuthUI();
+  if (page === "market-login" && window.IMMBAMarketAuth && window.IMMBAMarketAuth.initLoginForm) window.IMMBAMarketAuth.initLoginForm();
   if ((page === "market" || page === "marketplace") && typeof initMarket === "function") initMarket();
+  window.addEventListener("immba-market-auth", refreshAuthHeader);
   if (location.hash) {
     const target = document.querySelector(location.hash);
     if (target) target.scrollIntoView();
