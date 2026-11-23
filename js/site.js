@@ -1039,7 +1039,7 @@ function pages() {
       <p style="margin-top:24px"><a class="btn btn-line" href="gallery.html">${zh?"相片集錦":"Photo gallery"}</a>
       ${officialBtn("https://www.management.fju.edu.tw/subweb/immba/subedit.php?EID=241")}</p>
     `),
-    market: pageShell(zh?"二手書市集":"Used-book marketplace", zh?"一個平台，不同角色，不同權限。":"One platform. Different users. Different permissions.", `<div id="marketRoot"></div>`),
+    market: pageShell(zh?"二手書市集":"Used-book marketplace", "", `<div id="marketRoot"></div>`),
     marketplace: pageShell(zh?"教材與書籍市集":"Books & materials marketplace", zh?"課程讀本、二手書交流與論文範本入口。":"Course readings, used-book exchange, and thesis templates.", `
       <div class="cards">
         ${(window.IMMBA.marketplace || []).map((item) => {
