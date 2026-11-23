@@ -1624,41 +1624,6 @@ textarea { min-height: 140px; resize: vertical; }
   font-size: 15px;
   color: #1d7ab8;
 }
-.market-life {
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 16px 18px;
-  margin: 0 0 16px;
-}
-.market-life h3 { margin: 0 0 10px; font-size: 16px; }
-.market-life-now {
-  margin: 0 0 12px;
-  font-weight: 700;
-  color: #1c5c47;
-}
-.market-lifecycle {
-  list-style: none;
-  margin: 0 0 12px;
-  padding: 0;
-}
-.market-lifecycle li {
-  font-weight: 600;
-  margin: 0;
-  padding: 4px 0 18px;
-  position: relative;
-  color: #9a9186;
-}
-.market-lifecycle li.is-done { color: #1c5c47; font-weight: 600; }
-.market-lifecycle li.is-on { color: #1c5c47; font-weight: 800; }
-.market-lifecycle li.is-wait { color: #b7b0a6; font-weight: 500; }
-.market-lifecycle li:not(:last-child)::after {
-  content: "↓";
-  display: block;
-  color: #1d7ab8;
-  font-weight: 700;
-  padding-top: 4px;
-}
 .market-finance-bar {
   display: flex;
   flex-wrap: wrap;

@@ -140,7 +140,6 @@ function initMarket() {
     buyerHistNote: "已完成的交易會留在買家訂單紀錄、賣家銷售紀錄、平台交易紀錄，不可刪除。",
     myOrders: "我的訂單",
     purchaseHist: "購買紀錄",
-    orderStatus: "訂單狀態",
     ordersToProcess: "待處理訂單",
     payToConfirm: "待確認付款",
     productsToShip: "待出貨商品",
@@ -149,11 +148,6 @@ function initMarket() {
     remainIn: "已完成交易會同時留在：買家訂單紀錄、賣家銷售紀錄、平台交易紀錄。",
     txStatus: "交易狀態",
     txAmountLabel: "交易金額",
-    lifecycle: "下單 → 待確認付款 → 付款確認 → 待出貨 → 已出貨 → 已完成",
-    lifecycleTitle: "訂單生命週期",
-    nowStatus: "目前訂單狀態",
-    placed: "下單",
-    payConfirmed: "付款確認",
     keepRecords: "已完成的交易不可刪除，必須保留作為商業紀錄。",
     name: "商品名稱",
     nameZh: "中文商品名稱",
@@ -208,7 +202,6 @@ function initMarket() {
     shippedToDone: "已出貨 → 已完成",
     sellerPayHint: "買家下單後，賣家會看到訂單編號、買家、商品、金額、付款狀態、下單日期，並執行「確認付款」。",
     sellerShipHint: "確認付款後訂單進入待出貨。備貨後按「確認出貨」：待出貨 → 已出貨。",
-    orderLifeNote: "訂單狀態：下單 → 待確認付款 → 付款確認 → 待出貨 → 已出貨 → 已完成",
     payStatus: "付款狀態",
     orderDate: "下單日期",
     sellerMode: "賣家模式",
@@ -351,7 +344,6 @@ function initMarket() {
     buyerHistNote: "Completed transactions stay in buyer order history, seller sales history, and platform transaction records. Do not delete them.",
     myOrders: "My Orders",
     purchaseHist: "Purchase History",
-    orderStatus: "Order Status",
     ordersToProcess: "Orders to Process",
     payToConfirm: "Payments to Confirm",
     productsToShip: "Products to Ship",
@@ -360,11 +352,6 @@ function initMarket() {
     remainIn: "Completed transactions remain in buyer order history, seller sales history, and platform transaction records.",
     txStatus: "Transaction Status",
     txAmountLabel: "Transaction Amount",
-    lifecycle: "Order Placed → Waiting for Payment Confirmation → Payment Confirmed → Ready to Ship → Shipped → Completed",
-    lifecycleTitle: "Order Lifecycle",
-    nowStatus: "Current order status",
-    placed: "Order Placed",
-    payConfirmed: "Payment Confirmed",
     keepRecords: "Do not delete completed transactions. Keep them as business records.",
     name: "Product name",
     nameZh: "Chinese product name",
@@ -419,7 +406,6 @@ function initMarket() {
     shippedToDone: "Shipped → Completed",
     sellerPayHint: "After a buyer places an order, the seller sees Order ID, Buyer, Products, Total amount, Payment status, and Order date, then confirms payment.",
     sellerShipHint: "After payment is confirmed, move the order to Ready to Ship, prepare the product, and confirm shipment: Ready to Ship → Shipped.",
-    orderLifeNote: "Order status: Order Placed → Waiting for Payment Confirmation → Payment Confirmed → Ready to Ship → Shipped → Completed",
     payStatus: "Payment status",
     orderDate: "Order date",
     sellerMode: "Seller Mode",
@@ -525,45 +511,6 @@ function initMarket() {
 
   function stamp(o) {
     return (o.updatedAt || o.createdAt || "").replace("T", " ").slice(0, 16);
-  }
-
-  function lifeSteps() {
-    return [
-      { id: "placed", label: L.placed },
-      { id: "waiting_payment", label: statusText("waiting_payment") },
-      { id: "pay_confirmed", label: L.payConfirmed },
-      { id: "ready_to_ship", label: statusText("ready_to_ship") },
-      { id: "shipped", label: statusText("shipped") },
-      { id: "completed", label: statusText("completed") }
-    ];
-  }
-
-  function lifeIndex(status) {
-    if (status === "waiting_payment") return 1;
-    if (status === "ready_to_ship") return 3;
-    if (status === "shipped") return 4;
-    if (status === "completed") return 5;
-    return 0;
-  }
-
-  function lifecycleHtml(orders) {
-    const rows = (orders || []).slice();
-    if (!rows.length) return "";
-    const open = rows.filter((o) => o.status !== "completed");
-    const current = (open.length ? open : rows).slice().sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")))[0];
-    if (!current) return "";
-    const idx = lifeIndex(current.status);
-    const steps = lifeSteps();
-    const nowLabel = steps[idx] ? steps[idx].label : statusText(current.status);
-    return `<div class="market-life">
-      <h3>${L.lifecycleTitle}</h3>
-      <p class="market-note">${L.orderLifeNote}</p>
-      <p class="market-life-now">${L.nowStatus}：${nowLabel}${current.orderNo ? " · " + current.orderNo : ""}</p>
-      <ol class="market-lifecycle">${steps.map((s, i) => {
-        const cls = i < idx ? "is-done" : (i === idx ? "is-on" : "is-wait");
-        return `<li class="${cls}">${s.label}</li>`;
-      }).join("")}</ol>
-    </div>`;
   }
 
   function threeViewsNote() {
@@ -795,10 +742,6 @@ function initMarket() {
       <h2>${L.myOrders}</h2>
       ${orderJustMade ? `<p class="market-ok">${L.orderFlow}${orderJustMade}</p>` : ""}
       ${threeViewsNote()}
-      ${rows.length ? `<section class="market-manage">
-        <h3>${L.orderStatus}</h3>
-        ${lifecycleHtml(rows)}
-      </section>` : ""}
       <section class="market-manage">
         <h3>${L.myOrders}</h3>
         ${open.length ? open.map((o) => sellerOrderCard(o, "buyer")).join("") : `<p class="market-note">${L.noOrders}</p>`}
@@ -1142,7 +1085,6 @@ function initMarket() {
       <p class="market-note">${L.sellerFns}</p>
       ${listingBlocks()}
       ${inventoryPanel()}
-      ${lifecycleHtml(mine)}
       <div class="stats market-stats">
         <div><strong>${money(dash.monthlyRevenue)}</strong><span>${L.monthlyRev}</span></div>
         <div><strong>${dash.completedCount}</strong><span>${L.completedN}</span></div>
