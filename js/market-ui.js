@@ -247,6 +247,7 @@ function initMarket() {
   let view = (location.hash || "#browse").replace("#", "") || "browse";
   let editing = null;
   let listingMemory = null;
+  let listingImageUrl = "";
   let listingPasteBound = false;
   let skipDraftCapture = false;
   let adminQuery = "";
@@ -480,13 +481,17 @@ function initMarket() {
   function saveListingDraft(data) {
     const row = data || readListingForm();
     if (!row) return;
+    if (listingImageUrl) row.imageUrl = listingImageUrl;
     listingMemory = row;
     const key = draftKey();
+    const slim = (row.imageUrl && row.imageUrl.indexOf("data:") === 0)
+      ? { ...row, imageUrl: "" }
+      : row;
     try {
-      localStorage.setItem(key, JSON.stringify(row));
+      localStorage.setItem(key, JSON.stringify(slim));
     } catch (err) {
       try {
-        localStorage.setItem(key, JSON.stringify({ ...row, imageUrl: row.imageUrl && row.imageUrl.indexOf("data:") === 0 ? "" : row.imageUrl }));
+        localStorage.setItem(key, JSON.stringify({ ...slim, imageUrl: "" }));
       } catch (e2) {}
     }
   }
@@ -501,16 +506,21 @@ function initMarket() {
 
   function clearListingDraft() {
     listingMemory = null;
+    listingImageUrl = "";
     try { localStorage.removeItem(draftKey()); } catch (err) {}
   }
 
   function listingFormState() {
     const draft = loadListingDraft();
+    let row;
     if (editing && editing.id) {
-      if (draft && String(draft.id) === String(editing.id)) return { ...editing, ...draft };
-      return editing;
+      row = (draft && String(draft.id) === String(editing.id)) ? { ...editing, ...draft } : { ...editing };
+    } else {
+      row = draft ? { ...draft } : emptyListing();
     }
-    return draft || emptyListing();
+    if (listingImageUrl) row.imageUrl = listingImageUrl;
+    else if (row.imageUrl) listingImageUrl = row.imageUrl;
+    return row;
   }
 
   function sellerForm(p) {
@@ -519,7 +529,7 @@ function initMarket() {
     return `
       <form id="listingForm" class="market-form">
         <input type="hidden" name="id" value="${attr(p.id)}">
-        <input type="hidden" name="imageUrl" value="${attr(p.imageUrl)}">
+        <input type="hidden" name="imageUrl" value="${(p.imageUrl || "").indexOf("data:") === 0 ? "" : attr(p.imageUrl)}">
         <label>${L.name}<input name="productName" required value="${attr(p.name)}"></label>
         <label class="market-span">${L.category}
           <select name="category">${S.CATEGORIES.map((c) => `<option value="${c}"${c === p.category ? " selected" : ""}>${catText(c)}</option>`).join("")}</select>
@@ -725,7 +735,7 @@ function initMarket() {
     const form = document.getElementById("listingForm");
     const drop = document.getElementById("listingDrop");
     if (!form || !drop) return;
-    const url = form.querySelector("[name=imageUrl]").value;
+    const url = listingImageUrl || form.querySelector("[name=imageUrl]").value;
     const src = productImg(url);
     drop.classList.toggle("has-photo", !!src);
     drop.innerHTML = src ? `<img src="${attr(src)}" alt="">` : `<span>${L.dropHint}</span>`;
@@ -735,10 +745,16 @@ function initMarket() {
     if (!file || !window.IMMBAImage) return;
     const form = document.getElementById("listingForm");
     if (!form) return;
-    const data = await window.IMMBAImage.fromFile(file);
-    form.querySelector("[name=imageUrl]").value = data;
-    refreshListingPreview();
-    saveListingDraft();
+    try {
+      const data = await window.IMMBAImage.fromFile(file, 960, 0.72);
+      listingImageUrl = data;
+      const field = form.querySelector("[name=imageUrl]");
+      if (field) field.value = "";
+      refreshListingPreview();
+      saveListingDraft();
+    } catch (err) {
+      alert(zh ? "圖片無法使用，請改選另一張。" : "That image could not be used. Please choose another.");
+    }
   }
 
   function bindListingMedia() {
@@ -934,7 +950,7 @@ function initMarket() {
         description: fd.get("description"),
         price: fd.get("price"),
         quantity: fd.get("quantity"),
-        imageUrl: fd.get("imageUrl"),
+        imageUrl: listingImageUrl || fd.get("imageUrl") || "",
         status: fd.get("status")
       });
       editing = null;

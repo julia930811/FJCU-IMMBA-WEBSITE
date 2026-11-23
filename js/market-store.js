@@ -21,11 +21,12 @@
     return document.documentElement.lang !== "en" ? zh : en;
   }
 
+  const JIAYI_EMAIL = "jiayiwu009@gmail.com";
   const seedProducts = [
-    { id: "mp1", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "International Marketing (Kotler)", category: "Textbook", description: "imMBA core reading. Highlighted chapters 1–8. Good condition.", price: 680, quantity: 4, imageUrl: "img/market/international-marketing.jpg", status: "active" },
-    { id: "mp2", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "Corporate Finance notes (2025)", category: "Notes", description: "Lecture notes and practice sets from Corporate Finance.", price: 220, quantity: 6, imageUrl: "img/market/corporate-finance-notes.jpg", status: "active" },
-    { id: "mp3", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "Harvard-style case pack: Global Strategy", category: "Case", description: "Course case pack for Global Strategy (teaching demo listing).", price: 150, quantity: 10, imageUrl: "img/market/global-strategy-case.jpg", status: "active" },
-    { id: "mp4", sellerId: "demo-seller", sellerEmail: "demo.seller@immba.local", name: "Statistics for Managers workbook", category: "Textbook", description: "Workbook with answered problem sets. Spine intact.", price: 380, quantity: 2, imageUrl: "img/market/statistics-workbook.jpg", status: "active" }
+    { id: "mp1", sellerId: "jiayi", sellerEmail: JIAYI_EMAIL, name: "International Marketing (Kotler)", category: "Textbook", description: "imMBA core reading. Highlighted chapters 1–8. Good condition.", price: 680, quantity: 4, imageUrl: "img/market/international-marketing.jpg", status: "active" },
+    { id: "mp2", sellerId: "jiayi", sellerEmail: JIAYI_EMAIL, name: "Corporate Finance notes (2025)", category: "Notes", description: "Lecture notes and practice sets from Corporate Finance.", price: 220, quantity: 6, imageUrl: "img/market/corporate-finance-notes.jpg", status: "active" },
+    { id: "mp3", sellerId: "jiayi", sellerEmail: JIAYI_EMAIL, name: "Harvard-style case pack: Global Strategy", category: "Case", description: "Course case pack for Global Strategy (teaching demo listing).", price: 150, quantity: 10, imageUrl: "img/market/global-strategy-case.jpg", status: "active" },
+    { id: "mp4", sellerId: "jiayi", sellerEmail: JIAYI_EMAIL, name: "Statistics for Managers workbook", category: "Textbook", description: "Workbook with answered problem sets. Spine intact.", price: 380, quantity: 2, imageUrl: "img/market/statistics-workbook.jpg", status: "active" }
   ];
 
   const seedOrders = [
@@ -34,8 +35,8 @@
       orderNo: "ORD-202610-1001",
       buyerId: "demo-buyer",
       buyerEmail: "buyer.demo@immba.local",
-      sellerId: "demo-seller",
-      sellerEmail: "demo.seller@immba.local",
+      sellerId: "jiayi",
+      sellerEmail: JIAYI_EMAIL,
       status: "completed",
       subtotal: 680,
       fee: 4,
@@ -51,8 +52,8 @@
       orderNo: "ORD-202611-1002",
       buyerId: "demo-buyer",
       buyerEmail: "buyer.demo@immba.local",
-      sellerId: "demo-seller",
-      sellerEmail: "demo.seller@immba.local",
+      sellerId: "jiayi",
+      sellerEmail: JIAYI_EMAIL,
       status: "waiting_payment",
       subtotal: 220,
       fee: 4,
@@ -68,8 +69,8 @@
       orderNo: "ORD-202611-1003",
       buyerId: "demo-buyer-2",
       buyerEmail: "buyer.two@immba.local",
-      sellerId: "demo-seller",
-      sellerEmail: "demo.seller@immba.local",
+      sellerId: "jiayi",
+      sellerEmail: JIAYI_EMAIL,
       status: "shipped",
       subtotal: 150,
       fee: 4,
@@ -83,6 +84,38 @@
   ];
 
   let state = { products: [], orders: [], carts: {}, notices: [], platformFee: PLATFORM_FEE };
+  const SEED_IDS = { mp1: 1, mp2: 1, mp3: 1, mp4: 1 };
+  const SEED_ORDER_IDS = { "mo-demo-1": 1, "mo-demo-2": 1, "mo-demo-3": 1 };
+
+  function sameEmail(a, b) {
+    return String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+  }
+
+  function isDemoOwned(row) {
+    if (!row) return false;
+    return row.sellerId === "demo-seller" || sameEmail(row.sellerEmail, "demo.seller@immba.local");
+  }
+
+  function migrateSeedOwner() {
+    const u = me();
+    const id = (u && sameEmail(u.email, JIAYI_EMAIL) && u.id) || "jiayi";
+    let changed = false;
+    (state.products || []).forEach((p) => {
+      if (!SEED_IDS[p.id] && !isDemoOwned(p)) return;
+      if (p.sellerId === id && sameEmail(p.sellerEmail, JIAYI_EMAIL)) return;
+      p.sellerId = id;
+      p.sellerEmail = JIAYI_EMAIL;
+      changed = true;
+    });
+    (state.orders || []).forEach((o) => {
+      if (!SEED_ORDER_IDS[o.id] && !isDemoOwned(o)) return;
+      if (o.sellerId === id && sameEmail(o.sellerEmail, JIAYI_EMAIL)) return;
+      o.sellerId = id;
+      o.sellerEmail = JIAYI_EMAIL;
+      changed = true;
+    });
+    return changed;
+  }
 
   function load() {
     try {
@@ -95,6 +128,7 @@
           notices: [],
           platformFee: PLATFORM_FEE
         };
+        migrateSeedOwner();
         save();
         return;
       }
@@ -118,6 +152,7 @@
           cur.sellerNet = row.sellerNet;
         }
       });
+      migrateSeedOwner();
       save();
     } catch (e) {
       state = {
@@ -127,11 +162,35 @@
         notices: [],
         platformFee: PLATFORM_FEE
       };
+      migrateSeedOwner();
     }
   }
 
   function save() {
-    localStorage.setItem(KEY, JSON.stringify(state));
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      return;
+    } catch (err) {
+      const compact = {
+        products: state.products.map((p) => {
+          const url = String(p.imageUrl || "");
+          if (url.indexOf("data:") === 0 && url.length > 120000) return { ...p, imageUrl: "" };
+          return p;
+        }),
+        orders: state.orders,
+        carts: state.carts,
+        notices: (state.notices || []).slice(0, 20),
+        platformFee: state.platformFee
+      };
+      try {
+        localStorage.setItem(KEY, JSON.stringify(compact));
+        state.products = compact.products;
+        state.notices = compact.notices;
+        return;
+      } catch (err2) {
+        throw new Error(t("圖片太大，請改用較小的照片後再上架。", "The photo is too large. Use a smaller image and try again."));
+      }
+    }
   }
 
   function auth() {
@@ -231,7 +290,7 @@
     const product = state.products.find((p) => p.id === productId);
     if (!product || product.status !== "active") throw new Error(t("此商品目前無法購買。", "Product is not available."));
     const u = me();
-    if (u && (u.id === product.sellerId || u.email === product.sellerEmail)) throw new Error(t("不能購買自己上架的商品。", "Sellers cannot purchase their own listing."));
+    if (u && (u.id === product.sellerId || sameEmail(u.email, product.sellerEmail))) throw new Error(t("不能購買自己上架的商品。", "Sellers cannot purchase their own listing."));
     const n = Math.max(1, Number(qty || 1));
     const items = cart().slice();
     const existing = items.find((i) => i.productId === productId);
@@ -311,13 +370,13 @@
   function isOwnProduct(product) {
     const u = me();
     if (!u || !product) return false;
-    return u.id === product.sellerId || (u.email && u.email === product.sellerEmail);
+    return u.id === product.sellerId || sameEmail(u.email, product.sellerEmail);
   }
 
   function isOwnOrder(order) {
     const u = me();
     if (!u || !order) return false;
-    return u.id === order.sellerId || (u.email && u.email === order.sellerEmail);
+    return u.id === order.sellerId || sameEmail(u.email, order.sellerEmail);
   }
 
   function requireSeller(order) {
@@ -353,13 +412,11 @@
     if (!(price >= 0) || Number.isNaN(price)) throw new Error(t("請填價格。", "Price is required."));
     if (!(quantity >= 0) || Number.isNaN(quantity)) throw new Error(t("請填數量。", "Quantity is required."));
     const status = input.status === "hidden" ? "hidden" : "active";
-    if (input.id) {
-      const product = state.products.find((p) => p.id === input.id);
-      if (!product) throw new Error(t("找不到商品。", "Listing not found."));
-      if (!isOwnProduct(product)) throw new Error(t("只能修改自己上傳的商品。", "You can only edit listings you uploaded."));
-      Object.assign(product, { name, category, description, price, quantity, imageUrl: input.imageUrl || product.imageUrl || "", status });
+    const existing = input.id ? state.products.find((p) => p.id === input.id) : null;
+    if (existing && isOwnProduct(existing)) {
+      Object.assign(existing, { name, category, description, price, quantity, imageUrl: input.imageUrl || existing.imageUrl || "", status });
       save();
-      return product;
+      return existing;
     }
     const product = {
       id: "mp" + Date.now(),
@@ -496,4 +553,8 @@
     },
     exportAdminCsv(rows) { return csv(rows || state.orders); }
   };
+
+  window.addEventListener("immba-auth", () => {
+    if (migrateSeedOwner()) save();
+  });
 })();
