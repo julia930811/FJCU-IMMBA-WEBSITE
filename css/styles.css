@@ -1220,19 +1220,26 @@ textarea { min-height: 140px; resize: vertical; }
 .market-form .market-span,
 .market-form .market-drop,
 .market-form p { grid-column: 1 / -1; }
+.market-listing { margin: 0 0 28px; }
 .market-drop {
-  border: 1.5px dashed var(--line);
+  border: 2px dashed var(--navy);
   border-radius: 12px;
-  min-height: 140px;
+  min-height: 168px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   text-align: center;
-  padding: 16px;
+  padding: 20px;
   background: #fff;
   color: var(--muted);
   cursor: pointer;
   font-size: 14px;
+}
+.market-drop strong {
+  color: var(--navy);
+  font-size: 16px;
 }
 .market-drop.is-over {
   border-color: var(--navy);

@@ -528,7 +528,7 @@ function initMarket() {
         <label>${L.listPrice}<input name="price" type="number" min="0" step="1" required value="${attr(p.price)}"></label>
         <label>${L.listQty}<input name="quantity" type="number" min="0" step="1" required value="${attr(p.quantity)}"></label>
         <div class="market-drop${src ? " has-photo" : ""}" id="listingDrop" tabindex="0">
-          ${src ? `<img src="${attr(src)}" alt="">` : `<span>${L.dropHint}</span>`}
+          ${src ? `<img src="${attr(src)}" alt="">` : `<strong>${L.image}</strong><span>${L.dropHint}</span>`}
         </div>
         <input id="listingFile" type="file" accept="image/*" hidden>
         <label>${L.listStatus}
@@ -585,6 +585,10 @@ function initMarket() {
     return `
       <h2>${L.sellerTitle}</h2>
       <p class="market-note">${L.sellerNote}</p>
+      <section class="market-listing">
+        <h3>${L.listingTitle}</h3>
+        ${sellerForm(listingFormState())}
+      </section>
       ${lifecycleHtml()}
       <div class="stats market-stats">
         <div><strong>${dash.listedCount}</strong><span>${L.listedN}</span></div>
@@ -610,8 +614,6 @@ function initMarket() {
         </div>
         <p class="market-finance-sum"><strong>${period}</strong> · ${dash.itemsSold} ${L.soldThis} · ${L.revThis}: <strong>${money(dash.monthlyRevenue)}</strong> · ${L.feesThis} ${money(dash.monthlyFees)} · ${L.shipThis} ${money(dash.monthlyShipping)}</p>
       </section>
-      <h3>${L.listingTitle}</h3>
-      ${sellerForm(listingFormState())}
       <h3>${L.inventory}</h3>
       <p>${L.invNote}</p>
       <div class="admin-table-wrap"><table class="admin-table">
