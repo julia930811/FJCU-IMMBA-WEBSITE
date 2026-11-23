@@ -1197,6 +1197,12 @@ textarea { min-height: 140px; resize: vertical; }
   color: #1c5c47;
   border-color: #fff;
 }
+.page-hero .market-listed-hero {
+  margin: 8px 0 0;
+  color: #faf6ee;
+  font-size: 22px;
+  font-weight: 800;
+}
 .market-shelf { margin-top: 40px; }
 .market-shelf h2 { margin: 0 0 16px; }
 .market-mine {
@@ -1277,6 +1283,18 @@ textarea { min-height: 140px; resize: vertical; }
 }
 .market-listed-done p { margin: 0 0 16px; }
 .market-listed-done .btn { margin: 0 6px 8px; }
+.market-listings-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+.market-listings-head h3 { margin: 0; }
+.market-card.is-listed {
+  outline: 2px solid #1c5c47;
+}
 .market-photo {
   display: grid;
   gap: 10px;

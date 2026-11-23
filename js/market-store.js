@@ -832,7 +832,10 @@
     catalog() {
       return state.products
         .map((p, i) => ({ p, i }))
-        .filter((row) => String(row.p.status || "active") !== "hidden")
+        .filter((row) => {
+          const st = String(row.p.status || "active");
+          return st !== "hidden" && st !== "draft";
+        })
         .sort((a, b) => {
           const ownA = isOwnProduct(a.p) ? 1 : 0;
           const ownB = isOwnProduct(b.p) ? 1 : 0;

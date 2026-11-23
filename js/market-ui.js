@@ -40,7 +40,16 @@ function initMarket() {
     initMarketShelf();
     return;
   }
+  const LISTED_KEY = "immba-just-listed";
   let justListedId = "";
+  try { justListedId = sessionStorage.getItem(LISTED_KEY) || ""; } catch (err) {}
+  function setJustListed(id) {
+    justListedId = id ? String(id) : "";
+    try {
+      if (justListedId) sessionStorage.setItem(LISTED_KEY, justListedId);
+      else sessionStorage.removeItem(LISTED_KEY);
+    } catch (err) {}
+  }
   const zh = document.documentElement.lang !== "en";
   const S = window.MarketStore;
   const L = zh ? {
@@ -105,12 +114,18 @@ function initMarket() {
     dropHint: "把照片拖到這裡，或先點這框再貼上（Ctrl/Cmd+V，也可右鍵貼上）。",
     pasteHint: "點照片框後可貼上複製的圖片；也可拖曳檔案。",
     listStatus: "上架狀態",
-    active: "上架中",
+    active: "上架完成",
     hidden: "隱藏",
     update: "更新商品",
     create: "上架",
     listedDone: "上架完成",
     listAnother: "再上一件",
+    addNew: "新增商品",
+    activeListings: "進行中的上架",
+    editItem: "編輯商品",
+    markSold: "標為已售",
+    qtyLeft: "可售數量",
+    lowStock: "庫存緊張",
     viewListing: "去瀏覽商品",
     cancel: "取消",
     markPaid: "已收到付款（待出貨）",
@@ -236,12 +251,18 @@ function initMarket() {
     dropHint: "Drag a photo here, or click this box and paste (Ctrl/Cmd+V or right-click Paste).",
     pasteHint: "Click the photo box, then paste a copied image. You can also drop a file.",
     listStatus: "Listing status",
-    active: "Active",
+    active: "Listing complete",
     hidden: "Hidden",
     update: "Update listing",
     create: "Create listing",
     listedDone: "Listing complete",
     listAnother: "List another",
+    addNew: "Add New Item",
+    activeListings: "Active Listings",
+    editItem: "Edit Item",
+    markSold: "Mark as Sold",
+    qtyLeft: "Available Quantity",
+    lowStock: "Low Stock",
     viewListing: "View in browse",
     cancel: "Cancel",
     markPaid: "Payment Received (Awaiting Shipment)",
@@ -401,7 +422,9 @@ function initMarket() {
 
   function productCard(p, extra) {
     const stock = S.availableStock(p);
-    const mine = S.isOwnProduct(p) ? `<span class="market-mine">${zh ? "我的上架" : "Your listing"}</span>` : "";
+    const mine = justListedId && String(p.id) === String(justListedId)
+      ? `<span class="market-mine">${L.listedDone}</span>`
+      : (S.isOwnProduct(p) ? `<span class="market-mine">${zh ? "我的上架" : "Your listing"}</span>` : "");
     return `
       <article class="card market-card">
         ${p.imageUrl ? `<img src="${productImg(p.imageUrl)}" alt="">` : ""}
@@ -435,6 +458,7 @@ function initMarket() {
       }
     }
     return `
+      ${justListedId ? `<p class="market-listed-done-kicker">${L.listedDone}</p>` : ""}
       <h2>${L.browse}</h2>
       <div class="cards">${list.map((p) => productCard(p, `
         <p class="market-card-actions">
@@ -713,9 +737,32 @@ function initMarket() {
         ${p ? `<p><strong>${S.productName(p)}</strong></p>` : ""}
         <p>
           <button type="button" class="btn btn-navy" data-view="browse">${L.viewListing}</button>
-          <button type="button" class="btn btn-line" id="listAnother">${L.listAnother}</button>
+          <button type="button" class="btn btn-line" id="listAnother">${L.addNew}</button>
         </p>
       </div>
+    `;
+  }
+
+  function sellerListingCard(p) {
+    const stock = S.availableStock(p);
+    const sold = p.status === "hidden" || stock < 1;
+    const fresh = justListedId && String(p.id) === String(justListedId);
+    const kicker = sold
+      ? L.markSold
+      : (fresh ? L.listedDone : (stock <= 1 ? `${L.lowStock}（${stock}）` : catText(p.category)));
+    return `
+      <article class="card market-card${fresh ? " is-listed" : ""}">
+        ${p.imageUrl ? `<img src="${productImg(p.imageUrl)}" alt="">` : ""}
+        <p class="kicker">${kicker}${fresh ? `<span class="market-mine">${L.listedDone}</span>` : ""}</p>
+        <h3>${S.productName(p)}</h3>
+        <p>${S.productDesc(p) || ""}</p>
+        <p><strong>${money(p.price)}</strong></p>
+        <p>${L.qtyLeft}: ${stock}</p>
+        <p class="market-card-actions">
+          <button type="button" class="btn btn-line" data-edit="${p.id}">${L.editItem}</button>
+          <button type="button" class="btn btn-line" data-hide="${p.id}">${sold ? L.show : L.markSold}</button>
+        </p>
+      </article>
     `;
   }
 
@@ -752,6 +799,12 @@ function initMarket() {
   function sellerView() {
     const dash = S.dashboard(sellerMonth);
     const products = S.sellerProducts();
+    const activeCards = products.slice().sort((a, b) => {
+      const aNew = justListedId && String(a.id) === String(justListedId) ? 1 : 0;
+      const bNew = justListedId && String(b.id) === String(justListedId) ? 1 : 0;
+      if (aNew !== bNew) return bNew - aNew;
+      return String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
+    });
     const mine = S.mine("seller");
     const pendingPay = mine.filter((o) => o.status === "waiting_payment");
     const pendingShip = mine.filter((o) => o.status === "ready_to_ship" || o.status === "shipped");
@@ -764,6 +817,13 @@ function initMarket() {
       <section class="market-listing">
         <h3>${justListedId ? L.listedDone : L.listingTitle}</h3>
         ${justListedId ? listedDonePanel() : sellerForm(listingFormState())}
+      </section>
+      <section class="market-active">
+        <div class="market-listings-head">
+          <h3>${L.activeListings}</h3>
+          ${justListedId ? "" : `<button type="button" class="btn btn-navy" id="listAnother">${L.addNew}</button>`}
+        </div>
+        <div class="cards">${activeCards.map(sellerListingCard).join("") || `<p class="market-note">${L.noOwn}</p>`}</div>
       </section>
       ${lifecycleHtml()}
       <div class="stats market-stats">
@@ -790,26 +850,6 @@ function initMarket() {
         </div>
         <p class="market-finance-sum"><strong>${period}</strong> · ${dash.itemsSold} ${L.soldThis} · ${L.revThis}: <strong>${money(dash.monthlyRevenue)}</strong> · ${L.feesThis} ${money(dash.monthlyFees)} · ${L.shipThis} ${money(dash.monthlyShipping)}</p>
       </section>
-      <h3>${L.inventory}</h3>
-      <p>${L.invNote}</p>
-      <div class="admin-table-wrap"><table class="admin-table">
-        <thead><tr><th>${L.product}</th><th>${L.status}</th><th>${L.inventory}</th><th>${L.purchased}</th><th>${L.stock}</th><th></th></tr></thead>
-        <tbody>${products.map((p) => {
-          const purchased = Number(p.quantity) - S.availableStock(p);
-          return `<tr>
-            <td>${S.productName(p)}<br><small>${catText(p.category)} · ${money(p.price)}</small></td>
-            <td>${p.status === "hidden" ? L.hidden : (justListedId && String(p.id) === String(justListedId) ? L.listedDone : L.active)}</td>
-            <td>${p.quantity}</td>
-            <td>${purchased}</td>
-            <td>${S.availableStock(p)}</td>
-            <td>
-              <button type="button" class="btn btn-line" data-edit="${p.id}">${L.edit}</button>
-              <button type="button" class="btn btn-line" data-hide="${p.id}">${p.status === "hidden" ? L.show : L.hide}</button>
-              <button type="button" class="btn btn-line" data-del="${p.id}">${L.unlist}</button>
-            </td>
-          </tr>`;
-        }).join("") || `<tr><td colspan="6">${L.noOwn}</td></tr>`}</tbody>
-      </table></div>
     `;
   }
 
@@ -884,7 +924,8 @@ function initMarket() {
 
   function paintRoles() {
     const host = document.getElementById("marketRoleBar");
-    if (host) host.innerHTML = roleBar();
+    if (!host) return;
+    host.innerHTML = roleBar() + (justListedId ? `<p class="market-listed-hero">${L.listedDone}</p>` : "");
   }
 
   function render() {
@@ -1090,7 +1131,7 @@ function initMarket() {
         return;
       }
       if (t.id === "listAnother") {
-        justListedId = "";
+        setJustListed("");
         editing = null;
         clearListingDraft();
         skipDraftCapture = true;
@@ -1130,6 +1171,7 @@ function initMarket() {
         return;
       }
       if (t.dataset.edit) {
+        setJustListed("");
         editing = S.product(t.dataset.edit);
         if (editing) {
           saveListingDraft(coerceListingRow({
@@ -1221,10 +1263,16 @@ function initMarket() {
     }
     if (e.target.id !== "listingForm") return;
     e.preventDefault();
+    const submitBtn = e.target.querySelector('[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = L.listedDone;
+    }
     try {
       await fillMissingTranslations();
       const row = readListingForm();
       const editingId = editing && editing.id ? String(editing.id) : "";
+      setJustListed(editingId || "pending");
       const saved = S.upsertProduct({
         ...row,
         id: editingId || "",
@@ -1232,16 +1280,20 @@ function initMarket() {
         description: (row && (row.descriptionZh || row.descriptionEn)) || "",
         imageUrl: listingImageUrl || (row && row.imageUrl) || ""
       });
-      justListedId = saved && saved.id ? String(saved.id) : "";
+      setJustListed(saved && saved.id ? String(saved.id) : justListedId);
       editing = null;
       clearListingDraft();
       skipDraftCapture = true;
       view = "seller";
       location.hash = "seller";
       render();
-      const done = root.querySelector(".market-listed-done");
-      if (done) done.scrollIntoView({ block: "start" });
+      const first = root.querySelector(".market-active .market-card") || root.querySelector(".market-listed-done");
+      if (first) first.scrollIntoView({ block: "start" });
     } catch (err) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = L.create;
+      }
       alert(err.message || String(err));
     }
   });
