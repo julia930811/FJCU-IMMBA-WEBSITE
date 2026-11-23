@@ -518,7 +518,8 @@
     let nameEn = splitN.en;
     let descriptionZh = splitD.zh;
     let descriptionEn = splitD.en;
-    const existing = input.id ? state.products.find((p) => String(p.id) === String(input.id)) : null;
+    let existing = input.id ? state.products.find((p) => String(p.id) === String(input.id)) : null;
+    if (existing && !isOwnProduct(existing)) existing = null;
     if (existing) {
       const oldZh = String(existing.nameZh || "").trim();
       const oldEn = String(existing.nameEn || "").trim();
@@ -570,9 +571,7 @@
       status,
       updatedAt: stamp
     };
-    if (input.id) {
-      if (!existing) throw new Error(t("找不到商品。", "Listing not found."));
-      if (!isOwnProduct(existing)) throw new Error(t("只能編輯自己上傳的商品。", "You can only update listings you uploaded."));
+    if (existing) {
       Object.assign(existing, patch);
       const idx = state.products.indexOf(existing);
       if (idx > 0) {
@@ -683,6 +682,7 @@
     totalsFromSubtotal,
     orderMoney,
     me,
+    isOwnProduct,
     isPlatformAdmin,
     products: () => state.products,
     catalog() {
@@ -690,6 +690,9 @@
         .map((p, i) => ({ p, i }))
         .filter((row) => (row.p.status || "active") === "active")
         .sort((a, b) => {
+          const ownA = isOwnProduct(a.p) ? 1 : 0;
+          const ownB = isOwnProduct(b.p) ? 1 : 0;
+          if (ownA !== ownB) return ownB - ownA;
           const ta = a.p.updatedAt || "";
           const tb = b.p.updatedAt || "";
           if (ta === tb) return a.i - b.i;

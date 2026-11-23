@@ -4,7 +4,7 @@ function initMarket() {
   const zh = document.documentElement.lang !== "en";
   const S = window.MarketStore;
   const L = zh ? {
-    buyer: "賣場",
+    buyer: "買家",
     cart: "購物車",
     orders: "我的訂單",
     seller: "賣家",
@@ -132,7 +132,7 @@ function initMarket() {
     confirmDel: "確定下架此商品？",
     needCheckout: "結帳"
   } : {
-    buyer: "Store",
+    buyer: "Buyer",
     cart: "Cart",
     orders: "My orders",
     seller: "Seller",
@@ -355,10 +355,11 @@ function initMarket() {
 
   function productCard(p, extra) {
     const stock = S.availableStock(p);
+    const mine = S.isOwnProduct(p) ? `<span class="market-mine">${zh ? "我的上架" : "Your listing"}</span>` : "";
     return `
       <article class="card market-card">
         ${p.imageUrl ? `<img src="${productImg(p.imageUrl)}" alt="">` : ""}
-        <p class="kicker">${catText(p.category)}</p>
+        <p class="kicker">${catText(p.category)}${mine}</p>
         <h3>${S.productName(p)}</h3>
         <p>${S.productDesc(p)}</p>
         <p><strong>${money(p.price)}</strong> · ${L.stock}: ${stock}</p>
@@ -814,18 +815,25 @@ function initMarket() {
     return browse();
   }
 
+  function paintRoles() {
+    const host = document.getElementById("marketRoleBar");
+    if (host) host.innerHTML = roleBar();
+  }
+
   function render() {
     if (!skipDraftCapture) saveListingDraft();
     skipDraftCapture = false;
+    paintRoles();
+    const bar = document.getElementById("marketRoleBar") ? "" : roleBar();
     if (view === "admin" && !S.isPlatformAdmin()) {
-      root.innerHTML = roleBar() + `<p class="market-note">${L.adminOnly} ${S.me() ? "" : `<a href="${loginHref()}">${L.signIn}</a>`}</p>`;
+      root.innerHTML = bar + `<p class="market-note">${L.adminOnly} ${S.me() ? "" : `<a href="${loginHref()}">${L.signIn}</a>`}</p>`;
       return;
     }
     if ((view === "seller" || view === "orders") && !S.me()) {
-      root.innerHTML = roleBar() + `<p class="market-note">${L.signInFirst} <a href="${loginHref()}">${L.signIn}</a></p>`;
+      root.innerHTML = bar + `<p class="market-note">${L.signInFirst} <a href="${loginHref()}">${L.signIn}</a></p>`;
       return;
     }
-    root.innerHTML = roleBar() + body();
+    root.innerHTML = bar + body();
     bindListingMedia();
     bindListingTranslate();
   }
@@ -987,6 +995,14 @@ function initMarket() {
     URL.revokeObjectURL(a.href);
   }
 
+  const roleHost = document.getElementById("marketRoleBar");
+  if (roleHost) {
+    roleHost.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-view]");
+      if (t) go(t.dataset.view);
+    });
+  }
+
   root.addEventListener("click", (e) => {
     const t = e.target.closest("[data-view], [data-open], [data-add], [data-remove], [data-advance], [data-edit], [data-hide], [data-del], #checkoutBtn, #exportSeller, #exportAdmin, #cancelEdit");
     if (!t) return;
@@ -1133,8 +1149,10 @@ function initMarket() {
     try {
       await fillMissingTranslations();
       const row = readListingForm();
+      const editingId = editing && editing.id ? String(editing.id) : "";
       S.upsertProduct({
         ...row,
+        id: editingId || "",
         name: (row && (row.nameZh || row.nameEn)) || "",
         description: (row && (row.descriptionZh || row.descriptionEn)) || "",
         imageUrl: listingImageUrl || (row && row.imageUrl) || ""

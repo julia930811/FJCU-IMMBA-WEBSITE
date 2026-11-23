@@ -1165,31 +1165,50 @@ textarea { min-height: 140px; resize: vertical; }
 .alumni-activity li { margin: 6px 0; }
 .alumni-activity time { color: var(--navy); font-variant-numeric: tabular-nums; }
 
-.market-roles,
-.market-buyer-tools {
+.page-hero .market-role-bar {
+  margin-top: 20px;
+}
+.page-hero .market-roles,
+.page-hero .market-buyer-tools {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 0 0 12px;
+  margin: 0 0 10px;
 }
-.market-buyer-tools .market-role {
+.page-hero .market-buyer-tools {
+  margin: 0;
+}
+.page-hero .market-buyer-tools .market-role {
   padding: 6px 12px;
   font-size: 14px;
+  font-weight: 500;
 }
-.market-role {
-  border: 1px solid var(--line);
-  background: #fff;
-  color: var(--ink);
-  border-radius: 999px;
-  padding: 8px 14px;
-  cursor: pointer;
-}
-.market-role.is-on {
-  background: var(--navy);
+.page-hero .market-role {
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.12);
   color: #fff;
-  border-color: var(--navy);
+  border-radius: 999px;
+  padding: 10px 18px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.page-hero .market-role.is-on {
+  background: #faf6ee;
+  color: #1c5c47;
+  border-color: #fff;
 }
 .market-note { color: var(--muted); font-size: 14px; margin: 0 0 20px; }
+.market-mine {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #1c5c47;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  vertical-align: middle;
+}
 .market-card img {
   width: 100%;
   height: 280px;

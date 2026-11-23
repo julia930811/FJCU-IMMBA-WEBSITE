@@ -1069,10 +1069,12 @@ function pageShell(title, lead, inner) {
   const home = locale()==="zh"?"首頁":"Home";
   const page = document.body.dataset.page;
   const tabs = (page === "admin-news" || page === "admin-faculty" || page === "admin-alumni" || page === "admin-users" || page === "admin-audit") ? adminSwitch() : "";
+  const marketRoles = page === "market" ? `<div id="marketRoleBar" class="market-role-bar"></div>` : "";
   return `<section class="page-hero"><div class="wrap">
     <div class="crumbs"><a href="index.html">${home}</a> / ${title}</div>
     <h1>${title}</h1>${lead ? `<p>${lead}</p>` : ""}
     ${tabs}
+    ${marketRoles}
   </div></section>
   <section class="section"><div class="wrap">${inner}</div></section>`;
 }
