@@ -747,26 +747,66 @@
       status,
       updatedAt: stamp
     };
+    const client = sb();
+    let seller = { id: u.id, email: u.email };
+
+    async function cloudUser() {
+      if (!client) return null;
+      try {
+        const raced = await Promise.race([
+          client.auth.getUser(),
+          new Promise((resolve) => setTimeout(() => resolve({ data: { user: null } }), 4000))
+        ]);
+        return (raced && raced.data && raced.data.user) || null;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    const authUser = await cloudUser();
+    if (authUser) {
+      seller = { id: authUser.id, email: authUser.email || u.email };
+      try {
+        localStorage.setItem("immba-c2c-session-v1", JSON.stringify({ id: seller.id, email: seller.email }));
+      } catch (err) {}
+    }
     const draft = existing
       ? { ...existing, ...patch }
-      : { sellerId: u.id, sellerEmail: u.email, ...patch };
-    const client = sb();
-    if (!client) throw new Error(t("尚未連上雲端資料庫。", "Cloud database is not connected."));
+      : { sellerId: seller.id, sellerEmail: seller.email, ...patch };
+    draft.sellerId = existing && existing.sellerId && isOwnProduct(existing) ? existing.sellerId : seller.id;
+    draft.sellerEmail = seller.email || draft.sellerEmail;
+
+    function commitLocal(product) {
+      const idx = state.products.findIndex((p) => String(p.id) === String(product.id) || (existing && String(p.id) === String(existing.id)));
+      if (idx >= 0) state.products.splice(idx, 1);
+      state.products.unshift(product);
+      save();
+      notifyChange();
+      return product;
+    }
+
+    function localProduct() {
+      return normalizeProduct(existing ? { ...draft, id: existing.id } : { ...draft, id: "mp" + Date.now() });
+    }
+
+    if (!client || !authUser) {
+      return commitLocal(localProduct());
+    }
+
     remoteError = "";
-    const row = toRow(draft);
-    if (!existing) delete row.id;
-    const { data, error } = await client.from("market_products").upsert(row).select("*").single();
+    const row = toRow({ ...draft, sellerId: authUser.id, sellerEmail: seller.email });
+    delete row.id;
+    row.seller_id = authUser.id;
+    const cloudId = existing && (existing.cloudId || existing.id);
+    const query = existing && /^\d+$/.test(String(cloudId))
+      ? client.from("market_products").update(row).eq("id", Number(cloudId))
+      : client.from("market_products").insert(row);
+    const { data, error } = await query.select("*").single();
     if (error) {
       remoteError = error.message;
-      throw new Error(t("雲端上架失敗：" + error.message, "Cloud listing failed: " + error.message));
+      return commitLocal(localProduct());
     }
-    const product = fromRow(data);
-    const idx = state.products.findIndex((p) => String(p.id) === String(product.id) || (existing && String(p.id) === String(existing.id)));
-    if (idx >= 0) state.products.splice(idx, 1);
-    state.products.unshift(product);
-    save();
-    notifyChange();
-    return product;
+    return commitLocal(fromRow(data));
   }
 
   async function removeProduct(id) {

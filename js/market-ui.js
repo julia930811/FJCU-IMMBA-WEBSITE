@@ -43,12 +43,15 @@ function initMarket() {
   const LISTED_KEY = "immba-just-listed";
   const CART_ADDED_KEY = "immba-cart-added";
   const ORDER_MADE_KEY = "immba-order-made";
+  const FORM_KEY = "immba-seller-form";
   let justListedId = "";
   let cartJustAdded = false;
   let orderJustMade = "";
+  let showListingForm = false;
   try { justListedId = sessionStorage.getItem(LISTED_KEY) || ""; } catch (err) {}
   try { cartJustAdded = sessionStorage.getItem(CART_ADDED_KEY) === "1"; } catch (err) {}
   try { orderJustMade = sessionStorage.getItem(ORDER_MADE_KEY) || ""; } catch (err) {}
+  try { showListingForm = sessionStorage.getItem(FORM_KEY) === "1"; } catch (err) {}
   function setCartAdded(on) {
     cartJustAdded = !!on;
     try {
@@ -68,6 +71,13 @@ function initMarket() {
     try {
       if (justListedId) sessionStorage.setItem(LISTED_KEY, justListedId);
       else sessionStorage.removeItem(LISTED_KEY);
+    } catch (err) {}
+  }
+  function setShowListingForm(on) {
+    showListingForm = !!on;
+    try {
+      if (showListingForm) sessionStorage.setItem(FORM_KEY, "1");
+      else sessionStorage.removeItem(FORM_KEY);
     } catch (err) {}
   }
   const zh = document.documentElement.lang !== "en";
@@ -169,7 +179,7 @@ function initMarket() {
     active: "上架中",
     hidden: "隱藏／下架",
     fn1: "",
-    fn2: "賣家功能 2：管理庫存",
+    fn2: "",
     invManage: "庫存管理",
     totalAvail: "可售庫存合計",
     itemsUnit: "件",
@@ -370,7 +380,7 @@ function initMarket() {
     active: "Listed",
     hidden: "Hidden / remove",
     fn1: "",
-    fn2: "Seller Function 2: Manage Inventory",
+    fn2: "",
     invManage: "Inventory Management",
     totalAvail: "Total Available Stock",
     itemsUnit: "items",
@@ -924,8 +934,9 @@ function initMarket() {
             <option value="hidden"${p.status === "hidden" ? " selected" : ""}>${L.hidden}</option>
           </select>
         </label>
-        <p><button class="btn btn-navy" type="submit">${p.id ? L.update : L.create}</button>
+        <p><button class="btn btn-navy" type="submit" id="listingSubmit">${p.id ? L.update : L.create}</button>
         ${p.id ? `<button class="btn btn-line" type="button" id="cancelEdit">${L.cancel}</button>` : ""}</p>
+        <p class="market-note" id="listingStatus" hidden></p>
       </form>
     `;
   }
@@ -1016,7 +1027,6 @@ function initMarket() {
           <h3>${L.invManage}</h3>
           <p><strong>${L.totalAvail}: ${total} ${L.itemsUnit}</strong></p>
         </div>
-        <p class="market-note">${L.fn2}</p>
         ${products.length ? products.map((p) => {
           const stock = S.availableStock(p);
           const listed = p.status !== "hidden";
@@ -1047,15 +1057,16 @@ function initMarket() {
       if (aNew !== bNew) return bNew - aNew;
       return String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
     });
+    const openForm = showListingForm || !!editing || !!justListedId;
     return `
-      <section class="market-listing">
+      <p><button type="button" class="btn btn-navy" id="listAnother">${L.addNew}</button></p>
+      ${openForm ? `<section class="market-listing">
         <h3>${justListedId ? L.listedDone : L.listingTitle}</h3>
         ${justListedId ? listedDonePanel() : sellerForm(listingFormState())}
-      </section>
+      </section>` : ""}
       <section class="market-active">
         <div class="market-listings-head">
           <h3>${L.activeListings}</h3>
-          ${justListedId ? "" : `<button type="button" class="btn btn-navy" id="listAnother">${L.addNew}</button>`}
         </div>
         <div class="cards">${activeCards.map(sellerListingCard).join("") || `<p class="market-note">${L.noOwn}</p>`}</div>
       </section>
@@ -1073,8 +1084,6 @@ function initMarket() {
     return `
       <h2>${L.sellerTitle}</h2>
       ${pendingPay.length ? `<p class="market-ok">${L.orderFlow} · ${L.crossUser}</p>` : ""}
-      ${listingBlocks()}
-      ${inventoryPanel()}
       <div class="stats market-stats">
         <div><strong>${money(dash.monthlyRevenue)}</strong><span>${L.monthlyRev}</span></div>
         <div><strong>${dash.completedCount}</strong><span>${L.completedN}</span></div>
@@ -1100,6 +1109,8 @@ function initMarket() {
         </div>
         <p class="market-finance-sum"><strong>${period}</strong> · ${dash.itemsSold} ${L.soldThis} · ${L.revThis}: <strong>${money(dash.monthlyRevenue)}</strong></p>
       </section>
+      ${listingBlocks()}
+      ${inventoryPanel()}
     `;
   }
 
@@ -1221,23 +1232,22 @@ function initMarket() {
 
   async function fillMissingTranslations() {
     const pairs = [
-      ["listingNameZh", "listingNameEn", "en"],
-      ["listingNameEn", "listingNameZh", "zh"],
-      ["listingDescZh", "listingDescEn", "en"],
-      ["listingDescEn", "listingDescZh", "zh"]
+      ["listingNameZh", "listingNameEn"],
+      ["listingNameEn", "listingNameZh"],
+      ["listingDescZh", "listingDescEn"],
+      ["listingDescEn", "listingDescZh"]
     ];
-    for (const [sourceId, targetId, to] of pairs) {
+    pairs.forEach(([sourceId, targetId]) => {
       const source = document.getElementById(sourceId);
       const target = document.getElementById(targetId);
-      if (!source || !target || !source.value.trim()) continue;
+      if (!source || !target || !source.value.trim()) return;
       if (!target.value.trim() || target.dataset.auto === "1") {
-        const out = await autoFill(sourceId, targetId, to);
-        if (!out && (!target.value.trim() || target.dataset.auto === "1")) {
+        if (!target.value.trim()) {
           target.value = source.value.trim();
           target.dataset.auto = "1";
         }
       }
-    }
+    });
   }
 
   function bindListingTranslate() {
@@ -1369,7 +1379,7 @@ function initMarket() {
   }
 
   root.addEventListener("click", async (e) => {
-    const t = e.target.closest("[data-view], [data-open], [data-add], [data-remove], [data-advance], [data-edit], [data-hide], [data-del], [data-save-stock], [data-qty-step], [data-market-login], #checkoutBtn, #exportSeller, #exportAdmin, #cancelEdit, #listAnother, #marketLogoutBtn");
+    const t = e.target.closest("[data-view], [data-open], [data-add], [data-remove], [data-advance], [data-edit], [data-hide], [data-del], [data-save-stock], [data-qty-step], [data-market-login], #checkoutBtn, #exportSeller, #exportAdmin, #cancelEdit, #listAnother, #marketLogoutBtn, #listingSubmit");
     if (!t) return;
     try {
       if (t.id === "checkoutBtn") {
@@ -1397,17 +1407,26 @@ function initMarket() {
         location.href = loginHref(t.dataset.marketLogin);
         return;
       }
+      if (t.id === "listingSubmit") {
+        e.preventDefault();
+        await publishListing();
+        return;
+      }
       if (t.id === "listAnother") {
         setJustListed("");
         editing = null;
         clearListingDraft();
+        setShowListingForm(true);
         skipDraftCapture = true;
         render();
+        const form = document.getElementById("listingForm");
+        if (form) form.scrollIntoView({ block: "start" });
         return;
       }
       if (t.id === "cancelEdit") {
         editing = null;
         clearListingDraft();
+        setShowListingForm(false);
         skipDraftCapture = true;
         render();
         return;
@@ -1460,6 +1479,7 @@ function initMarket() {
         const p = S.product(t.dataset.edit);
         if (!S.canManageProduct(p)) throw new Error(L.ownOnly || (zh ? "只能編輯自己上傳的商品。" : "You can only update listings you uploaded."));
         setJustListed("");
+        setShowListingForm(true);
         editing = p;
         if (editing) {
           saveListingDraft(coerceListingRow({
@@ -1551,6 +1571,55 @@ function initMarket() {
     if (e.target.id === "adminQ") adminQuery = e.target.value.trim();
   });
 
+  async function publishListing() {
+    const form = document.getElementById("listingForm");
+    if (!form) return;
+    const submitBtn = form.querySelector("#listingSubmit, [type=submit]");
+    const status = document.getElementById("listingStatus");
+    if (submitBtn && submitBtn.disabled) return;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = zh ? "上架中…" : "Listing…";
+    }
+    if (status) {
+      status.hidden = false;
+      status.textContent = zh ? "正在上架…" : "Publishing listing…";
+    }
+    try {
+      await fillMissingTranslations();
+      const row = readListingForm();
+      const editingId = editing && editing.id ? String(editing.id) : "";
+      const saved = await S.upsertProduct({
+        ...row,
+        id: editingId || "",
+        name: (row && (row.nameZh || row.nameEn)) || "",
+        description: (row && (row.descriptionZh || row.descriptionEn)) || "",
+        imageUrl: listingImageUrl || (row && row.imageUrl) || ""
+      });
+      setJustListed(saved && saved.id ? String(saved.id) : "");
+      setShowListingForm(true);
+      editing = null;
+      clearListingDraft();
+      skipDraftCapture = true;
+      const stayAdmin = view === "admin" && S.isMarketAdmin && S.isMarketAdmin();
+      view = stayAdmin ? "admin" : "seller";
+      location.hash = view;
+      render();
+      const first = root.querySelector(".market-active .market-card") || root.querySelector(".market-listed-done");
+      if (first) first.scrollIntoView({ block: "start" });
+    } catch (err) {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = (editing && editing.id) ? L.update : L.create;
+      }
+      if (status) {
+        status.hidden = false;
+        status.textContent = err.message || String(err);
+      }
+      alert(err.message || String(err));
+    }
+  }
+
   root.addEventListener("submit", async (e) => {
     if (e.target.id === "feeForm") {
       e.preventDefault();
@@ -1565,40 +1634,7 @@ function initMarket() {
     }
     if (e.target.id !== "listingForm") return;
     e.preventDefault();
-    const submitBtn = e.target.querySelector('[type="submit"]');
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = L.listedDone;
-    }
-    try {
-      await fillMissingTranslations();
-      const row = readListingForm();
-      const editingId = editing && editing.id ? String(editing.id) : "";
-      setJustListed(editingId || "pending");
-      const saved = await S.upsertProduct({
-        ...row,
-        id: editingId || "",
-        name: (row && (row.nameZh || row.nameEn)) || "",
-        description: (row && (row.descriptionZh || row.descriptionEn)) || "",
-        imageUrl: listingImageUrl || (row && row.imageUrl) || ""
-      });
-      setJustListed(saved && saved.id ? String(saved.id) : justListedId);
-      editing = null;
-      clearListingDraft();
-      skipDraftCapture = true;
-      const stayAdmin = view === "admin" && S.isMarketAdmin && S.isMarketAdmin();
-      view = stayAdmin ? "admin" : "seller";
-      location.hash = view;
-      render();
-      const first = root.querySelector(".market-active .market-card") || root.querySelector(".market-listed-done");
-      if (first) first.scrollIntoView({ block: "start" });
-    } catch (err) {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = L.create;
-      }
-      alert(err.message || String(err));
-    }
+    await publishListing();
   });
 
   window.addEventListener("hashchange", () => {
