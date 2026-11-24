@@ -38,7 +38,7 @@ module.exports = async function handler(req, res) {
       apikey: key,
       "Content-Type": "application/json"
     },
-    body: JSON.stringify({ email, password, email_confirm: true })
+    body: JSON.stringify({ email, password, email_confirm: false })
   });
   const text = await r.text();
   let data = {};
@@ -51,6 +51,18 @@ module.exports = async function handler(req, res) {
     }
     res.status(400).json({ error: msg || "註冊失敗" });
     return;
+  }
+  const anon = process.env.VITE_SUPABASE_ANON_KEY || "";
+  if (anon) {
+    await fetch(url + "/auth/v1/resend", {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + anon,
+        apikey: anon,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ type: "signup", email })
+    });
   }
   res.status(200).json({ ok: true });
 };

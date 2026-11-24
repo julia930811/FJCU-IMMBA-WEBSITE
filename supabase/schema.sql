@@ -2,8 +2,8 @@
 -- Run this in the Supabase SQL Editor (can re-run).
 -- Dashboard also needed for the lecture:
 --   Authentication → Providers → Email ON
---   Authentication → Confirm email can stay ON; class signup uses /api/signup
---   so classmates are not blocked by the built-in 2 emails/hour limit.
+--   Authentication → Confirm email ON (lecture: new admin must verify email).
+--   Signup writes public.profiles with default role pending.
 --   Authentication → URL configuration: add
 --     http://127.0.0.1:8768
 --     http://127.0.0.1:8769

@@ -26,13 +26,16 @@ function errText(err) {
 function friendlyAuthError(err, zh) {
   const msg = errText(err);
   if (/email not confirmed|confirm your email/i.test(msg)) {
-    return zh ? "帳號已建立（pending 也可登入）。請再試一次；不必等驗證信。" : "The account exists (pending can sign in). Try again; you do not need a confirmation email.";
+    return zh ? "請先到信箱完成驗證，再登入。" : "Please confirm your email, then sign in.";
   }
   if (/invalid login credentials|invalid_credentials/i.test(msg)) {
     return zh ? "信箱或密碼不正確。" : "Email or password is incorrect.";
   }
   if (/signin-timeout|登入逾時|did not respond|沒有回應/i.test(msg)) {
     return zh ? "登入沒有回應。請關閉這個網站的其他分頁後再試。" : "Sign-in did not respond. Close other tabs of this site and try again.";
+  }
+  if (/SECRET_KEY/i.test(msg)) {
+    return zh ? "重設密碼信寄不出來：Vercel 還沒設定 SUPABASE_SECRET_KEY。" : "Reset email could not be sent: set SUPABASE_SECRET_KEY on Vercel.";
   }
   if (/not configured|尚未設定/i.test(msg)) {
     return zh ? "登入服務還沒接上。請重新整理；若仍不行，請確認 Vercel 已設定 Supabase 環境變數。" : "Auth is not configured. Refresh, or set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY on Vercel.";
@@ -145,11 +148,11 @@ function initRegister() {
       return;
     }
     if (data && data.session) {
-      authStatus(status, zh ? "已註冊。" : "Registered.", true);
+      authStatus(status, zh ? "已註冊。角色是 pending。" : "Registered. Your role is pending.", true);
       location.href = "account.html";
       return;
     }
-    authStatus(status, zh ? "帳號已建立。請立刻登入（不必等驗證信）。" : "Account created. Sign in now; you do not need a confirmation email.", true);
+    authStatus(status, zh ? "帳號已建立，角色是 pending。請到信箱完成驗證後再登入。可在 Supabase → Table Editor → profiles 看到這筆紀錄。" : "Account created with role pending. Confirm your email, then sign in. The row is in Supabase → Table Editor → profiles.", true);
   });
 }
 
@@ -209,7 +212,7 @@ function initAccount() {
   }
   box.innerHTML = `
     <p><strong>${zh ? "目前身分" : "Who are you?"}</strong> ${u.email || ""}</p>
-    <p>${role}</p>
+    <p>${zh ? "角色" : "Role"}：<strong>${role}</strong>${role === "pending" ? (zh ? "（註冊後預設 pending，需 super_admin 核准才能進後台）" : " (default after registration; a super_admin must approve you for the back office)") : ""}</p>
     <div class="admin-toolbar">
       ${Auth.canEdit() ? `<a class="btn btn-navy" href="admin-faculty.html">${zh ? "進入後台" : "Open back office"}</a>` : ""}
       ${Auth.isSuper() ? `<a class="btn btn-line" href="admin-users.html">${zh ? "核准管理員" : "Approve administrators"}</a>` : ""}

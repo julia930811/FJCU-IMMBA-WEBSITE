@@ -59,47 +59,8 @@
     notify();
   }
 
-  async function confirmViaApi(email) {
-    try {
-      const r = await fetch(location.origin + "/api/confirm-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-      const ct = r.headers.get("content-type") || "";
-      if (r.status === 404 || !/json/i.test(ct)) return { used: false };
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) return { used: true, error: j.error || "無法略過信箱驗證" };
-      return { used: true };
-    } catch {
-      return { used: false };
-    }
-  }
-
-  async function signUpViaApi(email, password) {
-    try {
-      const r = await fetch(location.origin + "/api/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
-      });
-      const ct = r.headers.get("content-type") || "";
-      if (r.status === 404 || !/json/i.test(ct)) return { used: false };
-      const j = await r.json().catch(() => ({}));
-      if (!r.ok) return { used: true, error: j.error || "註冊失敗" };
-      return { used: true };
-    } catch {
-      return { used: false };
-    }
-  }
-
   async function signUp(email, password) {
     error = "";
-    const viaApi = await signUpViaApi(email, password);
-    if (viaApi.used) {
-      if (viaApi.error) return fail(viaApi.error);
-      return signIn(email, password);
-    }
     const sb = client();
     if (!sb) return fail("Supabase 尚未設定，無法註冊。");
     const { data, error: e } = await sb.auth.signUp({
@@ -108,8 +69,14 @@
       options: { emailRedirectTo: redirectTo("account.html") }
     });
     if (e) error = e.message;
-    user = data && data.user ? data.user : null;
-    if (data && data.session) await loadProfile();
+    if (data && data.session) {
+      user = data.session.user || data.user || null;
+      await loadProfile();
+    } else {
+      user = null;
+      profile = null;
+    }
+    notify();
     return { data, error: e };
   }
 
@@ -129,23 +96,6 @@
       e = res.error;
     } catch (err) {
       return fail("登入逾時，請再試一次。");
-    }
-    const retryable = !!(e && !/signin-timeout|登入逾時|尚未設定|not configured/i.test(e.message || ""));
-    if (retryable) {
-      const via = await confirmViaApi(email);
-      if (via.used && !via.error) {
-        try {
-          const res2 = await withTimeout(
-            sb.auth.signInWithPassword({ email, password }),
-            15000,
-            "signin-timeout"
-          );
-          data = res2.data;
-          e = res2.error;
-        } catch (err) {
-          return fail("登入逾時，請再試一次。");
-        }
-      }
     }
     if (e) error = e.message;
     user = data && data.user ? data.user : null;
@@ -183,17 +133,17 @@
     error = "";
     const next = redirectTo("reset.html");
     const viaApi = await resetViaApi(email, next);
-    if (viaApi.used) {
-      if (viaApi.error) return fail(viaApi.error);
-      return { data: {}, error: null };
-    }
+    if (viaApi.used && !viaApi.error) return { data: {}, error: null };
     const sb = client();
-    if (!sb) return fail("Supabase 尚未設定，無法重設密碼。");
-    const { data, error: e } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: next
-    });
-    if (e) error = e.message;
-    return { data, error: e };
+    if (sb) {
+      const { data, error: e } = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: next
+      });
+      if (e) error = e.message;
+      return { data, error: e };
+    }
+    if (viaApi.error) return fail(viaApi.error);
+    return fail("Supabase 尚未設定，無法重設密碼。");
   }
 
   async function updatePassword(password) {

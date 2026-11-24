@@ -758,9 +758,14 @@ function pages() {
         </div>
       </form>
     `),
-    register: pageShell(zh?"註冊":"Register", "", `
+    register: pageShell(zh?"新管理員註冊":"Admin registration", zh?"註冊後請完成信箱驗證；資料會寫入 Supabase profiles，預設角色 pending。":"Create an account, confirm your email, then check the profiles row in Supabase. Default role: pending.", `
       <form class="admin-form auth-form" id="registerForm">
-        <h2>${zh?"註冊帳號":"Register"}</h2>
+        <h2>${zh?"新管理員註冊":"New administrator registration"}</h2>
+        <ol class="prose">
+          <li><strong>${zh?"註冊並完成信箱驗證":"Register and complete email verification"}</strong> — ${zh?"新管理員建立帳號後，請到信箱點開驗證信。":"A new administrator creates an account and confirms the email."}</li>
+          <li><strong>${zh?"在 Supabase 核對紀錄":"Check the record in Supabase"}</strong> — ${zh?"Table Editor → profiles 會出現這位使用者。":"Table Editor → profiles shows the new user row."}</li>
+          <li><strong>${zh?"預設角色 pending":"Default role: pending"}</strong> — ${zh?"註冊後角色是 pending，需 super_admin 核准才能進後台。":"After registration the role is pending until a super_admin approves it."}</li>
+        </ol>
         <label>Email<input id="authEmail" type="email" required autocomplete="username"></label>
         <label>${zh?"密碼":"Password"}<input id="authPassword" type="password" required autocomplete="new-password"></label>
         <label>${zh?"再輸入密碼":"Confirm password"}<input id="authPassword2" type="password" required autocomplete="new-password"></label>
