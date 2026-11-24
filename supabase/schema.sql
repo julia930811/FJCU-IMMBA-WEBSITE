@@ -6,8 +6,13 @@
 --   so classmates are not blocked by the built-in 2 emails/hour limit.
 --   Authentication → URL configuration: add
 --     http://127.0.0.1:8768
+--     http://127.0.0.1:8769
 --     http://localhost:8768
+--     http://localhost:8769
 --     https://fjcu-immba-website-lilac.vercel.app
+--     https://fjcu-immba-website-lilac.vercel.app/**
+--     http://127.0.0.1:8769/**
+--   Password reset emails need those Redirect URLs, plus Site URL.
 -- First verified signup becomes super_admin so they can approve others.
 
 create table if not exists public.faculty (

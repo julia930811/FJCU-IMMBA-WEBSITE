@@ -37,10 +37,10 @@ function friendlyAuthError(err, zh) {
   if (/not configured|尚未設定/i.test(msg)) {
     return zh ? "登入服務還沒接上。請重新整理；若仍不行，請確認 Vercel 已設定 Supabase 環境變數。" : "Auth is not configured. Refresh, or set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY on Vercel.";
   }
-  if (/rate limit|over_email_send_rate_limit|email rate limit/i.test(msg)) {
+  if (/rate limit|over_email_send_rate_limit|email rate limit|寄太多次/i.test(msg)) {
     return zh
-      ? "驗證信寄太多次了。請等約一小時再用同一個信箱註冊，或改用還沒試過的信箱。"
-      : "Too many confirmation emails were sent. Wait about an hour, or use an email you have not tried yet.";
+      ? "信件寄太多次了。請等約一小時再寄重設密碼信或註冊信。"
+      : "Too many emails were sent. Wait about an hour, then try the reset or signup email again.";
   }
   return msg;
 }
@@ -167,10 +167,10 @@ function initReset() {
       const email = document.getElementById("authEmail").value.trim();
       const { error } = await window.IMMBAAuth.resetPassword(email);
       if (error) {
-        authStatus(status, zh ? "寄送失敗：" + (errText(error) || "請稍後再試。") : "Could not send reset email: " + (errText(error) || "Please try again."), false);
+        authStatus(status, zh ? "寄送失敗：" + (friendlyAuthError(error, true) || errText(error) || "請稍後再試。") : "Could not send reset email: " + (friendlyAuthError(error, false) || errText(error) || "Please try again."), false);
         return;
       }
-      authStatus(status, zh ? "若帳號存在，重設密碼信件已寄出。請從信件回到本頁設定新密碼。" : "If the account exists, a reset email was sent. Open the link to create a new password.", true);
+      authStatus(status, zh ? "重設密碼信件已寄出。請到信箱點開連結，再回到本頁設定新密碼。" : "A reset email was sent. Open the link, then set a new password on this page.", true);
     });
   }
   if (update) {

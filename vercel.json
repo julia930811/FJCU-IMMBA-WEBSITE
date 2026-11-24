@@ -8,6 +8,9 @@
     },
     "api/confirm-login.js": {
       "maxDuration": 10
+    },
+    "api/reset-password.js": {
+      "maxDuration": 10
     }
   },
   "headers": [

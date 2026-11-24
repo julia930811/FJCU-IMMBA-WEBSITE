@@ -59,11 +59,6 @@
     notify();
   }
 
-  function isUnconfirmed(err) {
-    const msg = (err && (err.message || err.msg || err.error_description || "")) || "";
-    return /email not confirmed|confirm your email/i.test(msg);
-  }
-
   async function confirmViaApi(email) {
     try {
       const r = await fetch(location.origin + "/api/confirm-login", {
@@ -135,7 +130,8 @@
     } catch (err) {
       return fail("登入逾時，請再試一次。");
     }
-    if (e && isUnconfirmed(e)) {
+    const retryable = !!(e && !/signin-timeout|登入逾時|尚未設定|not configured/i.test(e.message || ""));
+    if (retryable) {
       const via = await confirmViaApi(email);
       if (via.used && !via.error) {
         try {
@@ -166,12 +162,35 @@
     notify();
   }
 
+  async function resetViaApi(email, next) {
+    try {
+      const r = await fetch(location.origin + "/api/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, redirectTo: next })
+      });
+      const ct = r.headers.get("content-type") || "";
+      if (r.status === 404 || !/json/i.test(ct)) return { used: false };
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return { used: true, error: j.error || "無法寄出重設密碼信。" };
+      return { used: true };
+    } catch {
+      return { used: false };
+    }
+  }
+
   async function resetPassword(email) {
     error = "";
+    const next = redirectTo("reset.html");
+    const viaApi = await resetViaApi(email, next);
+    if (viaApi.used) {
+      if (viaApi.error) return fail(viaApi.error);
+      return { data: {}, error: null };
+    }
     const sb = client();
     if (!sb) return fail("Supabase 尚未設定，無法重設密碼。");
     const { data, error: e } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: redirectTo("reset.html")
+      redirectTo: next
     });
     if (e) error = e.message;
     return { data, error: e };

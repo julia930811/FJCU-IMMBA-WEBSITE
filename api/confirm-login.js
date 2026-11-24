@@ -36,21 +36,33 @@ module.exports = async function handler(req, res) {
     "Content-Type": "application/json"
   };
 
-  const list = await fetch(url + "/auth/v1/admin/users?page=1&per_page=200", { headers });
-  const listText = await list.text();
-  let listData = {};
-  try { listData = JSON.parse(listText); } catch {}
-  if (!list.ok) {
-    res.status(400).json({ error: listData.msg || listData.message || "找不到帳號。" });
-    return;
+  async function readJson(r) {
+    const text = await r.text();
+    try { return JSON.parse(text); } catch { return {}; }
   }
-  const users = listData.users || [];
-  const user = users.find((u) => String(u.email || "").trim().toLowerCase() === email);
+
+  async function findUser() {
+    const byEmail = await fetch(url + "/auth/v1/admin/users?page=1&per_page=50&email=" + encodeURIComponent(email), { headers });
+    const byEmailData = await readJson(byEmail);
+    const fromQuery = (byEmailData.users || []).find((u) => String(u.email || "").trim().toLowerCase() === email);
+    if (fromQuery) return fromQuery;
+    for (let page = 1; page <= 20; page += 1) {
+      const list = await fetch(url + "/auth/v1/admin/users?page=" + page + "&per_page=200", { headers });
+      const listData = await readJson(list);
+      const users = listData.users || [];
+      const hit = users.find((u) => String(u.email || "").trim().toLowerCase() === email);
+      if (hit) return hit;
+      if (!list.ok || users.length < 200) break;
+    }
+    return null;
+  }
+
+  const user = await findUser();
   if (!user) {
     res.status(200).json({ ok: true });
     return;
   }
-  if (user.email_confirmed_at) {
+  if (user.email_confirmed_at && !user.banned_until) {
     res.status(200).json({ ok: true });
     return;
   }
@@ -58,7 +70,7 @@ module.exports = async function handler(req, res) {
   const upd = await fetch(url + "/auth/v1/admin/users/" + user.id, {
     method: "PUT",
     headers,
-    body: JSON.stringify({ email_confirm: true })
+    body: JSON.stringify({ email_confirm: true, ban_duration: "none" })
   });
   const updText = await upd.text();
   let updData = {};
