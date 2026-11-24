@@ -9,11 +9,12 @@
   };
   const PLATFORM_FEE = 4;
   const SHIPPING_FEE = 60;
-  const CATEGORIES = ["Textbook", "Notes", "Case", "Other"];
+  const CATEGORIES = ["Textbook", "Notes", "Case", "Electronics", "Other"];
   const CATEGORY_LABEL = {
     Textbook: { zh: "教科書", en: "Textbook" },
     Notes: { zh: "筆記", en: "Notes" },
     Case: { zh: "個案", en: "Case" },
+    Electronics: { zh: "電子設備", en: "Electronics" },
     Other: { zh: "其他", en: "Other" }
   };
 
@@ -87,7 +88,7 @@
     { id: "mp4", sellerId: "jiayi", sellerEmail: JIAYI_EMAIL, name: "Statistics for Managers workbook", nameZh: "管理者統計學習作本", nameEn: "Statistics for Managers workbook", category: "Textbook", description: "Workbook with answered problem sets. Spine intact.", descriptionZh: "含解答的習作本，書脊完好。", descriptionEn: "Workbook with answered problem sets. Spine intact.", price: 380, quantity: 2, imageUrl: "img/market/statistics-workbook.jpg?v=2", status: "active" },
     { id: "mp5", sellerId: "jiayi", sellerEmail: JIAYI_EMAIL, name: "Operations Management (Heizer)", nameZh: "作業管理（Heizer）", nameEn: "Operations Management (Heizer)", category: "Textbook", description: "Used Operations Management textbook for imMBA. Light highlighting.", descriptionZh: "imMBA 作業管理二手課本，有淡畫線。", descriptionEn: "Used Operations Management textbook for imMBA. Light highlighting.", price: 520, quantity: 3, imageUrl: "img/market/operations-management.jpg", status: "active" },
     { id: "mp6", sellerId: "jiayi", sellerEmail: JIAYI_EMAIL, name: "Talent management lecture notes", nameZh: "人才管理課堂筆記", nameEn: "Talent management lecture notes", category: "Notes", description: "Handwritten and typed notes from Talent Management.", descriptionZh: "人才管理課程手寫與打字筆記。", descriptionEn: "Handwritten and typed notes from Talent Management.", price: 180, quantity: 5, imageUrl: "img/market/hr-talent-notes.jpg", status: "active" },
-    { id: "mp7", sellerId: "jiayi", sellerEmail: JIAYI_EMAIL, name: "Used tablet with case", nameZh: "中古平板（含保護套）", nameEn: "Used tablet with case", category: "Other", description: "Used tablet in good condition, with tri-fold case. Visible wear on the cover.", descriptionZh: "中古良品二手平板，含三折保護套，外觀有使用痕跡。", descriptionEn: "Used tablet in good condition, with tri-fold case. Visible wear on the cover.", price: 6800, quantity: 1, imageUrl: "img/market/used-tablet.jpg?v=2", status: "active" }
+    { id: "mp7", sellerId: "jiayi", sellerEmail: JIAYI_EMAIL, name: "Used tablet with case", nameZh: "中古平板（含保護套）", nameEn: "Used tablet with case", category: "Electronics", description: "Used tablet in good condition, with tri-fold case. Visible wear on the cover.", descriptionZh: "中古良品二手平板，含三折保護套，外觀有使用痕跡。", descriptionEn: "Used tablet in good condition, with tri-fold case. Visible wear on the cover.", price: 6800, quantity: 1, imageUrl: "img/market/used-tablet.jpg?v=2", status: "active" }
   ];
 
   const seedOrders = [
@@ -206,6 +207,10 @@
         if (descMatches && !String(p.descriptionEn || "").trim()) p.descriptionEn = seed.descriptionEn;
         if (seed.imageUrl && p.imageUrl !== seed.imageUrl) {
           p.imageUrl = seed.imageUrl;
+          changed = true;
+        }
+        if (seed.category && p.category !== seed.category) {
+          p.category = seed.category;
           changed = true;
         }
       }
@@ -719,11 +724,15 @@
     const name = nameEn || nameZh;
     const description = descriptionEn || descriptionZh;
     const category = String(input.category || "").trim();
-    const price = Number(input.price);
-    const quantity = Number(input.quantity);
-    if (!name || !category || !description) throw new Error(t("商品名稱、類別與說明為必填。", "Product name, category and description are required."));
-    if (!(price >= 0) || Number.isNaN(price)) throw new Error(t("請填價格。", "Price is required."));
-    if (!(quantity >= 0) || Number.isNaN(quantity)) throw new Error(t("請填數量。", "Quantity is required."));
+    const priceRaw = String(input.price ?? "").trim();
+    const qtyRaw = String(input.quantity ?? "").trim();
+    const price = Number(priceRaw);
+    const quantity = Number(qtyRaw);
+    const imageUrl = String(input.imageUrl || "").trim();
+    if (!name || !category) throw new Error(t("商品名稱與類別為必填。", "Product name and category are required."));
+    if (!priceRaw || !Number.isFinite(price) || price < 0) throw new Error(t("請填價格。", "Price is required."));
+    if (!qtyRaw || !Number.isFinite(quantity) || quantity < 0) throw new Error(t("請填庫存數量。", "Stock quantity is required."));
+    if (!imageUrl) throw new Error(t("請上傳商品圖片。", "A product photo is required."));
     const status = input.status === "hidden" ? "hidden" : "active";
     const stamp = new Date().toISOString();
     const i18n = {
@@ -743,7 +752,7 @@
       category,
       price,
       quantity,
-      imageUrl: input.imageUrl || (existing && existing.imageUrl) || "",
+      imageUrl,
       status,
       updatedAt: stamp
     };

@@ -126,6 +126,7 @@ function initMarket() {
     manageUsers: "管理使用者",
     stock: "可售庫存",
     browse: "瀏覽商品",
+    allCats: "全部",
     details: "商品詳情",
     addCart: "加入購物車",
     noListings: "尚無上架商品。",
@@ -327,6 +328,7 @@ function initMarket() {
     manageUsers: "Manage users",
     stock: "Available stock",
     browse: "Browse listings",
+    allCats: "All",
     details: "Details",
     addCart: "Add to cart",
     noListings: "No active listings.",
@@ -519,6 +521,7 @@ function initMarket() {
   let adminStatus = "";
   let adminIncomplete = false;
   let sellerMonth = new Date().toISOString().slice(0, 7);
+  let browseCat = "";
 
   function money(n) {
     return "NT$ " + Number(n || 0).toLocaleString();
@@ -656,10 +659,15 @@ function initMarket() {
         list = [hit].concat(list.filter((p) => String(p.id) !== String(hit.id)));
       }
     }
+    if (browseCat) list = list.filter((p) => p.category === browseCat);
     const canBuy = !!S.me();
+    const chips = [`<button type="button" class="market-cat-chip${!browseCat ? " is-on" : ""}" data-cat="">${L.allCats}</button>`]
+      .concat(S.CATEGORIES.map((c) => `<button type="button" class="market-cat-chip${browseCat === c ? " is-on" : ""}" data-cat="${c}">${catText(c)}</button>`))
+      .join("");
     return `
       ${justListedId ? `<p class="market-listed-done-kicker">${L.listedDone}</p>` : ""}
       ${canBuy ? "" : `<p class="market-note">${L.visitorModeHint} <a href="${loginHref()}">${L.signIn}</a></p>`}
+      <div class="market-cat-row" role="tablist">${chips}</div>
       <div class="cards">${list.map((p) => productCard(p, `
         <p class="market-card-actions">
           <button type="button" class="btn btn-line" data-open="${p.id}">${L.details}</button>
@@ -1378,7 +1386,7 @@ function initMarket() {
   }
 
   root.addEventListener("click", async (e) => {
-    const t = e.target.closest("[data-fold], [data-view], [data-open], [data-add], [data-remove], [data-advance], [data-edit], [data-hide], [data-del], [data-save-stock], [data-qty-step], [data-market-login], #checkoutBtn, #exportSeller, #exportAdmin, #cancelEdit, #listAnother, #marketLogoutBtn, #listingSubmit");
+    const t = e.target.closest("[data-fold], [data-cat], [data-view], [data-open], [data-add], [data-remove], [data-advance], [data-edit], [data-hide], [data-del], [data-save-stock], [data-qty-step], [data-market-login], #checkoutBtn, #exportSeller, #exportAdmin, #cancelEdit, #listAnother, #marketLogoutBtn, #listingSubmit");
     if (!t) return;
     try {
       if (t.id === "checkoutBtn") {
@@ -1400,6 +1408,11 @@ function initMarket() {
       if (t.id === "marketLogoutBtn") {
         if (window.IMMBAMarketAuth && window.IMMBAMarketAuth.signOut) window.IMMBAMarketAuth.signOut();
         go("browse");
+        return;
+      }
+      if (t.dataset.cat !== undefined) {
+        browseCat = t.dataset.cat || "";
+        render();
         return;
       }
       if (t.dataset.fold) {

@@ -1261,6 +1261,28 @@ textarea { min-height: 140px; resize: vertical; }
   color: #1c5c47;
   border-bottom-color: #1c5c47;
 }
+.market-cat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+.market-cat-chip {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+  color: #1c5c47;
+}
+.market-cat-chip:hover { border-color: #1c5c47; }
+.market-cat-chip.is-on {
+  background: #1c5c47;
+  border-color: #1c5c47;
+  color: #fff;
+}
 .market-ship {
   border: 1px solid var(--line);
   border-radius: 12px;
