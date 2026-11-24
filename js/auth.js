@@ -59,6 +59,28 @@
     notify();
   }
 
+  function isUnconfirmed(err) {
+    const msg = (err && (err.message || err.msg || err.error_description || "")) || "";
+    return /email not confirmed|confirm your email/i.test(msg);
+  }
+
+  async function confirmViaApi(email) {
+    try {
+      const r = await fetch(location.origin + "/api/confirm-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const ct = r.headers.get("content-type") || "";
+      if (r.status === 404 || !/json/i.test(ct)) return { used: false };
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) return { used: true, error: j.error || "無法略過信箱驗證" };
+      return { used: true };
+    } catch {
+      return { used: false };
+    }
+  }
+
   async function signUpViaApi(email, password) {
     try {
       const r = await fetch(location.origin + "/api/signup", {
@@ -112,6 +134,22 @@
       e = res.error;
     } catch (err) {
       return fail("登入逾時，請再試一次。");
+    }
+    if (e && isUnconfirmed(e)) {
+      const via = await confirmViaApi(email);
+      if (via.used && !via.error) {
+        try {
+          const res2 = await withTimeout(
+            sb.auth.signInWithPassword({ email, password }),
+            15000,
+            "signin-timeout"
+          );
+          data = res2.data;
+          e = res2.error;
+        } catch (err) {
+          return fail("登入逾時，請再試一次。");
+        }
+      }
     }
     if (e) error = e.message;
     user = data && data.user ? data.user : null;

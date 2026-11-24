@@ -26,7 +26,7 @@ function errText(err) {
 function friendlyAuthError(err, zh) {
   const msg = errText(err);
   if (/email not confirmed|confirm your email/i.test(msg)) {
-    return zh ? "這個信箱還沒驗證。請到信箱點開驗證信後再登入。" : "Please confirm your email before signing in.";
+    return zh ? "帳號已建立（pending 也可登入）。請再試一次；不必等驗證信。" : "The account exists (pending can sign in). Try again; you do not need a confirmation email.";
   }
   if (/invalid login credentials|invalid_credentials/i.test(msg)) {
     return zh ? "信箱或密碼不正確。" : "Email or password is incorrect.";

@@ -5,6 +5,9 @@
   "functions": {
     "api/signup.js": {
       "maxDuration": 10
+    },
+    "api/confirm-login.js": {
+      "maxDuration": 10
     }
   },
   "headers": [
