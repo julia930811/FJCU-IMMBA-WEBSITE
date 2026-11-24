@@ -44,14 +44,17 @@ function initMarket() {
   const CART_ADDED_KEY = "immba-cart-added";
   const ORDER_MADE_KEY = "immba-order-made";
   const FORM_KEY = "immba-seller-form";
+  const FOLD_KEY = "immba-market-folds";
   let justListedId = "";
   let cartJustAdded = false;
   let orderJustMade = "";
   let showListingForm = false;
+  let folds = {};
   try { justListedId = sessionStorage.getItem(LISTED_KEY) || ""; } catch (err) {}
   try { cartJustAdded = sessionStorage.getItem(CART_ADDED_KEY) === "1"; } catch (err) {}
   try { orderJustMade = sessionStorage.getItem(ORDER_MADE_KEY) || ""; } catch (err) {}
   try { showListingForm = sessionStorage.getItem(FORM_KEY) === "1"; } catch (err) {}
+  try { folds = JSON.parse(sessionStorage.getItem(FOLD_KEY) || "{}") || {}; } catch (err) { folds = {}; }
   function setCartAdded(on) {
     cartJustAdded = !!on;
     try {
@@ -79,6 +82,24 @@ function initMarket() {
       if (showListingForm) sessionStorage.setItem(FORM_KEY, "1");
       else sessionStorage.removeItem(FORM_KEY);
     } catch (err) {}
+  }
+  function saveFolds() {
+    try { sessionStorage.setItem(FOLD_KEY, JSON.stringify(folds)); } catch (err) {}
+  }
+  function foldOn(id, fallback) {
+    if (Object.prototype.hasOwnProperty.call(folds, id)) return !!folds[id];
+    if (id === "add") return !!(showListingForm || editing || justListedId);
+    return fallback !== false;
+  }
+  function foldBlock(id, title, inner, fallback) {
+    const on = foldOn(id, fallback);
+    return `<section class="market-fold${on ? " is-open" : ""}">
+      <button type="button" class="market-fold-btn" data-fold="${id}" aria-expanded="${on ? "true" : "false"}">
+        <span>${title}</span>
+        <span class="market-fold-caret" aria-hidden="true"></span>
+      </button>
+      <div class="market-fold-body">${inner}</div>
+    </section>`;
   }
   const zh = document.documentElement.lang !== "en";
   const S = window.MarketStore;
@@ -1021,16 +1042,10 @@ function initMarket() {
   function inventoryPanel() {
     const products = S.sellerProducts();
     const total = products.reduce((s, p) => s + S.availableStock(p), 0);
-    return `
-      <section class="market-inv" id="inventory">
-        <div class="market-inv-head">
-          <h3>${L.invManage}</h3>
-          <p><strong>${L.totalAvail}: ${total} ${L.itemsUnit}</strong></p>
-        </div>
-        ${products.length ? products.map((p) => {
-          const stock = S.availableStock(p);
-          const listed = p.status !== "hidden";
-          return `<article class="market-inv-row">
+    const rows = products.length ? products.map((p) => {
+      const stock = S.availableStock(p);
+      const listed = p.status !== "hidden";
+      return `<article class="market-inv-row">
             <div>
               <p><strong>${S.productName(p)}</strong></p>
               <p>${listed ? L.statusListed : L.statusHidden}</p>
@@ -1044,9 +1059,8 @@ function initMarket() {
               <button type="button" class="btn btn-line" data-del="${p.id}">${L.unlist}</button>
             </div>
           </article>`;
-        }).join("") : `<p class="market-note">${L.noOwn}</p>`}
-      </section>
-    `;
+    }).join("") : `<p class="market-note">${L.noOwn}</p>`;
+    return foldBlock("inv", L.invManage, `<p><strong>${L.totalAvail}: ${total} ${L.itemsUnit}</strong></p>${rows}`);
   }
 
   function listingBlocks() {
@@ -1057,20 +1071,7 @@ function initMarket() {
       if (aNew !== bNew) return bNew - aNew;
       return String(b.updatedAt || "").localeCompare(String(a.updatedAt || ""));
     });
-    const openForm = showListingForm || !!editing || !!justListedId;
-    return `
-      <p><button type="button" class="btn btn-navy" id="listAnother">${L.addNew}</button></p>
-      ${openForm ? `<section class="market-listing">
-        <h3>${justListedId ? L.listedDone : L.listingTitle}</h3>
-        ${justListedId ? listedDonePanel() : sellerForm(listingFormState())}
-      </section>` : ""}
-      <section class="market-active">
-        <div class="market-listings-head">
-          <h3>${L.activeListings}</h3>
-        </div>
-        <div class="cards">${activeCards.map(sellerListingCard).join("") || `<p class="market-note">${L.noOwn}</p>`}</div>
-      </section>
-    `;
+    return foldBlock("listings", L.activeListings, `<div class="cards">${activeCards.map(sellerListingCard).join("") || `<p class="market-note">${L.noOwn}</p>`}</div>`);
   }
 
   function sellerView() {
@@ -1081,24 +1082,25 @@ function initMarket() {
     const completed = mine.filter((o) => o.status === "completed");
     const months = S.sellerMonths();
     const period = sellerMonth ? sellerMonth.replace("-", "/") : L.allMonths;
+    const addBody = justListedId ? listedDonePanel() : sellerForm(listingFormState());
     return `
-      <h2>${L.sellerTitle}</h2>
-      ${pendingPay.length ? `<p class="market-ok">${L.orderFlow} · ${L.crossUser}</p>` : ""}
-      <div class="stats market-stats">
-        <div><strong>${money(dash.monthlyRevenue)}</strong><span>${L.monthlyRev}</span></div>
-        <div><strong>${dash.completedCount}</strong><span>${L.completedN}</span></div>
-        <div><strong>${dash.pendingPayments}</strong><span>${L.pendingPayN}</span></div>
-        <div><strong>${dash.waitingShipment}</strong><span>${L.waitShipN}</span></div>
-      </div>
-      <section class="market-manage">
-        <h3>${L.manage}</h3>
+      ${foldBlock("add", L.addNew, addBody, false)}
+      ${foldBlock("manage", L.manage, `
         ${sellerPanel(L.pendingPayItems, pendingPay)}
         ${sellerPanel(L.pendingShipItems, pendingShip)}
-        ${sellerPanel(L.completedHist, completed)}
-      </section>
-      <section class="market-finance">
+        ${sellerPanel(L.completedHist, completed)}`)}
+      ${listingBlocks()}
+      ${inventoryPanel()}
+      ${foldBlock("dash", L.sellerTitle, `
+        ${pendingPay.length ? `<p class="market-ok">${L.orderFlow} · ${L.crossUser}</p>` : ""}
+        <div class="stats market-stats">
+          <div><strong>${money(dash.monthlyRevenue)}</strong><span>${L.monthlyRev}</span></div>
+          <div><strong>${dash.completedCount}</strong><span>${L.completedN}</span></div>
+          <div><strong>${dash.pendingPayments}</strong><span>${L.pendingPayN}</span></div>
+          <div><strong>${dash.waitingShipment}</strong><span>${L.waitShipN}</span></div>
+        </div>`)}
+      ${foldBlock("finance", L.finance, `
         <div class="market-finance-bar">
-          <h3>${L.finance}</h3>
           <label>${L.filterMonth}
             <select id="sellerMonth">
               <option value="">${L.allMonths}</option>
@@ -1107,10 +1109,7 @@ function initMarket() {
           </label>
           <button type="button" class="btn btn-navy" id="exportSeller">${L.exportCsv}</button>
         </div>
-        <p class="market-finance-sum"><strong>${period}</strong> · ${dash.itemsSold} ${L.soldThis} · ${L.revThis}: <strong>${money(dash.monthlyRevenue)}</strong></p>
-      </section>
-      ${listingBlocks()}
-      ${inventoryPanel()}
+        <p class="market-finance-sum"><strong>${period}</strong> · ${dash.itemsSold} ${L.soldThis} · ${L.revThis}: <strong>${money(dash.monthlyRevenue)}</strong></p>`)}
     `;
   }
 
@@ -1379,7 +1378,7 @@ function initMarket() {
   }
 
   root.addEventListener("click", async (e) => {
-    const t = e.target.closest("[data-view], [data-open], [data-add], [data-remove], [data-advance], [data-edit], [data-hide], [data-del], [data-save-stock], [data-qty-step], [data-market-login], #checkoutBtn, #exportSeller, #exportAdmin, #cancelEdit, #listAnother, #marketLogoutBtn, #listingSubmit");
+    const t = e.target.closest("[data-fold], [data-view], [data-open], [data-add], [data-remove], [data-advance], [data-edit], [data-hide], [data-del], [data-save-stock], [data-qty-step], [data-market-login], #checkoutBtn, #exportSeller, #exportAdmin, #cancelEdit, #listAnother, #marketLogoutBtn, #listingSubmit");
     if (!t) return;
     try {
       if (t.id === "checkoutBtn") {
@@ -1403,6 +1402,19 @@ function initMarket() {
         go("browse");
         return;
       }
+      if (t.dataset.fold) {
+        const id = t.dataset.fold;
+        const next = !foldOn(id);
+        folds[id] = next;
+        saveFolds();
+        if (id === "add") {
+          setShowListingForm(next);
+          if (next) setJustListed("");
+        }
+        skipDraftCapture = true;
+        render();
+        return;
+      }
       if (t.dataset.marketLogin) {
         location.href = loginHref(t.dataset.marketLogin);
         return;
@@ -1417,6 +1429,8 @@ function initMarket() {
         editing = null;
         clearListingDraft();
         setShowListingForm(true);
+        folds.add = true;
+        saveFolds();
         skipDraftCapture = true;
         render();
         const form = document.getElementById("listingForm");
@@ -1480,6 +1494,8 @@ function initMarket() {
         if (!S.canManageProduct(p)) throw new Error(L.ownOnly || (zh ? "只能編輯自己上傳的商品。" : "You can only update listings you uploaded."));
         setJustListed("");
         setShowListingForm(true);
+        folds.add = true;
+        saveFolds();
         editing = p;
         if (editing) {
           saveListingDraft(coerceListingRow({

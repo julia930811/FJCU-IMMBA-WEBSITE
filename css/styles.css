@@ -1637,6 +1637,43 @@ textarea { min-height: 140px; resize: vertical; }
   font-weight: 700;
   margin: 6px 0;
 }
+.market-fold {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  margin: 0 0 16px;
+  overflow: hidden;
+}
+.market-fold-btn {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 14px 18px;
+  border: 0;
+  background: #faf6ee;
+  color: #1c5c47;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+.market-fold-btn:hover { background: #f3eee3; }
+.market-fold-caret {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid #1c5c47;
+  border-bottom: 2px solid #1c5c47;
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+}
+.market-fold.is-open .market-fold-caret { transform: rotate(-135deg); }
+.market-fold-body { display: none; padding: 4px 18px 16px; }
+.market-fold.is-open .market-fold-body { display: block; }
 .market-inv {
   background: #fff;
   border: 1px solid var(--line);
